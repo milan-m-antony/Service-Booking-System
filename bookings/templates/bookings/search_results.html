@@ -1,0 +1,82 @@
+{% extends 'bookings/base.html' %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<section class="panel-lite mb-4">
+    <h4 class="mb-3">Search Results</h4>
+
+    {% if query %}
+        <p class="text-muted mb-0">Showing results for <strong>{{ query }}</strong></p>
+    {% else %}
+        <p class="text-muted mb-0">Use the header search icon to find staff, services, and bookings.</p>
+    {% endif %}
+</section>
+
+{% if query %}
+<section class="row g-3">
+    {% if services %}
+    <div class="col-lg-4">
+        <article class="panel-lite h-100">
+            <h5 class="mb-3">Services</h5>
+            <div class="availability-list">
+                {% for item in services %}
+                    <a class="availability-row search-link-row" href="{% if user.role == 'admin' %}{% url 'admin_services' %}{% else %}{% url 'booking_create' %}{% endif %}">
+                        <span>
+                            <strong>{{ item.name }}</strong><br>
+                            <small class="text-muted">{{ item.category.name }}</small>
+                        </span>
+                        <span class="badge text-bg-light border">INR {{ item.price }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </article>
+    </div>
+    {% endif %}
+
+    {% if staff_members %}
+    <div class="col-lg-4">
+        <article class="panel-lite h-100">
+            <h5 class="mb-3">Staff</h5>
+            <div class="availability-list">
+                {% for item in staff_members %}
+                    <a class="availability-row search-link-row" href="{% if user.role == 'admin' %}{% url 'admin_users' %}{% elif user.role == 'staff' %}{% url 'staff_dashboard' %}{% else %}{% url 'booking_create' %}{% endif %}">
+                        <span>
+                            <strong>{{ item.display_name }}</strong><br>
+                            <small class="text-muted">{{ item.email|default:'-' }}</small>
+                        </span>
+                        <span class="badge text-bg-light border">{{ item.phone|default:'-' }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </article>
+    </div>
+    {% endif %}
+
+    {% if bookings %}
+    <div class="col-lg-4">
+        <article class="panel-lite h-100">
+            <h5 class="mb-3">Bookings</h5>
+            <div class="availability-list">
+                {% for item in bookings %}
+                    <a class="availability-row search-link-row" href="{% if user.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.role == 'staff' %}{% url 'staff_dashboard' %}{% else %}{% url 'user_dashboard' %}{% endif %}">
+                        <span>
+                            <strong>{{ item.service.name }}</strong><br>
+                            <small class="text-muted">{{ item.scheduled_at|date:"d M Y, h:i A" }}</small>
+                        </span>
+                        <span class="status {{ item.status }}">{{ item.get_status_display }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </article>
+    </div>
+    {% endif %}
+
+    {% if not services and not staff_members and not bookings %}
+    <div class="col-12">
+        <article class="panel-lite">
+            <p class="text-muted mb-0">No matches found for <strong>{{ query }}</strong>.</p>
+        </article>
+    </div>
+    {% endif %}
+</section>
+{% endif %}
+{% endblock %}

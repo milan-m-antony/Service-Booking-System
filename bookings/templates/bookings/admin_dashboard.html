@@ -1,0 +1,115 @@
+{% extends 'bookings/base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<section class="role-hero role-hero-admin mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <span class="role-chip">Admin Workspace</span>
+            <h2 class="mb-1 mt-2">Admin Dashboard</h2>
+            <p class="text-muted mb-0">Oversee booking flow, resolve pending updates, and track service performance.</p>
+        </div>
+        <a class="btn btn-outline-light rounded-pill px-4" href="{% url 'analytics' %}"><i class="bi bi-graph-up me-2"></i>Analytics</a>
+    </div>
+</section>
+
+<section class="dashboard-actions mb-4" aria-label="Quick actions">
+    <a class="dashboard-action-btn" href="{% url 'admin_categories' %}"><i class="bi bi-tags"></i><span>Categories</span></a>
+    <a class="dashboard-action-btn" href="{% url 'admin_services' %}"><i class="bi bi-tools"></i><span>Services</span></a>
+    <a class="dashboard-action-btn" href="{% url 'admin_users' %}"><i class="bi bi-people"></i><span>Users</span></a>
+    <a class="dashboard-action-btn" href="{% url 'analytics' %}"><i class="bi bi-bar-chart"></i><span>Analytics</span></a>
+</section>
+
+<section class="row g-3 mb-4">
+    <div class="col-md-4 col-xl-2"><article class="kpi-card"><h6>{{ total_bookings }}</h6><p>Total</p></article></div>
+    <div class="col-md-4 col-xl-2"><article class="kpi-card"><h6>{{ pending_count }}</h6><p>Pending</p></article></div>
+    <div class="col-md-4 col-xl-2"><article class="kpi-card"><h6>{{ completed_count }}</h6><p>Completed</p></article></div>
+    <div class="col-md-4 col-xl-2"><article class="kpi-card"><h6>{{ today_bookings }}</h6><p>Today</p></article></div>
+    <div class="col-md-4 col-xl-2"><article class="kpi-card"><h6>{{ cancelled_count }}</h6><p>Cancelled</p></article></div>
+    <div class="col-md-4 col-xl-2"><article class="kpi-card kpi-card-strong"><h6>₹{{ completed_revenue }}</h6><p>Revenue</p></article></div>
+</section>
+
+<section class="panel-lite role-panel p-0 overflow-hidden mb-4">
+    <div class="p-4 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0">Pending Actions</h4>
+        <span class="badge badge-glass border-warning text-warning"><i class="bi bi-exclamation-circle me-1"></i>{{ pending_count }} Action Required</span>
+    </div>
+
+    <div class="table-responsive-stack p-4">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Customer</th>
+                    <th>Staff</th>
+                    <th>Scheduled</th>
+                    <th class="text-end">Update</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in pending_bookings %}
+                <tr>
+                    <td data-label="Service" class="fw-bold">{{ booking.service.name }} <br><small class="text-muted">{{ booking.service.category.name }}</small></td>
+                    <td data-label="Customer">
+                        <i class="bi bi-person text-muted me-1"></i>{{ booking.customer.display_name }}<br>
+                        <small class="text-muted">{{ booking.customer.phone|default:'-' }}</small>
+                    </td>
+                    <td data-label="Staff">
+                        <i class="bi bi-person-badge text-primary me-1"></i>{{ booking.staff.display_name }}
+                    </td>
+                    <td data-label="Scheduled">{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
+                    <td data-label="Update" class="text-md-end">
+                        <form method="post" action="{% url 'update_booking_status' booking.id %}" class="d-flex gap-2 justify-content-md-end m-0">
+                            {% csrf_token %}
+                            <select name="status" class="form-select form-select-sm" style="width: auto; background: rgba(0,0,0,0.3) !important;">
+                                {% for key, label in booking.Status.choices %}
+                                <option value="{{ key }}" {% if booking.status == key %}selected{% endif %} style="background: var(--bg-surface-solid);">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center py-4 text-muted">No pending bookings.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="panel-lite role-panel p-0 overflow-hidden">
+    <div class="p-4 border-bottom">
+        <h4 class="mb-0">Recent Bookings History</h4>
+    </div>
+    <div class="table-responsive-stack p-4">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Service</th>
+                    <th>Staff</th>
+                    <th>Scheduled</th>
+                    <th class="text-end">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in recent_bookings %}
+                <tr>
+                    <td data-label="Customer" class="fw-bold">{{ booking.customer.display_name }} <br><span class="text-muted small">{{ booking.customer.phone|default:'' }}</span></td>
+                    <td data-label="Service" class="text-primary">{{ booking.service.name }}</td>
+                    <td data-label="Staff">{{ booking.staff.display_name }}</td>
+                    <td data-label="Scheduled">{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
+                    <td data-label="Status" class="text-md-end">
+                        <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                            {{ booking.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center py-4 text-muted">No recent bookings.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

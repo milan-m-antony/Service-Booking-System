@@ -1,0 +1,403 @@
+{% extends 'bookings/base.html' %}
+{% block title %}Staff Dashboard{% endblock %}
+{% block content %}
+<section class="role-hero role-hero-staff mb-4">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+        <span class="role-chip">Staff Workspace</span>
+        <h2 class="mb-1 mt-2">{% if staff_view_mode == 'availability' %}My Availability{% else %}Staff Dashboard{% endif %}</h2>
+        <p class="text-muted mb-0">Manage assigned jobs and maintain your availability calendar.</p>
+    </div>
+    {% if staff_view_mode != 'availability' %}
+    <a class="btn btn-outline-light rounded-pill px-4" href="{% url 'staff_availability' %}"><i class="bi bi-calendar-check me-2"></i>Availability</a>
+    {% endif %}
+</div>
+</section>
+
+<section class="dashboard-actions mb-4" aria-label="Quick actions">
+    <a class="dashboard-action-btn" href="{% url 'staff_dashboard' %}"><i class="bi bi-briefcase"></i><span>Assigned Jobs</span></a>
+    <a class="dashboard-action-btn" href="{% url 'staff_availability' %}"><i class="bi bi-calendar-check"></i><span>Availability</span></a>
+    <a class="dashboard-action-btn" href="{% url 'messages' %}"><i class="bi bi-chat-dots"></i><span>Messages</span></a>
+    <a class="dashboard-action-btn" href="{% url 'profile' %}"><i class="bi bi-person"></i><span>Profile</span></a>
+</section>
+
+{% if staff_view_mode != 'availability' %}
+<section class="row g-3 mb-4">
+    <div class="col-md-4"><article class="kpi-card"><h6>{{ bookings|length }}</h6><p>Total Assigned</p></article></div>
+    <div class="col-md-4"><article class="kpi-card"><h6>{{ pending_count }}</h6><p>Pending Tasks</p></article></div>
+    <div class="col-md-4"><article class="kpi-card"><h6>{{ completed_count }}</h6><p>Completed Jobs</p></article></div>
+</section>
+
+<section class="panel-lite role-panel p-0 overflow-hidden">
+    <div class="p-4 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0">Assigned Jobs</h4>
+        <span class="badge-glass"><i class="bi bi-list-task me-1"></i>{{ bookings|length }} jobs</span>
+    </div>
+
+    <div class="px-4 pt-4">
+        <div class="search-filter-controls dashboard-table-controls">
+            <div>
+                <input type="text" id="staff-job-search" class="form-control" placeholder="Search by customer or service">
+            </div>
+            <div>
+                <select id="staff-job-status-filter" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div>
+                <select id="staff-job-sort" class="form-select">
+                    <option value="date-asc">Sort: Upcoming First</option>
+                    <option value="date-desc">Sort: Latest First</option>
+                    <option value="service-asc">Sort: Service A-Z</option>
+                    <option value="service-desc">Sort: Service Z-A</option>
+                </select>
+            </div>
+        </div>
+        <div class="dashboard-filter-status" id="staff-job-filter-status" style="display:none;">
+            Showing <span id="staff-job-filtered-count">0</span> of <span id="staff-job-total-count">{{ bookings|length }}</span> jobs
+        </div>
+    </div>
+
+    <div class="table-responsive-stack p-4">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Contact</th>
+                    <th>Service</th>
+                    <th>Scheduled</th>
+                    <th>Status</th>
+                    <th class="text-end">Update</th>
+                </tr>
+            </thead>
+            <tbody id="staff-jobs-tbody">
+                {% for booking in bookings %}
+                <tr class="staff-job-row"
+                    data-customer="{{ booking.customer.display_name|lower }}"
+                    data-service="{{ booking.service.name|lower }}"
+                    data-status="{{ booking.status }}"
+                    data-scheduled="{{ booking.scheduled_at|date:'U' }}">
+                    <td data-label="Customer" class="fw-bold"><i class="bi bi-person-circle text-muted"></i> {{ booking.customer.display_name }}</td>
+                    <td data-label="Contact">{{ booking.customer.phone|default:'Not provided' }}</td>
+                    <td data-label="Service" class="text-primary">{{ booking.service.name }}</td>
+                    <td data-label="Scheduled">{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
+                    <td data-label="Status">
+                        {% if booking.status == 'completed' %}
+                            <span class="badge-glass badge-status-completed"><i class="bi bi-check-circle me-1"></i>Completed</span>
+                        {% elif booking.status == 'pending' %}
+                            <span class="badge-glass badge-status-pending"><i class="bi bi-clock-history me-1"></i>Pending</span>
+                        {% else %}
+                            <span class="badge-glass">{{ booking.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Update" class="text-md-end">
+                        <form method="post" action="{% url 'update_booking_status' booking.id %}" class="staff-job-update-form d-flex gap-2 justify-content-md-end m-0">
+                            {% csrf_token %}
+                            <select name="status" class="form-select form-select-sm" style="width: auto; background: rgba(0,0,0,0.3) !important;">
+                                {% for key, label in booking.Status.choices %}
+                                <option value="{{ key }}" {% if booking.status == key %}selected{% endif %} style="background: var(--bg-surface-solid);">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Save</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center py-4 text-muted">No assigned bookings yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p class="text-muted small mb-0 mt-3" id="staff-jobs-empty" style="display:none;">No jobs match your current filters.</p>
+    </div>
+</section>
+{% endif %}
+
+{% if staff_view_mode != 'home' %}
+<section class="panel-lite role-panel" id="availability">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div>
+            <h4 class="mb-1">My Availability</h4>
+            <p class="text-muted mb-0">Tap a date to review leave days, blocked slots, and assigned jobs.</p>
+        </div>
+        <span class="badge-glass"><i class="bi bi-calendar3 me-1"></i>{{ selected_slot_date|date:"d M Y" }}</span>
+    </div>
+
+    <div class="booking-calendar-shell mb-3">
+        <div class="calendar-toolbar">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="staffCalendarPrev"><i class="bi bi-chevron-left"></i></button>
+            <div class="calendar-toolbar-title" id="staffCalendarTitle"></div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="staffCalendarNext"><i class="bi bi-chevron-right"></i></button>
+        </div>
+        <div class="calendar-weekdays">
+            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+        </div>
+        <div class="calendar-grid" id="staffCalendarGrid"></div>
+    </div>
+
+    {{ staff_calendar_data|json_script:"staff-calendar-data" }}
+
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <span class="badge-glass"><span class="legend-dot available"></span> Available</span>
+        <span class="badge-glass"><span class="legend-dot partial"></span> Partial</span>
+        <span class="badge-glass"><span class="legend-dot booked-out"></span> Booked out</span>
+        <span class="badge-glass"><span class="legend-dot unavailable"></span> Blocked</span>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <label class="form-label text-muted">Jump to Date</label>
+            <form method="get">
+                <input type="date" name="slot_date" class="form-control" min="{{ today }}" value="{{ selected_slot_date }}" onchange="this.form.submit()" required>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label text-muted">Full Day Status</label>
+            <form method="post" class="d-grid m-0">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle_leave_date">
+                <input type="hidden" name="leave_date" value="{{ selected_slot_date }}">
+                <button type="submit" class="btn {% if is_leave_date_selected %}btn-danger{% else %}btn-outline-success{% endif %} rounded-pill">
+                    {% if is_leave_date_selected %}Blocked (Tap to Available){% else %}Available (Tap to Block Day){% endif %}
+                </button>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label text-muted">Jobs on Date</label>
+            <div class="p-3 text-center border rounded-3" style="border-color: var(--glass-border) !important; background: rgba(255,255,255,0.85);">
+                <strong class="fs-5">{{ selected_date_bookings|length }}</strong> active bookings
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <h5 class="mb-3">Time Slots Configuration <span class="fs-6 text-muted ms-2">(Toggle status)</span></h5>
+        <div class="d-flex flex-wrap gap-2">
+            {% for slot in time_slot_options %}
+                <form method="post" class="m-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="toggle_blocked_slot">
+                    <input type="hidden" name="slot_date" value="{{ selected_slot_date }}">
+                    <input type="hidden" name="slot_time" value="{{ slot }}">
+
+                    {% if slot in booked_slot_times %}
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" disabled>{{ slot }} - Booked</button>
+                    {% elif is_leave_date_selected %}
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" disabled>{{ slot }} - Day Off</button>
+                    {% elif slot in blocked_slot_times %}
+                        <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3">{{ slot }} - Blocked</button>
+                    {% else %}
+                        <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3">{{ slot }} - Available</button>
+                    {% endif %}
+                </form>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row g-4 border-top pt-4" style="border-color: var(--glass-border) !important;">
+        <div class="col-md-6">
+            <h6 class="mb-3">Bookings Scheduled</h6>
+            <ul class="list-group list-group-flush bg-transparent">
+                {% for booking in selected_date_bookings %}
+                <li class="list-group-item bg-transparent border-bottom border-secondary px-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><strong class="text-primary">{{ booking.scheduled_at|time:"g:i A" }}</strong> &middot; {{ booking.service.name }}</span>
+                        <span class="badge-glass">{{ booking.get_status_display }}</span>
+                    </div>
+                    <div class="small text-muted mt-1">{{ booking.customer.display_name }}</div>
+                </li>
+                {% empty %}
+                <li class="list-group-item bg-transparent text-muted px-0 border-0">No bookings for this date.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h6 class="mb-3">Upcoming Days Off</h6>
+            <ul class="list-group list-group-flush bg-transparent">
+                {% for item in leave_dates %}
+                <li class="list-group-item bg-transparent border-bottom border-secondary px-0 d-flex justify-content-between">
+                    <span><i class="bi bi-calendar-x text-danger me-2"></i>{{ item.date|date:"D, d M Y" }}</span>
+                    <span class="text-muted small">Blocked</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item bg-transparent text-muted px-0 border-0">No full-day blocks ahead.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('staff-job-search');
+    const statusFilter = document.getElementById('staff-job-status-filter');
+    const sortSelect = document.getElementById('staff-job-sort');
+    const rows = Array.from(document.querySelectorAll('.staff-job-row'));
+    const tbody = document.getElementById('staff-jobs-tbody');
+    const filterStatus = document.getElementById('staff-job-filter-status');
+    const filteredCount = document.getElementById('staff-job-filtered-count');
+    const totalCount = document.getElementById('staff-job-total-count');
+    const emptyState = document.getElementById('staff-jobs-empty');
+
+    if (!searchInput || !statusFilter || !sortSelect || rows.length === 0 || !tbody) {
+        return;
+    }
+
+    const total = rows.length;
+    totalCount.textContent = String(total);
+
+    function applyFilters() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        const selectedStatus = statusFilter.value;
+        const sortMode = sortSelect.value;
+
+        let visibleRows = rows.filter((row) => {
+            const customer = row.getAttribute('data-customer') || '';
+            const service = row.getAttribute('data-service') || '';
+            const status = row.getAttribute('data-status') || '';
+            const matchesText = !searchTerm || customer.includes(searchTerm) || service.includes(searchTerm);
+            const matchesStatus = !selectedStatus || status === selectedStatus;
+            return matchesText && matchesStatus;
+        });
+
+        visibleRows.sort((a, b) => {
+            if (sortMode === 'date-desc') {
+                return Number(b.getAttribute('data-scheduled')) - Number(a.getAttribute('data-scheduled'));
+            }
+            if (sortMode === 'service-asc') {
+                return (a.getAttribute('data-service') || '').localeCompare(b.getAttribute('data-service') || '');
+            }
+            if (sortMode === 'service-desc') {
+                return (b.getAttribute('data-service') || '').localeCompare(a.getAttribute('data-service') || '');
+            }
+            return Number(a.getAttribute('data-scheduled')) - Number(b.getAttribute('data-scheduled'));
+        });
+
+        rows.forEach((row) => {
+            row.style.display = 'none';
+        });
+
+        visibleRows.forEach((row) => {
+            tbody.appendChild(row);
+            row.style.display = '';
+        });
+
+        filteredCount.textContent = String(visibleRows.length);
+        filterStatus.style.display = visibleRows.length < total ? 'block' : 'none';
+        emptyState.style.display = visibleRows.length === 0 ? 'block' : 'none';
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    statusFilter.addEventListener('change', applyFilters);
+    sortSelect.addEventListener('change', applyFilters);
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const staffCalendarGrid = document.getElementById('staffCalendarGrid');
+    const staffCalendarTitle = document.getElementById('staffCalendarTitle');
+    const staffCalendarPrev = document.getElementById('staffCalendarPrev');
+    const staffCalendarNext = document.getElementById('staffCalendarNext');
+    const staffCalendarDataNode = document.getElementById('staff-calendar-data');
+
+    if (!staffCalendarGrid || !staffCalendarTitle || !staffCalendarDataNode) {
+        return;
+    }
+
+    const staffCalendarData = JSON.parse(staffCalendarDataNode.textContent || '{}');
+    const selectedSlotIso = "{{ selected_slot_date }}";
+    const initialDate = selectedSlotIso ? new Date(`${selectedSlotIso}T00:00:00`) : new Date();
+    let staffCalendarMonth = initialDate.getMonth();
+    let staffCalendarYear = initialDate.getFullYear();
+
+    function formatCalendarDate(dateObj) {
+        return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+    }
+
+    function goToSlotDate(isoDate) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('slot_date', isoDate);
+        window.location.href = `${url.pathname}?${url.searchParams.toString()}`;
+    }
+
+    function renderStaffCalendar() {
+        staffCalendarGrid.innerHTML = '';
+
+        const monthStart = new Date(staffCalendarYear, staffCalendarMonth, 1);
+        const monthEnd = new Date(staffCalendarYear, staffCalendarMonth + 1, 0);
+        const firstDay = (monthStart.getDay() + 6) % 7;
+        const totalDays = monthEnd.getDate();
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+        staffCalendarTitle.textContent = monthStart.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+        for (let index = 0; index < firstDay; index += 1) {
+            const spacer = document.createElement('span');
+            spacer.className = 'calendar-empty';
+            staffCalendarGrid.appendChild(spacer);
+        }
+
+        for (let day = 1; day <= totalDays; day += 1) {
+            const dateObj = new Date(staffCalendarYear, staffCalendarMonth, day);
+            const isoDate = formatCalendarDate(dateObj);
+            const dayInfo = staffCalendarData[isoDate] || { count: 0, status: 'open' };
+            const isPast = dateObj < todayStart;
+            const status = isPast ? 'past' : dayInfo.status;
+            const count = Number(dayInfo.count || 0);
+
+            const cell = document.createElement('button');
+            cell.type = 'button';
+            cell.className = 'calendar-day';
+            cell.classList.add(`is-${status}`);
+            cell.innerHTML = `<span class="calendar-day-number">${day}</span><span class="calendar-day-label">${isPast ? 'Past' : (status === 'closed' ? 'Blocked' : status === 'booked-out' ? 'Booked out' : status === 'partial' ? `${count} booking${count > 1 ? 's' : ''}` : 'Available')}</span>`;
+            cell.title = isPast ? 'Past date' : `${status} (${count} booking${count === 1 ? '' : 's'})`;
+
+            if (isoDate === selectedSlotIso) {
+                cell.classList.add('is-selected');
+            }
+
+            if (isPast) {
+                cell.disabled = true;
+            } else {
+                cell.addEventListener('click', function () {
+                    goToSlotDate(isoDate);
+                });
+            }
+
+            staffCalendarGrid.appendChild(cell);
+        }
+    }
+
+    if (staffCalendarPrev) {
+        staffCalendarPrev.addEventListener('click', function () {
+            staffCalendarMonth -= 1;
+            if (staffCalendarMonth < 0) {
+                staffCalendarMonth = 11;
+                staffCalendarYear -= 1;
+            }
+            renderStaffCalendar();
+        });
+    }
+
+    if (staffCalendarNext) {
+        staffCalendarNext.addEventListener('click', function () {
+            staffCalendarMonth += 1;
+            if (staffCalendarMonth > 11) {
+                staffCalendarMonth = 0;
+                staffCalendarYear += 1;
+            }
+            renderStaffCalendar();
+        });
+    }
+
+    renderStaffCalendar();
+});
+</script>
+{% endblock %}

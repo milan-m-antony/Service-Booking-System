@@ -1,0 +1,321 @@
+{% extends 'bookings/base.html' %}
+{% block title %}User Dashboard{% endblock %}
+{% block content %}
+<section class="role-hero role-hero-user mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <span class="role-chip">Customer Workspace</span>
+            <h2 class="mb-1 mt-2">My Dashboard</h2>
+            <p class="text-muted mb-0">Track your service bookings and quickly take action.</p>
+        </div>
+        <a class="btn btn-primary rounded-pill px-4" href="{% url 'booking_create' %}"><i class="bi bi-plus-lg me-2"></i>New Booking</a>
+    </div>
+</section>
+
+<section class="dashboard-actions mb-4" aria-label="Quick actions">
+    <a class="dashboard-action-btn" href="{% url 'booking_create' %}"><i class="bi bi-calendar2-plus"></i><span>Book Service</span></a>
+    <a class="dashboard-action-btn" href="{% url 'messages' %}"><i class="bi bi-chat-dots"></i><span>Messages</span></a>
+    <a class="dashboard-action-btn" href="{% url 'profile' %}"><i class="bi bi-person"></i><span>Profile</span></a>
+</section>
+
+<section class="row g-3 mb-4">
+    <div class="col-md-4"><article class="kpi-card"><h6>{{ total_bookings }}</h6><p>Total Bookings</p></article></div>
+    <div class="col-md-4"><article class="kpi-card"><h6>{{ active_bookings }}</h6><p>Active Tasks</p></article></div>
+    <div class="col-md-4"><article class="kpi-card"><h6>₹{{ total_spent }}</h6><p>Total Spent</p></article></div>
+</section>
+
+<section class="mb-4">
+    <div class="panel-lite p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Your Bookings Calendar</h5>
+            <div class="d-flex align-items-center gap-2">
+                <small class="text-muted">Click a date to filter bookings</small>
+                <button type="button" id="clearCalendarFilter" class="btn-clear-filter">Clear Filter</button>
+            </div>
+        </div>
+        <div class="booking-calendar-shell">
+            <div class="calendar-toolbar">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="userCalendarPrev"><i class="bi bi-chevron-left"></i></button>
+                <div class="calendar-toolbar-title" id="userCalendarTitle"></div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="userCalendarNext"><i class="bi bi-chevron-right"></i></button>
+            </div>
+            <div class="calendar-weekdays">
+                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+            </div>
+            <div class="calendar-grid" id="userCalendarGrid"></div>
+        </div>
+    </div>
+</section>
+
+<section class="panel-lite role-panel p-0 overflow-hidden">
+    <div class="p-4 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h4 class="mb-0">Recent Bookings</h4>
+        <span class="badge-glass"><i class="bi bi-list-check me-1"></i>{{ total_bookings }} total</span>
+    </div>
+
+    <div class="px-4 pt-4">
+        <div class="search-filter-controls dashboard-table-controls">
+            <div>
+                <input type="text" id="user-booking-search" class="form-control" placeholder="Search by service or staff">
+            </div>
+            <div>
+                <select id="user-booking-status-filter" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div>
+                <select id="user-booking-sort" class="form-select">
+                    <option value="date-desc">Sort: Newest First</option>
+                    <option value="date-asc">Sort: Oldest First</option>
+                    <option value="price-desc">Sort: Price High-Low</option>
+                    <option value="price-asc">Sort: Price Low-High</option>
+                </select>
+            </div>
+        </div>
+        <div class="dashboard-filter-status" id="user-booking-filter-status" style="display:none;">
+            Showing <span id="user-booking-filtered-count">0</span> of <span id="user-booking-total-count">{{ total_bookings }}</span> bookings
+        </div>
+    </div>
+
+    <div class="table-responsive-stack p-4">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Staff</th>
+                    <th>Contact</th>
+                    <th>Scheduled</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody id="user-bookings-tbody">
+                {% for booking in bookings %}
+                <tr class="user-booking-row"
+                    data-service="{{ booking.service.name|lower }}"
+                    data-staff="{{ booking.staff.display_name|lower }}"
+                    data-status="{{ booking.status }}"
+                    data-price="{{ booking.service.price }}"
+                    data-scheduled="{{ booking.scheduled_at|date:'U' }}">
+                    <td data-label="Service" class="fw-bold">{{ booking.service.name }}</td>
+                    <td data-label="Staff">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-person-circle text-muted"></i> {{ booking.staff.display_name }}
+                        </div>
+                    </td>
+                    <td data-label="Contact">{{ booking.staff.phone|default:'Not provided' }}</td>
+                    <td data-label="Scheduled">{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
+                    <td data-label="Price" class="text-primary fw-bold">₹{{ booking.service.price }}</td>
+                    <td data-label="Status">
+                        {% if booking.status == 'completed' %}
+                            <span class="badge-glass badge-status-completed"><i class="bi bi-check-circle me-1"></i>Completed</span>
+                        {% elif booking.status == 'pending' %}
+                            <span class="badge-glass badge-status-pending"><i class="bi bi-clock-history me-1"></i>Pending</span>
+                        {% else %}
+                            <span class="badge-glass">{{ booking.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Action" class="text-md-end">
+                        <div class="d-flex gap-2 justify-content-md-end">
+                            {% if booking.status == 'pending' %}
+                            <form method="post" action="{% url 'cancel_booking' booking.id %}" class="m-0">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3" type="submit">Cancel</button>
+                            </form>
+                            {% elif booking.status == 'completed' %}
+                                {% if booking.feedback_entry %}
+                                    <span class="badge badge-glass text-warning border-0"><i class="bi bi-star-fill me-1"></i>{{ booking.feedback_entry.rating }}/5</span>
+                                {% else %}
+                                    <a class="btn btn-sm btn-outline-success rounded-pill px-3" href="{% url 'booking_feedback' booking.id %}">Feedback</a>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No bookings found. <a href="{% url 'booking_create' %}">Book your first service</a>.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p class="text-muted small mb-0 mt-3" id="user-bookings-empty" style="display:none;">No bookings match your current filters.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('user-booking-search');
+    const statusFilter = document.getElementById('user-booking-status-filter');
+    const sortSelect = document.getElementById('user-booking-sort');
+    const rows = Array.from(document.querySelectorAll('.user-booking-row'));
+    const tbody = document.getElementById('user-bookings-tbody');
+    const filterStatus = document.getElementById('user-booking-filter-status');
+    const filteredCount = document.getElementById('user-booking-filtered-count');
+    const totalCount = document.getElementById('user-booking-total-count');
+    const emptyState = document.getElementById('user-bookings-empty');
+
+    if (!searchInput || !statusFilter || !sortSelect || rows.length === 0 || !tbody) {
+        return;
+    }
+
+    const total = rows.length;
+    totalCount.textContent = String(total);
+
+    function applyFilters() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        const selectedStatus = statusFilter.value;
+        const sortMode = sortSelect.value;
+
+        let visibleRows = rows.filter((row) => {
+            const service = row.getAttribute('data-service') || '';
+            const staff = row.getAttribute('data-staff') || '';
+            const status = row.getAttribute('data-status') || '';
+            const matchesText = !searchTerm || service.includes(searchTerm) || staff.includes(searchTerm);
+            const matchesStatus = !selectedStatus || status === selectedStatus;
+            return matchesText && matchesStatus;
+        });
+
+        visibleRows.sort((a, b) => {
+            if (sortMode === 'date-asc') {
+                return Number(a.getAttribute('data-scheduled')) - Number(b.getAttribute('data-scheduled'));
+            }
+            if (sortMode === 'price-asc') {
+                return Number(a.getAttribute('data-price')) - Number(b.getAttribute('data-price'));
+            }
+            if (sortMode === 'price-desc') {
+                return Number(b.getAttribute('data-price')) - Number(a.getAttribute('data-price'));
+            }
+            return Number(b.getAttribute('data-scheduled')) - Number(a.getAttribute('data-scheduled'));
+        });
+
+        rows.forEach((row) => {
+            row.style.display = 'none';
+        });
+
+        visibleRows.forEach((row) => {
+            tbody.appendChild(row);
+            row.style.display = '';
+        });
+
+        filteredCount.textContent = String(visibleRows.length);
+        filterStatus.style.display = visibleRows.length < total ? 'block' : 'none';
+        emptyState.style.display = visibleRows.length === 0 ? 'block' : 'none';
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    statusFilter.addEventListener('change', applyFilters);
+    sortSelect.addEventListener('change', applyFilters);
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Small calendar showing count of user's bookings per date
+    const userCalendarGrid = document.getElementById('userCalendarGrid');
+    const userCalendarTitle = document.getElementById('userCalendarTitle');
+    const userPrev = document.getElementById('userCalendarPrev');
+    const userNext = document.getElementById('userCalendarNext');
+
+    if (!userCalendarGrid || !userCalendarTitle) return;
+
+    // build a map of date -> count from server-side bookings rendered in template
+    const bookingRows = Array.from(document.querySelectorAll('.user-booking-row'));
+    const bookMap = {};
+    bookingRows.forEach(r => {
+        const scheduled = r.getAttribute('data-scheduled');
+        if (!scheduled) return;
+        const d = new Date(Number(scheduled) * 1000);
+        const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        bookMap[iso] = (bookMap[iso] || 0) + 1;
+    });
+
+    let now = new Date();
+    let ucMonth = now.getMonth();
+    let ucYear = now.getFullYear();
+
+    function renderUserCalendar() {
+        userCalendarGrid.innerHTML = '';
+        const monthStart = new Date(ucYear, ucMonth, 1);
+        const monthEnd = new Date(ucYear, ucMonth + 1, 0);
+        const firstDay = (monthStart.getDay() + 6) % 7;
+        const totalDays = monthEnd.getDate();
+        userCalendarTitle.textContent = monthStart.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+        for (let i = 0; i < firstDay; i++) {
+            const spacer = document.createElement('span');
+            spacer.className = 'calendar-empty';
+            userCalendarGrid.appendChild(spacer);
+        }
+
+            for (let day = 1; day <= totalDays; day++) {
+            const dateObj = new Date(ucYear, ucMonth, day);
+            const iso = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}-${String(dateObj.getDate()).padStart(2,'0')}`;
+
+            const count = bookMap[iso] || 0;
+            // determine status: neutral when no bookings, partial for small counts, booked-out for many
+            const status = count === 0 ? 'neutral' : (count >= 3 ? 'booked-out' : 'partial');
+
+            const cell = document.createElement('button');
+            cell.type = 'button';
+            cell.className = 'calendar-day';
+            if (status !== 'neutral') cell.classList.add(`is-${status}`);
+            cell.innerHTML = `<span class="calendar-day-number">${day}</span><span class="calendar-day-label">${status === 'neutral' ? '' : (status === 'booked-out' ? 'Booked out' : count + ' booking' + (count>1?'s':''))}</span>`;
+
+            if (selectedUserIso === iso) cell.classList.add('is-selected');
+
+            cell.addEventListener('click', function () {
+                selectedUserIso = iso;
+                document.querySelectorAll('#userCalendarGrid .calendar-day').forEach(d => d.classList.remove('is-selected'));
+                cell.classList.add('is-selected');
+
+                const rows = Array.from(document.querySelectorAll('.user-booking-row'));
+                rows.forEach(r => {
+                    const scheduled = r.getAttribute('data-scheduled');
+                    if (!scheduled) { r.style.display = 'none'; return; }
+                    const d = new Date(Number(scheduled) * 1000);
+                    const riso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                    r.style.display = riso === iso ? '' : 'none';
+                });
+                const filteredCount = document.getElementById('user-booking-filtered-count');
+                const totalCount = document.getElementById('user-booking-total-count');
+                if (filteredCount) filteredCount.textContent = String(bookMap[iso] || 0);
+                if (totalCount) totalCount.textContent = String(document.querySelectorAll('.user-booking-row').length);
+                const filterStatus = document.getElementById('user-booking-filter-status');
+                if (filterStatus) filterStatus.style.display = 'block';
+            });
+
+            userCalendarGrid.appendChild(cell);
+        }
+    }
+
+    if (userPrev) userPrev.addEventListener('click', function () { ucMonth -= 1; if (ucMonth < 0) { ucMonth = 11; ucYear -= 1; } renderUserCalendar(); });
+    if (userNext) userNext.addEventListener('click', function () { ucMonth += 1; if (ucMonth > 11) { ucMonth = 0; ucYear += 1; } renderUserCalendar(); });
+
+    // selected ISO for dashboard calendar
+    let selectedUserIso = null;
+
+    const clearBtn = document.getElementById('clearCalendarFilter');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function () {
+            // show all rows
+            const rows = Array.from(document.querySelectorAll('.user-booking-row'));
+            rows.forEach(r => r.style.display = '');
+            const filterStatus = document.getElementById('user-booking-filter-status'); if (filterStatus) filterStatus.style.display = 'none';
+            const filteredCount = document.getElementById('user-booking-filtered-count'); if (filteredCount) filteredCount.textContent = String(rows.length);
+            // clear selection visuals
+            selectedUserIso = null; document.querySelectorAll('#userCalendarGrid .date-badge').forEach(d => d.classList.remove('selected'));
+        });
+    }
+
+    renderUserCalendar();
+});
+</script>
+{% endblock %}

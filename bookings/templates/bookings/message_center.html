@@ -1,0 +1,112 @@
+{% extends 'bookings/base.html' %}
+
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<section class="role-hero mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <span class="role-chip">Communication</span>
+      <h2 class="mb-1 mt-2">Message Center</h2>
+      <p class="text-muted mb-0">Send updates and track conversations with staff and users.</p>
+    </div>
+    <span class="badge-glass"><i class="bi bi-envelope me-1"></i>{{ unread_count }} unread</span>
+  </div>
+</section>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="panel-lite role-panel p-3 mb-3">
+      <h5 class="mb-3">Quick Presets</h5>
+      <div class="d-flex flex-wrap gap-2">
+        {% for key, text in presets %}
+        <button type="button" class="btn btn-outline-primary preset-btn" data-label="{{ key }}" data-text="{{ text|escape }}">{{ text }}</button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="panel-lite role-panel p-3">
+      <h5 class="mb-3">Send Message</h5>
+      <form method="post" class="d-grid gap-2">
+        {% csrf_token %}
+        <input type="hidden" name="preset_label" id="preset-label" value="">
+        <div>
+          <label class="form-label">Recipient</label>
+          <select name="recipient_id" class="form-select" required>
+            <option value="">Select recipient</option>
+            {% for user in recipients %}
+            <option value="{{ user.id }}">{{ user.display_name }} ({{ user.get_role_display }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Subject</label>
+          <input name="subject" class="form-control" maxlength="140" placeholder="Subject (optional)">
+        </div>
+        <div>
+          <label class="form-label">Message</label>
+          <textarea name="body" id="message-body" rows="5" class="form-control" required></textarea>
+        </div>
+        <button class="btn btn-primary" type="submit"><i class="bi bi-send me-1"></i>Send</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="panel-lite role-panel p-3 mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">Inbox</h5>
+        <span class="badge-glass">Latest 20</span>
+      </div>
+      <div class="message-list">
+        {% for item in inbox_messages %}
+        <article class="message-item">
+          <div class="d-flex justify-content-between flex-wrap gap-1">
+            <strong>{{ item.sender.display_name }}</strong>
+            <small class="text-muted">{{ item.created_at|date:"d M Y, h:i A" }}</small>
+          </div>
+          <p class="mb-1 small text-muted">{{ item.subject|default:"No subject" }}</p>
+          <p class="mb-0">{{ item.body|linebreaksbr }}</p>
+        </article>
+        {% empty %}
+        <p class="text-muted mb-0">No received messages yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="panel-lite role-panel p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">Sent</h5>
+        <span class="badge-glass">Latest 20</span>
+      </div>
+      <div class="message-list">
+        {% for item in sent_messages %}
+        <article class="message-item">
+          <div class="d-flex justify-content-between flex-wrap gap-1">
+            <strong>To {{ item.recipient.display_name }}</strong>
+            <small class="text-muted">{{ item.created_at|date:"d M Y, h:i A" }}</small>
+          </div>
+          <p class="mb-1 small text-muted">{{ item.subject|default:"No subject" }}</p>
+          <p class="mb-0">{{ item.body|linebreaksbr }}</p>
+        </article>
+        {% empty %}
+        <p class="text-muted mb-0">No sent messages yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('click', function(e){
+  if(e.target.matches('.preset-btn')){
+    var text = e.target.getAttribute('data-text');
+    var label = e.target.getAttribute('data-label') || '';
+    var ta = document.getElementById('message-body');
+    var presetInput = document.getElementById('preset-label');
+    if(ta) ta.value = text;
+    if(presetInput) presetInput.value = label;
+  }
+});
+</script>
+{% endblock %}

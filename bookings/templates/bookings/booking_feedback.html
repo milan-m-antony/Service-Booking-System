@@ -1,0 +1,41 @@
+{% extends 'bookings/base.html' %}
+{% block title %}Leave Feedback{% endblock %}
+{% block content %}
+<section class="panel-lite mx-auto" style="max-width: 720px;">
+    <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+        <div>
+            <h4 class="mb-1">Leave Feedback</h4>
+            <p class="text-muted mb-0">Rate the completed service and add a short note.</p>
+        </div>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'user_dashboard' %}">Back to Dashboard</a>
+    </div>
+
+    <div class="alert alert-light border">
+        <strong>{{ booking.service.name }}</strong><br>
+        Staff: {{ booking.staff.display_name }}<br>
+        Scheduled: {{ booking.scheduled_at|date:"d M Y, h:i A" }}
+    </div>
+
+    <form method="post" class="form-compact">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label fw-semibold" for="id_rating">Rating</label>
+            {{ form.rating }}
+            {% if form.rating.errors %}
+                <div class="invalid-feedback d-block">{{ form.rating.errors|striptags }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold" for="id_comment">Feedback</label>
+            {{ form.comment }}
+            {% if form.comment.errors %}
+                <div class="invalid-feedback d-block">{{ form.comment.errors|striptags }}</div>
+            {% endif %}
+        </div>
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2 small">{{ form.non_field_errors|striptags }}</div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">Submit Feedback</button>
+    </form>
+</section>
+{% endblock %}

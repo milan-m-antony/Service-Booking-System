@@ -1,0 +1,123 @@
+{% extends 'bookings/base.html' %}
+{% block title %}Analytics{% endblock %}
+{% block body_class %}analytics-shell{% endblock %}
+{% block content %}
+<section class="panel-lite analytics-hero mb-4">
+    <div>
+        <h3 class="mb-1">Analytics</h3>
+        <p class="text-muted mb-0">Track booking flow, service demand, and performance trends.</p>
+    </div>
+    <span class="analytics-hero-badge"><i class="bi bi-activity"></i> Live Metrics</span>
+</section>
+
+<section class="row g-3 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <article class="analytics-stat-card">
+            <p>Total Bookings</p>
+            <h3>{{ total_bookings }}</h3>
+        </article>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <article class="analytics-stat-card">
+            <p>This Month</p>
+            <h3>{{ this_month }}</h3>
+        </article>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <article class="analytics-stat-card">
+            <p>Completed</p>
+            <h3>{{ status_breakdown.completed|default:0 }}</h3>
+        </article>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <article class="analytics-stat-card">
+            <p>Pending</p>
+            <h3>{{ status_breakdown.pending|default:0 }}</h3>
+        </article>
+    </div>
+</section>
+
+<section class="panel-lite mb-4">
+    <h5 class="mb-3">Status Breakdown</h5>
+    {% for key, value in status_breakdown.items %}
+        <article class="analytics-status-item">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <label class="mb-0">{{ key|title }}</label>
+                <small>{{ value }}</small>
+            </div>
+            <div class="progress-track"><span style="width:{% if total_bookings %}{% widthratio value total_bookings 100 %}{% else %}0{% endif %}%"></span></div>
+        </article>
+    {% endfor %}
+</section>
+
+<section class="row g-3 mb-4">
+    <div class="col-xl-7">
+        <section class="panel-lite h-100">
+            <h5 class="mb-3">Popular Services</h5>
+            <div class="analytics-chart-wrap">
+                <canvas id="popularServicesChart"></canvas>
+            </div>
+        </section>
+    </div>
+    <div class="col-xl-5">
+        <section class="panel-lite h-100 analytics-top-status">
+            <h5 class="mb-3">Quick Status</h5>
+            <div class="analytics-status-pills">
+                <span class="analytics-pill pending">Pending {{ status_breakdown.pending|default:0 }}</span>
+                <span class="analytics-pill in-progress">In Progress {{ status_breakdown.in_progress|default:0 }}</span>
+                <span class="analytics-pill completed">Completed {{ status_breakdown.completed|default:0 }}</span>
+                <span class="analytics-pill cancelled">Cancelled {{ status_breakdown.cancelled|default:0 }}</span>
+            </div>
+        </section>
+    </div>
+</section>
+
+<section class="panel-lite">
+    <h5 class="mb-3">{% if user.role == 'staff' %}My Performance{% else %}Staff Performance{% endif %}</h5>
+    <div class="table-responsive">
+        <table class="table align-middle analytics-table">
+            <thead>
+                <tr><th>Staff</th><th>Total</th><th>Completed</th></tr>
+            </thead>
+            <tbody>
+                {% for row in staff_rows %}
+                <tr>
+                    <td>{{ row.staff_name }}</td>
+                    <td>{{ row.total }}</td>
+                    <td>{{ row.completed }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3">No performance data.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById("popularServicesChart");
+if (ctx) {
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: {{ popular_service_labels|safe }},
+            datasets: [{
+                label: "Bookings",
+                data: {{ popular_service_data|safe }},
+                backgroundColor: "rgba(0, 119, 200, 0.5)",
+                borderColor: "rgba(0, 119, 200, 1)",
+                borderWidth: 1,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+    });
+}
+</script>
+{% endblock %}

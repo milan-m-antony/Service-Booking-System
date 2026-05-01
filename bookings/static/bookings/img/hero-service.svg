@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dff1ff"/>
+      <stop offset="1" stop-color="#c7e7ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="760" fill="url(#bg)"/>
+  <rect x="70" y="80" width="1060" height="600" rx="36" fill="#ffffff" opacity="0.9"/>
+  <circle cx="330" cy="360" r="170" fill="#0d6efd" opacity="0.12"/>
+  <circle cx="860" cy="340" r="180" fill="#1fa2ff" opacity="0.16"/>
+  <text x="600" y="330" text-anchor="middle" font-size="68" font-family="Arial" fill="#1a3652">Home Service Booking</text>
+  <text x="600" y="410" text-anchor="middle" font-size="36" font-family="Arial" fill="#2f5e84">Cleaners, Plumbers, Electricians and Repairs</text>
+</svg>

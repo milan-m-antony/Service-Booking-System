@@ -1,0 +1,121 @@
+{% extends 'bookings/base.html' %}
+{% block title %}Profile{% endblock %}
+
+{% block mobile_header %}
+<header class="app-nav-bar">
+    <a href="javascript:history.back()" class="app-nav-back"><i class="bi bi-chevron-left"></i> Back</a>
+    <h6 class="app-nav-title">Profile</h6>
+    <div style="width:50px;"></div> <!-- Spacer for layout balance -->
+</header>
+{% endblock %}
+
+{% block content %}
+<section class="profile-modern-shell">
+    <div class="profile-modern-header panel-lite mb-3">
+        <span class="role-chip">Account settings</span>
+        <h3 class="mb-1 mt-2">My Profile</h3>
+        <p class="text-muted mb-0">Update your personal information and profile photo.</p>
+    </div>
+
+    <div class="profile-modern-grid">
+        <form method="post" enctype="multipart/form-data" id="profilePhotoForm" class="panel-lite profile-side-card">
+            {% csrf_token %}
+            <input type="hidden" name="profile_action" value="photo">
+            <input type="hidden" name="remove_avatar" id="removeAvatarInput" value="0">
+            <div class="profile-photo-wrap">
+                {% if request.user.avatar %}
+                    <img src="{{ request.user.avatar.url }}" alt="Profile photo" class="profile-photo-preview">
+                {% else %}
+                    <div class="profile-photo-placeholder">
+                        <i class="bi bi-person"></i>
+                    </div>
+                {% endif %}
+                {% if request.user.avatar %}
+                <button type="button" class="profile-photo-delete" id="deleteProfilePhotoBtn" aria-label="Delete profile photo">
+                    <i class="bi bi-trash3"></i>
+                </button>
+                {% endif %}
+            </div>
+
+            <div class="mt-3">
+                <label for="id_avatar" class="form-label fw-semibold">Profile Photo</label>
+                {{ form.avatar }}
+                {% if form.avatar.errors %}
+                    <div class="invalid-feedback d-block">{{ form.avatar.errors|striptags }}</div>
+                {% endif %}
+            </div>
+
+            <p class="text-muted small mb-0 mt-2">Use a square image for best preview quality.</p>
+            <button type="submit" class="btn btn-outline-primary w-100 mt-3 rounded-pill">Save Photo</button>
+        </form>
+
+        <form method="post" enctype="multipart/form-data" id="profileForm" class="panel-lite profile-main-card">
+            {% csrf_token %}
+            <input type="hidden" name="profile_action" value="details">
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger py-2 small mb-3">{{ form.non_field_errors|striptags }}</div>
+            {% endif %}
+
+            <div class="profile-section-title">Basic Info</div>
+            <div class="profile-field-grid mb-3">
+                <div>
+                    <label for="id_first_name" class="form-label fw-semibold">First Name</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <div class="invalid-feedback d-block">{{ form.first_name.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="id_last_name" class="form-label fw-semibold">Last Name</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <div class="invalid-feedback d-block">{{ form.last_name.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="profile-section-title">Contact</div>
+            <div class="profile-field-grid">
+                <div>
+                    <label for="id_email" class="form-label fw-semibold">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="invalid-feedback d-block">{{ form.email.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="id_phone" class="form-label fw-semibold">Phone</label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}
+                        <div class="invalid-feedback d-block">{{ form.phone.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="profile-save-wrap">
+                <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    {% if request.user.avatar %}
+    <div class="modal fade" id="deleteProfilePhotoModal" tabindex="-1" aria-labelledby="deleteProfilePhotoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-sm" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="deleteProfilePhotoModalLabel">Remove Photo?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-muted">
+                    This action will immediately remove your profile photo. Are you sure?
+                </div>
+                <div class="modal-footer border-0 pt-0 flex-nowrap">
+                    <button type="button" class="btn btn-light w-50 rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger w-50 rounded-pill" id="confirmDeleteProfilePhotoBtn">Remove</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'bookings/base.html' %}
+{% block title %}Professional Staff{% endblock %}
+{% block body_class %}home-shell{% endblock %}
+{% block content %}
+<section class="hero-block mb-4">
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+        <div>
+            <span class="badge text-bg-light border mb-2">Verified Team</span>
+            <h2 class="mb-2">Professional Staff</h2>
+            <p class="text-muted mb-0">Meet all active staff members with their completed jobs, average rating, and key service skills.</p>
+        </div>
+        <a class="btn btn-outline-primary" href="{% url 'booking_create' %}">Book Service</a>
+    </div>
+</section>
+
+<section class="staff-directory-grid mb-4">
+    {% for staff in staff_members %}
+    <article class="staff-directory-card">
+        <div class="staff-directory-head">
+            <img src="https://picsum.photos/seed/staff-directory-{{ random_seed }}-{{ staff.id }}/260/260" alt="{{ staff.display_name }}">
+            <div>
+                <h5 class="mb-1">{{ staff.display_name }}</h5>
+                <p class="text-muted small mb-2">{{ staff.phone|default:'Contact available after booking' }}</p>
+                <div class="staff-meta-row">
+                    <span class="staff-meta-chip"><i class="bi bi-star-fill"></i> {{ staff.avg_rating|floatformat:1|default:'0.0' }} / 5</span>
+                    <span class="staff-meta-chip"><i class="bi bi-briefcase"></i> {{ staff.completed_jobs }} jobs done</span>
+                    <span class="staff-meta-chip"><i class="bi bi-chat-left-text"></i> {{ staff.rating_count }} ratings</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="staff-job-tags mt-3">
+            {% for service in staff.services.all|slice:":6" %}
+                <span class="staff-key-tag">{{ service.name }}</span>
+            {% empty %}
+                <span class="text-muted small">No active services assigned yet.</span>
+            {% endfor %}
+        </div>
+    </article>
+    {% empty %}
+    <p class="text-muted">No active staff members found.</p>
+    {% endfor %}
+</section>
+{% endblock %}
