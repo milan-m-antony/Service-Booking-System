@@ -80,6 +80,7 @@
                     <a href="{% url 'admin_services' %}"><i class="bi bi-tools"></i> Services</a>
                     <a href="{% url 'admin_users' %}"><i class="bi bi-people"></i> Users</a>
                 {% endif %}
+                <a href="{% url 'messages' %}"><i class="bi bi-chat-dots"></i> Messages</a>
             </nav>
 
             <div class="mt-auto">
@@ -125,46 +126,81 @@
         
         {% if user.role == 'customer' %}
             <a href="{% url 'booking_create' %}" class="{% if request.resolver_match.url_name == 'booking_create' %}active{% endif %}"><i class="bi bi-calendar2-plus"></i> Book</a>
+            <a href="{% url 'messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}"><i class="bi bi-chat-dots"></i> Messages</a>
         {% elif user.role == 'staff' %}
             <a href="{% url 'staff_availability' %}" class="{% if request.resolver_match.url_name == 'staff_availability' %}active{% endif %}"><i class="bi bi-calendar-check"></i> Slots</a>
             <a href="{% url 'analytics' %}" class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Stats</a>
         {% elif user.role == 'admin' %}
             <a href="{% url 'admin_services' %}" class="{% if request.resolver_match.url_name == 'admin_services' %}active{% endif %}"><i class="bi bi-tools"></i> Services</a>
-            
-            <!-- Mobile App FAB (+ Icon) for Admin More Menu -->
-            <a href="#" class="nav-fab shadow-sm" data-bs-toggle="offcanvas" data-bs-target="#mobileAdminMore">
-                <i class="bi bi-plus-lg text-white" style="font-size: 1.5rem; margin-top:2px;"></i>
-            </a>
-            
             <a href="{% url 'analytics' %}" class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Stats</a>
         {% endif %}
+        
+        <!-- Mobile App FAB (+ Icon) for More Menu -->
+        <a href="#" class="nav-fab shadow-sm" data-bs-toggle="offcanvas" data-bs-target="#mobileMoreMenu">
+            <i class="bi bi-plus-lg text-white" style="font-size: 1.5rem; margin-top:2px;"></i>
+        </a>
 
         <a href="{% url 'profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}"><i class="bi bi-person"></i> Profile</a>
-        
-        {% if user.role != 'admin' %}
-            <a href="{% url 'logout' %}"><i class="bi bi-power"></i> Logout</a>
-        {% endif %}
     </nav>
     
-    {% if user.role == 'admin' %}
-    <!-- Admin More Navigation Tray -->
-    <div class="offcanvas offcanvas-bottom rounded-top-4 shadow-lg" tabindex="-1" id="mobileAdminMore" style="background: var(--bg-surface-solid); border-top: 1px solid var(--glass-border); height: auto;">
+    <!-- Mobile More Menu (for all roles) -->
+    <div class="offcanvas offcanvas-bottom rounded-top-4 shadow-lg" tabindex="-1" id="mobileMoreMenu" style="background: var(--bg-surface-solid); border-top: 1px solid var(--glass-border); height: auto;">
         <div class="offcanvas-header border-bottom" style="border-color: rgba(0,0,0,0.05) !important;">
             <h5 class="offcanvas-title fw-bold" style="color: var(--text-main);">More Actions</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body p-4">
             <div class="row g-3">
+                {% if user.role == 'customer' %}
+                    <div class="col-6">
+                        <a href="{% url 'booking_create' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
+                            <i class="bi bi-calendar-plus text-primary fs-3"></i>
+                            <span style="color: var(--text-main); font-weight: 500;">Book</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'analytics' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
+                            <i class="bi bi-bar-chart text-primary fs-3"></i>
+                            <span style="color: var(--text-main); font-weight: 500;">My Bookings</span>
+                        </a>
+                    </div>
+                {% elif user.role == 'staff' %}
+                    <div class="col-6">
+                        <a href="{% url 'staff_availability' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
+                            <i class="bi bi-calendar-check text-primary fs-3"></i>
+                            <span style="color: var(--text-main); font-weight: 500;">Availability</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'analytics' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
+                            <i class="bi bi-bar-chart text-primary fs-3"></i>
+                            <span style="color: var(--text-main); font-weight: 500;">Stats</span>
+                        </a>
+                    </div>
+                {% elif user.role == 'admin' %}
+                    <div class="col-6">
+                        <a href="{% url 'admin_categories' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
+                            <i class="bi bi-tags text-primary fs-3"></i>
+                            <span style="color: var(--text-main); font-weight: 500;">Categories</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'admin_users' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
+                            <i class="bi bi-people text-primary fs-3"></i>
+                            <span style="color: var(--text-main); font-weight: 500;">Users</span>
+                        </a>
+                    </div>
+                {% endif %}
                 <div class="col-6">
-                    <a href="{% url 'admin_categories' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
-                        <i class="bi bi-tags text-primary fs-3"></i>
-                        <span style="color: var(--text-main); font-weight: 500;">Categories</span>
+                    <a href="{% url 'messages' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
+                        <i class="bi bi-chat-dots text-primary fs-3"></i>
+                        <span style="color: var(--text-main); font-weight: 500;">Messages</span>
                     </a>
                 </div>
                 <div class="col-6">
-                    <a href="{% url 'admin_users' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
-                        <i class="bi bi-people text-primary fs-3"></i>
-                        <span style="color: var(--text-main); font-weight: 500;">Users</span>
+                    <a href="{% url 'profile' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
+                        <i class="bi bi-person text-primary fs-3"></i>
+                        <span style="color: var(--text-main); font-weight: 500;">Profile</span>
                     </a>
                 </div>
                 <div class="col-12 mt-4">
@@ -175,7 +211,6 @@
             </div>
         </div>
     </div>
-    {% endif %}
     {% endif %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
