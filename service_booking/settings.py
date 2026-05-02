@@ -1,15 +1,25 @@
 import os
-import socket
 from pathlib import Path
-import pymysql
 
-pymysql.install_as_MySQLdb()
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-change-me"
-DEBUG = True
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "testserver", "0.0.0.0"]
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me")
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        "ALLOWED_HOSTS",
+        "localhost,127.0.0.1,testserver,0.0.0.0,.onrender.com",
+    ).split(",")
+    if host.strip()
+]
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -23,6 +33,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "service_booking.middleware.DatabaseErrorMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -53,39 +65,23 @@ TEMPLATES = [
 WSGI_APPLICATION = "service_booking.wsgi.application"
 SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
-def _mysql_is_reachable(host, port):
-    try:
-        with socket.create_connection((host, port), timeout=1):
-            return True
-    except OSError:
-        return False
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "mysql://root@127.0.0.1:3306/Service-Booking-System",
+)
+DEFAULT_DATABASE = dj_database_url.parse(
+    DATABASE_URL,
+    conn_max_age=600,
+)
 
+DATABASES = {"default": DEFAULT_DATABASE}
 
-MYSQL_HOST = os.getenv("DB_HOST", "127.0.0.1")
-MYSQL_PORT = int(os.getenv("DB_PORT", "3306"))
-USE_MYSQL = os.getenv("USE_MYSQL", "auto").lower()
+DATABASES["default"].setdefault("OPTIONS", {})
+if DATABASES["default"].get("ENGINE") == "django.db.backends.mysql":
+    DATABASES["default"]["OPTIONS"]["init_command"] = "SET sql_mode='STRICT_TRANS_TABLES'"
 
-if USE_MYSQL == "true" or (USE_MYSQL == "auto" and _mysql_is_reachable(MYSQL_HOST, MYSQL_PORT)):
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.mysql",
-            "NAME": os.getenv("DB_NAME", "Service-Booking-System"),
-            "USER": os.getenv("DB_USER", "root"),
-            "PASSWORD": os.getenv("DB_PASSWORD", ""),
-            "HOST": MYSQL_HOST,
-            "PORT": str(MYSQL_PORT),
-            "OPTIONS": {
-                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-            },
-        }
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+if os.getenv("DATABASE_URL"):
+    DATABASES["default"]["OPTIONS"]["ssl"] = {"ca": str(BASE_DIR / "isrgrootx1.pem")}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -104,11 +100,19 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "bookings" / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
