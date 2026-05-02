@@ -9,39 +9,90 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Create Admin
-        if not User.objects.filter(username="admin").exists():
-            User.objects.create_superuser(
-                username="admin",
-                password="admin",
-                email="admin@example.com",
-                role=CustomUser.Roles.ADMIN
-            )
-            self.stdout.write(self.style.SUCCESS("Successfully created admin/admin"))
-        else:
-            self.stdout.write("Admin user already exists.")
+        admin_user, created = User.objects.get_or_create(
+            username="admin",
+            defaults={
+                "email": "admin@example.com",
+                "role": CustomUser.Roles.ADMIN,
+                "is_staff": True,
+                "is_superuser": True,
+            }
+        )
+        if created:
+            admin_user.set_password("admin")
+            admin_user.save()
+            self.stdout.write(self.style.SUCCESS("Created admin/admin"))
 
         # Create Staff
-        if not User.objects.filter(username="staff").exists():
-            User.objects.create_user(
-                username="staff",
-                password="staff",
-                email="staff@example.com",
-                role=CustomUser.Roles.STAFF
-            )
-            self.stdout.write(self.style.SUCCESS("Successfully created staff/staff"))
-        else:
-            self.stdout.write("Staff user already exists.")
+        staff_user, created = User.objects.get_or_create(
+            username="staff",
+            defaults={
+                "email": "staff@example.com",
+                "role": CustomUser.Roles.STAFF,
+                "is_staff": True,
+            }
+        )
+        if created:
+            staff_user.set_password("staff")
+            staff_user.save()
+            self.stdout.write(self.style.SUCCESS("Created staff/staff"))
 
         # Create Customer
-        if not User.objects.filter(username="user").exists():
-            User.objects.create_user(
-                username="user",
-                password="user",
-                email="user@example.com",
-                role=CustomUser.Roles.CUSTOMER
+        user_user, created = User.objects.get_or_create(
+            username="user",
+            defaults={
+                "email": "user@example.com",
+                "role": CustomUser.Roles.CUSTOMER,
+            }
+        )
+        if created:
+            user_user.set_password("user")
+            user_user.save()
+            self.stdout.write(self.style.SUCCESS("Created user/user"))
+
+        # --- SEED CATEGORIES ---
+        from bookings.models import ServiceCategory, Service
+        
+        categories_data = [
+            {"name": "Cleaning", "icon": "✨", "color": "#10b981"},
+            {"name": "Plumbing", "icon": "🚰", "color": "#3b82f6"},
+            {"name": "Electrical", "icon": "⚡", "color": "#f59e0b"},
+        ]
+        
+        categories = {}
+        for cat_data in categories_data:
+            cat, created = ServiceCategory.objects.get_or_create(
+                name=cat_data["name"],
+                defaults={"icon": cat_data["icon"], "color": cat_data["color"]}
             )
-            self.stdout.write(self.style.SUCCESS("Successfully created user/user"))
-        else:
-            self.stdout.write("Customer user already exists.")
+            categories[cat.name] = cat
+            if created:
+                self.stdout.write(f"Created category: {cat.name}")
+
+        # --- SEED SERVICES ---
+        services_data = [
+            {"name": "Basic House Cleaning", "cat": "Cleaning", "price": 50, "dur": 120},
+            {"name": "Deep Kitchen Cleaning", "cat": "Cleaning", "price": 80, "dur": 180},
+            {"name": "Leaky Tap Repair", "cat": "Plumbing", "price": 40, "dur": 60},
+            {"name": "Full Pipe Inspection", "cat": "Plumbing", "price": 120, "dur": 120},
+            {"name": "AC Maintenance", "cat": "Electrical", "price": 100, "dur": 90},
+            {"name": "Switchboard Repair", "cat": "Electrical", "price": 30, "dur": 45},
+        ]
+
+        for s_data in services_data:
+            service, created = Service.objects.get_or_create(
+                name=s_data["name"],
+                defaults={
+                    "category": categories[s_data["cat"]],
+                    "price": s_data["price"],
+                    "duration_minutes": s_data["dur"],
+                    "description": f"Professional {s_data['name']} service.",
+                }
+            )
+            if created:
+                # Assign the staff user to this service
+                service.staff.add(staff_user)
+                self.stdout.write(f"Created service: {service.name} (Assigned to staff)")
 
         self.stdout.write(self.style.SUCCESS("Seeding complete!"))
+
