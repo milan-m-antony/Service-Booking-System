@@ -69,6 +69,8 @@ DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "mysql://root@127.0.0.1:3306/Service-Booking-System",
 )
+if DATABASE_URL.startswith("mysql+pymysql://"):
+    DATABASE_URL = DATABASE_URL.replace("mysql+pymysql://", "mysql://", 1)
 DEFAULT_DATABASE = dj_database_url.parse(
     DATABASE_URL,
     conn_max_age=600,
