@@ -124,9 +124,15 @@ class BookingForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["service"].queryset = Service.objects.filter(is_active=True)
         self.fields["staff"].queryset = CustomUser.objects.filter(role=CustomUser.Roles.STAFF)
+        self.fields["service"].empty_label = "Select a service"
+        self.fields["staff"].empty_label = "Select professional"
 
         if not (self.user and self.user.role == CustomUser.Roles.ADMIN):
-            self.fields.pop("customer")
+            if "customer" in self.fields:
+                self.fields.pop("customer")
+        else:
+            if "customer" in self.fields:
+                self.fields["customer"].empty_label = "Select customer"
 
         for field in self.fields.values():
             css_class = "form-control"

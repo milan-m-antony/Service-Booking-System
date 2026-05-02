@@ -149,13 +149,16 @@
                     <span class="mobile-unread-dot">{{ nav_unread_messages }}</span>
                 {% endif %}
             </a>
+            <a href="{% url 'profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <i class="bi bi-person"></i> Profile
+            </a>
         {% elif user.role == 'staff' %}
             <a href="{% url 'analytics' %}" class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Stats</a>
+            <a href="{% url 'profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <i class="bi bi-person"></i> Profile
+            </a>
         {% elif user.role == 'admin' %}
-            <a href="{% url 'analytics' %}" class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Analytics</a>
-        {% endif %}
-
-        {% if user.role == 'admin' %}
+            <a href="{% url 'analytics' %}" class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Stats</a>
             <a href="{% url 'messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
                 <i class="bi bi-chat-dots"></i> Messages
                 {% if nav_unread_messages %}

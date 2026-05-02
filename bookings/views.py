@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.text import slugify
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
 from .decorators import role_required
@@ -21,6 +22,7 @@ from .models import Booking, BookingFeedback, CustomUser, Service, ServiceCatego
 
 
 @login_required
+@never_cache
 def message_center(request):
     """Message center with presets and persistent inbox/sent messages."""
     presets = _message_presets_for_role(request.user.role)
@@ -377,14 +379,16 @@ def login_view(request):
     return render(request, "bookings/login.html", {"form": form})
 
 
-@login_required
+@never_cache
 def logout_view(request):
     logout(request)
+    request.session.flush()
     messages.info(request, "You have signed out.")
     return redirect("home")
 
 
 @login_required
+@never_cache
 def role_dashboard(request):
     if request.user.must_change_password:
         return redirect("force_password_change")
@@ -547,6 +551,7 @@ def booking_create(request):
 
 
 @role_required(CustomUser.Roles.CUSTOMER)
+@never_cache
 def user_dashboard(request):
     bookings = (
         Booking.objects.filter(customer=request.user)
@@ -572,6 +577,7 @@ def user_dashboard(request):
 
 
 @role_required(CustomUser.Roles.STAFF)
+@never_cache
 def staff_dashboard(request):
     return _render_staff_dashboard(request, view_mode="home")
 
@@ -926,6 +932,7 @@ def _render_staff_dashboard(request, view_mode="home"):
 
 
 @role_required(CustomUser.Roles.ADMIN)
+@never_cache
 def admin_dashboard(request):
     bookings = Booking.objects.select_related("customer", "service", "staff").order_by("-scheduled_at")
     pending_bookings = bookings.filter(status=Booking.Status.PENDING)
@@ -950,6 +957,7 @@ def admin_dashboard(request):
 
 
 @role_required(CustomUser.Roles.ADMIN)
+@never_cache
 def admin_categories(request):
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
@@ -974,6 +982,7 @@ def admin_categories(request):
 
 
 @role_required(CustomUser.Roles.ADMIN)
+@never_cache
 def admin_services(request):
     if request.method == "POST":
         action = request.POST.get("action")
@@ -1034,6 +1043,7 @@ def admin_services(request):
 
 
 @role_required(CustomUser.Roles.ADMIN)
+@never_cache
 def admin_users(request):
     if request.method == "POST":
         action = request.POST.get("action")
@@ -1176,6 +1186,7 @@ def cancel_booking(request, booking_id):
 
 
 @role_required(CustomUser.Roles.STAFF, CustomUser.Roles.ADMIN)
+@never_cache
 def analytics(request):
     now = timezone.now()
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -1231,6 +1242,7 @@ def analytics(request):
 
 
 @login_required
+@never_cache
 def profile(request):
     if request.method == "POST":
         profile_action = request.POST.get("profile_action")

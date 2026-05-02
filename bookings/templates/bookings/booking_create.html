@@ -1,13 +1,7 @@
 {% extends 'bookings/base.html' %}
 {% block title %}Book Service{% endblock %}
 
-{% block mobile_header %}
-<header class="app-nav-bar">
-    <a href="javascript:history.back()" class="app-nav-back"><i class="bi bi-chevron-left"></i> Back</a>
-    <h6 class="app-nav-title">Book Service</h6>
-    <div style="width:50px;"></div>
-</header>
-{% endblock %}
+{% block mobile_header %}{% endblock %}
 
 {% block content %}
 {{ services_payload|json_script:"services-data" }}
@@ -43,8 +37,10 @@
         <input type="hidden" name="service" id="id_service" value="{{ form.service.value|default_if_none:'' }}">
         <div class="d-none">{{ form.scheduled_at }}</div>
 
-        <div class="booking-main-column">
-            <section class="booking-flow-card wizard-step active" data-step="1">
+        <!-- Full-width Header Column -->
+        <div class="booking-header-column">
+            <!-- Step 1 Header -->
+            <section class="booking-flow-card glass-panel mb-4 wizard-step active" data-step="1">
                 <div class="section-head">
                     <div>
                         <span class="section-kicker">Step 1</span>
@@ -52,13 +48,15 @@
                         <p class="text-muted mb-0">Use sorting to quickly narrow down the available services.</p>
                     </div>
                 </div>
-
                 <div class="booking-controls mt-3">
                     <div class="search-filter-controls booking-service-controls">
                         <div class="position-relative">
                             <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                             <input type="search" class="form-control ps-5" id="serviceSearchInput" placeholder="Search services, categories, or descriptions">
                         </div>
+                        <select class="form-select" id="serviceCategoryFilter" aria-label="Filter by category">
+                            <option value="all">All Categories</option>
+                        </select>
                         <select class="form-select" id="serviceSortSelect" aria-label="Sort services">
                             <option value="availability">Sort: Availability</option>
                             <option value="name">Sort: Name</option>
@@ -67,9 +65,52 @@
                             <option value="duration">Sort: Duration</option>
                         </select>
                     </div>
-                    <div class="booking-service-hint text-muted small">Tip: choose a service card to unlock the next step.</div>
+                </div>
+            </section>
+
+            <!-- Step 2 Header -->
+            <section class="booking-flow-card glass-panel mb-4 wizard-step" data-step="2">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Step 2</span>
+                        <h4 class="mb-1">Choose professional, date, and time</h4>
+                        <p class="text-muted mb-0">Unavailable dates and time slots are marked and disabled.</p>
+                    </div>
                 </div>
 
+                <div class="panel-lite mb-4">
+                    <label class="form-label fw-bold mb-2" for="id_staff">Select Professional</label>
+                    {{ form.staff }}
+                    {% if form.staff.errors %}<div class="text-danger mt-2 small">{{ form.staff.errors }}</div>{% endif %}
+                </div>
+            </section>
+
+            <!-- Step 3 Header -->
+            <section class="booking-flow-card glass-panel mb-4 wizard-step" data-step="3">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Step 3</span>
+                        <h4 class="mb-1">Add a specific note</h4>
+                        <p class="text-muted mb-0">Tell the professional anything important before confirmation.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 4 Header -->
+            <section class="booking-flow-card glass-panel mb-4 wizard-step" data-step="4">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Step 4</span>
+                        <h4 class="mb-1">Confirm booking</h4>
+                        <p class="text-muted mb-0">Review everything once more before submitting.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="booking-main-column">
+            <!-- Step 1 Content -->
+            <section class="booking-flow-card glass-panel wizard-step active" data-step="1">
                 <div class="booking-service-grid mt-3" id="serviceGrid">
                     {% for service in services_payload %}
                         <label class="booking-service-card" data-service-card data-service-id="{{ service.id }}" data-service-name="{{ service.name|lower }}" data-category-name="{{ service.category_name|lower }}" data-description="{{ service.description|lower }}" data-price="{{ service.price }}" data-duration="{{ service.duration }}" data-staff-count="{{ service.staff|length }}">
@@ -92,82 +133,27 @@
                         <div class="alert alert-warning mb-0">No services are currently available.</div>
                     {% endfor %}
                 </div>
+                <div class="booking-service-hint text-muted small mt-3">Tip: choose a service card to unlock the next step.</div>
                 {% if form.service.errors %}<div class="text-danger mt-2 small">{{ form.service.errors }}</div>{% endif %}
             </section>
 
-            <section class="booking-flow-card wizard-step" data-step="2">
-                <div class="section-head">
-                    <div>
-                        <span class="section-kicker">Step 2</span>
-                        <h4 class="mb-1">Choose professional, date, and time</h4>
-                        <p class="text-muted mb-0">Unavailable dates and time slots are marked and disabled.</p>
+            <!-- Step 2 Content -->
+            <section class="booking-flow-card glass-panel wizard-step" data-step="2">
+                <div class="booking-calendar-shell">
+                    <div class="calendar-toolbar">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="calendarPrevBtn"><i class="bi bi-chevron-left"></i></button>
+                        <div class="calendar-toolbar-title" id="calendarTitle"></div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="calendarNextBtn"><i class="bi bi-chevron-right"></i></button>
                     </div>
-                </div>
-
-                <div class="booking-schedule-grid mt-3">
-                    <div class="booking-calendar-card">
-                        <div class="mb-3">
-                            <label class="form-label" for="id_staff">Professional</label>
-                            {{ form.staff }}
-                            {% if form.staff.errors %}<div class="text-danger mt-2 small">{{ form.staff.errors }}</div>{% endif %}
-                        </div>
-
-                        <div class="booking-calendar-shell">
-                            <div class="calendar-toolbar">
-                                <button type="button" class="btn btn-sm btn-outline-secondary" id="calendarPrevBtn"><i class="bi bi-chevron-left"></i></button>
-                                <div class="calendar-toolbar-title" id="calendarTitle"></div>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" id="calendarNextBtn"><i class="bi bi-chevron-right"></i></button>
-                            </div>
-                            <div class="calendar-weekdays">
-                                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-                            </div>
-                            <div class="calendar-grid" id="wizardCalendarGrid"></div>
-                        </div>
-
-                        <div class="booking-slot-card mt-3">
-                            <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
-                                <div>
-                                    <div class="section-kicker">Time slots</div>
-                                    <div class="small text-muted" id="selectedDateInfo">Select a date to see available times</div>
-                                </div>
-                                <span class="booking-slot-chip">Marked / unmarked</span>
-                            </div>
-                            <div class="time-slot-grid" id="wizardTimeSlots"></div>
-                            <div class="small text-muted mt-2" id="selectedDateTimeHint">No date/time selected</div>
-                        </div>
+                    <div class="calendar-weekdays">
+                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                     </div>
-
-                    <aside class="booking-detail-panel">
-                        <div class="detail-panel-card selected-details-card">
-                            <div class="section-kicker">Selected details</div>
-                            <h5 class="mb-3" id="selectedServiceTitle">Nothing selected yet</h5>
-                            <div class="detail-list" id="selectedDetailsList">
-                                <div><span>Service</span><strong>Not selected</strong></div>
-                                <div><span>Professional</span><strong>Not selected</strong></div>
-                                <div><span>Date</span><strong>Not selected</strong></div>
-                                <div><span>Time</span><strong>Not selected</strong></div>
-                            </div>
-                        </div>
-
-                        <div class="detail-panel-card mt-3">
-                            <div class="section-kicker">Availability legend</div>
-                            <div class="legend-row"><span class="legend-dot available"></span> Open</div>
-                            <div class="legend-row"><span class="legend-dot partial"></span> Some slots booked</div>
-                            <div class="legend-row"><span class="legend-dot booked-out"></span> Booked out</div>
-                            <div class="legend-row"><span class="legend-dot closed"></span> Closed / absent</div>
-                        </div>
-                    </aside>
+                    <div class="calendar-grid" id="wizardCalendarGrid"></div>
                 </div>
             </section>
 
-            <section class="booking-flow-card wizard-step" data-step="3">
-                <div class="section-head">
-                    <div>
-                        <span class="section-kicker">Step 3</span>
-                        <h4 class="mb-1">Add a specific note</h4>
-                        <p class="text-muted mb-0">Tell the professional anything important before confirmation.</p>
-                    </div>
-                </div>
+            <!-- Step 3 Content -->
+            <section class="booking-flow-card glass-panel wizard-step" data-step="3">
                 <div class="mt-3">
                     <label class="form-label" for="id_notes">Note for the booking</label>
                     {{ form.notes }}
@@ -175,15 +161,8 @@
                 </div>
             </section>
 
-            <section class="booking-flow-card wizard-step" data-step="4">
-                <div class="section-head">
-                    <div>
-                        <span class="section-kicker">Step 4</span>
-                        <h4 class="mb-1">Confirm booking</h4>
-                        <p class="text-muted mb-0">Review everything once more before submitting.</p>
-                    </div>
-                </div>
-
+            <!-- Step 4 Content -->
+            <section class="booking-flow-card glass-panel wizard-step" data-step="4">
                 <div class="confirmation-grid mt-3">
                     <div class="detail-panel-card">
                         <div class="section-kicker">Review</div>
@@ -199,34 +178,35 @@
                     </div>
                 </div>
             </section>
-
-
         </div>
-
         <aside class="booking-sidebar-column">
             <div class="sidebar-sticky">
+                <div class="booking-slot-card" id="sidebarTimeSlotsCard" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                        <div>
+                            <div class="section-kicker">Time slots</div>
+                            <div class="small text-muted" id="selectedDateInfo">Select a date</div>
+                        </div>
+                        <span class="booking-slot-chip">Available</span>
+                    </div>
+                    <div class="time-slot-grid" id="wizardTimeSlots"></div>
+                    <div class="small text-muted mt-2" id="selectedDateTimeHint">No date/time selected</div>
+                </div>
+
                 <div class="summary-card">
-                    <div class="section-kicker">Live summary</div>
+                    <div class="section-kicker">Summary</div>
                     <h4 class="mb-3">Your booking</h4>
                     <div class="summary-stack" id="bookingSummaryText">
                         <div><span>Service</span><strong>Choose a service</strong></div>
-                        <div><span>Professional</span><strong>Choose a professional</strong></div>
+                        <div><span>Professional</span><strong>Select professional</strong></div>
                         <div><span>Date</span><strong>Choose a date</strong></div>
                         <div><span>Time</span><strong>Choose a time</strong></div>
                     </div>
                 </div>
 
-                <div class="summary-card mt-3">
-                    <div class="section-kicker">Quick notes</div>
-                    <ul class="summary-notes mb-0">
-                        <li>Sort services to find the best match faster.</li>
-                        <li>Unavailable calendar dates are disabled.</li>
-                        <li>Time slots toggle selected and unselected states.</li>
-                    </ul>
-                </div>
-                <div id="wizardNotice" class="mt-3"></div>
-                <div class="booking-actions mt-3">
-                    <button type="button" class="btn btn-outline-secondary" id="wizardPrevBtn">Back</button>
+                <div id="wizardNotice"></div>
+                <div class="booking-actions">
+                    <button type="button" class="btn btn-outline-primary" id="wizardPrevBtn">Back</button>
                     <button type="button" class="btn btn-primary" id="wizardNextBtn">Next</button>
                     <button type="submit" class="btn btn-success d-none" id="wizardSubmitBtn">Confirm booking</button>
                 </div>
@@ -238,6 +218,16 @@
 <script>
 (function () {
     const servicesData = JSON.parse(document.getElementById('services-data').textContent || '[]');
+    const serviceCategoryFilter = document.getElementById('serviceCategoryFilter');
+    if (serviceCategoryFilter) {
+        const categories = [...new Set(servicesData.map(s => s.category_name))].sort();
+        categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.toLowerCase();
+            opt.textContent = cat;
+            serviceCategoryFilter.appendChild(opt);
+        });
+    }
     const staffBlockedDates = JSON.parse(document.getElementById('staff-blocked-dates-data').textContent || '{}');
     const staffBlockedSlots = JSON.parse(document.getElementById('staff-blocked-slots-data').textContent || '{}');
     const staffBookedSlots = JSON.parse(document.getElementById('staff-booked-slots-data').textContent || '{}');
@@ -341,7 +331,7 @@
     function getDateStatus(isoDate) {
         const staffId = selectedStaffId();
         if (!staffId) {
-            return { status: 'neutral', label: '', disabled: isPastDate(isoDate) };
+            return { status: 'neutral', label: 'Select staff', disabled: true };
         }
         const blockedByStaff = staffId ? (staffBlockedDates[staffId] || []) : [];
         const manualBlockedSlots = staffId ? ((staffBlockedSlots[staffId] || {})[isoDate]) || [] : [];
@@ -359,20 +349,20 @@
 
         const totalBlockedCount = (bookedSlots || []).length + (manualBlockedSlots || []).length;
         const hasBookedSlot = totalBlockedCount >= PARTIAL_THRESHOLD;
-        const openSlots = timeSlots.filter((slot) => {
-            if (isPastTimeForDate(isoDate, slot)) return false;
-            if (bookedSet.has(slot)) return false;
-            if (blockedSet.has(slot)) return false;
-            return true;
-        });
-
+        
+        const futureSlots = timeSlots.filter(slot => !isPastTimeForDate(isoDate, slot));
+        const openSlots = futureSlots.filter(slot => !bookedSet.has(slot) && !blockedSet.has(slot));
 
         if (!openSlots.length) {
-            return { status: 'booked-out', label: 'Booked out', disabled: true };
+            const isToday = isoDate === toIsoDate(new Date());
+            if (isToday && futureSlots.length === 0) {
+                return { status: 'past', label: 'Over', disabled: true };
+            }
+            return { status: 'booked-out', label: 'Full', disabled: true };
         }
 
         if (hasBookedSlot) {
-            return { status: 'partial', label: 'Some slots booked', disabled: false };
+            return { status: 'partial', label: 'Partial', disabled: false };
         }
 
         return { status: 'open', label: 'Open', disabled: false };
@@ -441,7 +431,7 @@
 
     function renderSummary() {
         const selectedService = getSelectedService();
-        const staffText = staffSelect && staffSelect.selectedIndex >= 0 ? staffSelect.options[staffSelect.selectedIndex].textContent : 'Not selected';
+        const staffText = staffSelect && staffSelect.selectedIndex >= 0 && staffSelect.value ? staffSelect.options[staffSelect.selectedIndex].textContent : 'Select professional';
         if (bookingSummaryText) {
             bookingSummaryText.innerHTML = `
                 <div><span>Service</span><strong>${selectedService ? selectedService.name : 'Choose a service'}</strong></div>
@@ -486,17 +476,22 @@
         if (staffSelect.value && allowedIds.length && !allowedIds.includes(String(staffSelect.value))) {
             staffSelect.value = '';
         }
-        if (!staffSelect.value && allowedIds.length === 1) {
-            staffSelect.value = allowedIds[0];
-        }
+        // No auto-selection: "remove any default value"
+        // if (!staffSelect.value && allowedIds.length === 1) {
+        //     staffSelect.value = allowedIds[0];
+        // }
     }
 
     function renderServiceCards() {
         const searchValue = serviceSearchInput ? serviceSearchInput.value.trim().toLowerCase() : '';
+        const categoryValue = serviceCategoryFilter ? serviceCategoryFilter.value : 'all';
         const sortValue = serviceSortSelect ? serviceSortSelect.value : 'availability';
+
         const visibleCards = serviceCards.filter((card) => {
             const haystack = `${card.dataset.serviceName} ${card.dataset.categoryName} ${card.dataset.description}`;
-            return !searchValue || haystack.includes(searchValue);
+            const matchesSearch = !searchValue || haystack.includes(searchValue);
+            const matchesCategory = categoryValue === 'all' || card.dataset.categoryName === categoryValue;
+            return matchesSearch && matchesCategory;
         });
 
         visibleCards.sort((left, right) => {
@@ -579,6 +574,11 @@
             const cell = document.createElement('button');
             cell.type = 'button';
             cell.className = 'calendar-day';
+            
+            if (isoDate === toIsoDate(new Date())) {
+                cell.classList.add('is-today');
+            }
+
             cell.innerHTML = `<span class="calendar-day-number">${day}</span><span class="calendar-day-label"></span>`;
 
             cell.dataset.status = dateStatus.status;
@@ -696,17 +696,29 @@
     }
 
     function syncStepUI() {
-        steps.forEach((stepEl, index) => {
-            stepEl.classList.toggle('active', index + 1 === currentStep);
-            stepEl.hidden = index + 1 !== currentStep;
+        steps.forEach((stepEl) => {
+            const stepNum = parseInt(stepEl.dataset.step);
+            const isActive = stepNum === currentStep;
+            stepEl.classList.toggle('active', isActive);
+            stepEl.hidden = !isActive;
         });
         dots.forEach((dot, index) => {
             dot.classList.toggle('active', index + 1 <= currentStep);
         });
 
-        if (prevBtn) prevBtn.disabled = currentStep === 1;
-        if (nextBtn) nextBtn.classList.toggle('d-none', currentStep === 4);
+        if (prevBtn) {
+            prevBtn.classList.toggle('d-none', currentStep === 1);
+        }
+        if (nextBtn) {
+            nextBtn.classList.toggle('d-none', currentStep === 4);
+            nextBtn.classList.toggle('w-100', currentStep === 1);
+        }
         if (submitBtn) submitBtn.classList.toggle('d-none', currentStep !== 4);
+
+        const sidebarSlots = document.getElementById('sidebarTimeSlotsCard');
+        if (sidebarSlots) {
+            sidebarSlots.style.display = (currentStep === 2) ? 'block' : 'none';
+        }
     }
 
     serviceCards.forEach((card) => {
@@ -728,6 +740,9 @@
         }
     });
 
+    if (serviceCategoryFilter) {
+        serviceCategoryFilter.addEventListener('change', renderServiceCards);
+    }
     if (serviceSearchInput) {
         serviceSearchInput.addEventListener('input', renderServiceCards);
     }

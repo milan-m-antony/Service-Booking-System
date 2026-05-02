@@ -269,6 +269,9 @@ document.addEventListener('DOMContentLoaded', function () {
             cell.type = 'button';
             cell.className = 'calendar-day';
             if (status !== 'neutral') cell.classList.add(`is-${status}`);
+            const todayIso = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            if (iso === todayIso) cell.classList.add('is-today');
+
             cell.innerHTML = `<span class="calendar-day-number">${day}</span><span class="calendar-day-label">${status === 'neutral' ? '' : (status === 'booked-out' ? 'Booked out' : count + ' booking' + (count>1?'s':''))}</span>`;
 
             if (selectedUserIso === iso) cell.classList.add('is-selected');
