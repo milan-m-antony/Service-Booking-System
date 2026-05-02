@@ -1,6 +1,7 @@
 from django.utils import timezone
+from django.db.utils import DatabaseError, OperationalError
 
-from .models import Booking, CustomUser, Service
+from .models import Booking, CustomUser, Service, UserMessage
 
 
 def mobile_notifications(request):
@@ -66,3 +67,18 @@ def mobile_notifications(request):
         )
 
     return {"mobile_notifications": notifications}
+
+
+def message_badges(request):
+    if not request.user.is_authenticated:
+        return {"nav_unread_messages": 0}
+
+    try:
+        unread_count = UserMessage.objects.filter(
+            recipient=request.user,
+            is_read=False,
+            recipient_deleted=False,
+        ).count()
+    except (OperationalError, DatabaseError):
+        unread_count = 0
+    return {"nav_unread_messages": unread_count}

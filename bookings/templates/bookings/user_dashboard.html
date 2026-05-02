@@ -18,6 +18,8 @@
     <a class="dashboard-action-btn" href="{% url 'profile' %}"><i class="bi bi-person"></i><span>Profile</span></a>
 </section>
 
+{% include 'bookings/partials/dashboard_messages_panel.html' %}
+
 <section class="row g-3 mb-4">
     <div class="col-md-4"><article class="kpi-card"><h6>{{ total_bookings }}</h6><p>Total Bookings</p></article></div>
     <div class="col-md-4"><article class="kpi-card"><h6>{{ active_bookings }}</h6><p>Active Tasks</p></article></div>

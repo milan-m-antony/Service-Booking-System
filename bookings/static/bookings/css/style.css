@@ -105,6 +105,21 @@ a:hover { color: #60a5fa; text-shadow: 0 0 10px var(--primary-glow); }
     border-radius: 12px;
     font-weight: 500;
 }
+
+.nav-unread-badge {
+    margin-left: auto;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.35rem;
+}
 .sidebar-nav a:hover, .sidebar-nav a.active {
     background: rgba(59, 130, 246, 0.08);
     color: var(--primary);
@@ -142,6 +157,38 @@ a:hover { color: #60a5fa; text-shadow: 0 0 10px var(--primary-glow); }
 }
 .mobile-bottom-nav a.active, .mobile-bottom-nav a:hover { color: var(--primary); background: rgba(59, 130, 246, 0.08); }
 .mobile-bottom-nav i { font-size: 1.25rem; }
+
+.mobile-unread-dot {
+    margin-top: -0.1rem;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.66rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.28rem;
+}
+
+.offcanvas-unread-dot {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.66rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.28rem;
+}
 
 .mobile-bottom-nav .nav-fab {
     background: var(--primary);
@@ -371,6 +418,81 @@ a:hover { color: #60a5fa; text-shadow: 0 0 10px var(--primary-glow); }
     border-radius: 18px;
 }
 
+.staff-availability-lists {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+.staff-leave-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.staff-leave-date {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.staff-leave-status {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.staff-slots-section {
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    background: linear-gradient(165deg, rgba(255,255,255,0.9), rgba(248,250,252,0.9));
+    padding: 1rem;
+}
+
+.staff-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.staff-slots-grid {
+    gap: 0.55rem !important;
+}
+
+.staff-slot-form .staff-slot-btn {
+    min-width: 170px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.availability-subpanel {
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.76);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+    padding: 0.9rem 0.9rem 0.45rem;
+    min-height: 100%;
+}
+
+.availability-list .list-group-item {
+    border-color: rgba(100, 116, 139, 0.24) !important;
+}
+
+.availability-list-item {
+    padding-top: 0.72rem !important;
+    padding-bottom: 0.72rem !important;
+}
+
+.availability-empty {
+    background: rgba(248, 250, 252, 0.95) !important;
+    border: 1px dashed rgba(148, 163, 184, 0.38) !important;
+    border-radius: 12px;
+    padding: 0.95rem 0.9rem !important;
+}
+
+.staff-leave-date {
+    font-weight: 600;
+}
+
 .role-section-head {
     display: flex;
     justify-content: space-between;
@@ -489,6 +611,17 @@ a:hover { color: #60a5fa; text-shadow: 0 0 10px var(--primary-glow); }
     border-radius: 12px;
     padding: 0.75rem;
     background: #fff;
+}
+
+.message-check-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.message-toolbar {
+    padding: 0.35rem 0.1rem 0.15rem;
+    border-bottom: 1px dashed rgba(100, 116, 139, 0.25);
 }
 
 .service-admin-staff-select {
@@ -715,6 +848,29 @@ a:hover { color: #60a5fa; text-shadow: 0 0 10px var(--primary-glow); }
 
     .mobile-bottom-nav .nav-fab:hover {
         transform: translateY(-21px);
+    }
+
+    .staff-leave-item {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .staff-leave-status {
+        padding-left: 1.6rem;
+    }
+
+    .staff-slot-form .staff-slot-btn {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .staff-slot-form {
+        flex: 1 1 calc(50% - 0.4rem);
+    }
+
+    .availability-subpanel {
+        padding: 0.8rem 0.8rem 0.4rem;
     }
 
     .staff-meta-chip,

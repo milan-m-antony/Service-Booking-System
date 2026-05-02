@@ -241,6 +241,8 @@ class UserMessage(models.Model):
     body = models.TextField()
     preset_label = models.CharField(max_length=80, blank=True)
     is_read = models.BooleanField(default=False)
+    sender_deleted = models.BooleanField(default=False)
+    recipient_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

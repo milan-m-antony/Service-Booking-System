@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "django-insecure-change-me"
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "testserver", "0.0.0.0"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -44,12 +44,14 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "bookings.context_processors.mobile_notifications",
+                "bookings.context_processors.message_badges",
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = "service_booking.wsgi.application"
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 def _mysql_is_reachable(host, port):
     try:

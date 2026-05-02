@@ -21,6 +21,8 @@
     <a class="dashboard-action-btn" href="{% url 'profile' %}"><i class="bi bi-person"></i><span>Profile</span></a>
 </section>
 
+{% include 'bookings/partials/dashboard_messages_panel.html' %}
+
 {% if staff_view_mode != 'availability' %}
 <section class="row g-3 mb-4">
     <div class="col-md-4"><article class="kpi-card"><h6>{{ bookings|length }}</h6><p>Total Assigned</p></article></div>
@@ -124,7 +126,7 @@
             <h4 class="mb-1">My Availability</h4>
             <p class="text-muted mb-0">Tap a date to review leave days, blocked slots, and assigned jobs.</p>
         </div>
-        <span class="badge-glass"><i class="bi bi-calendar3 me-1"></i>{{ selected_slot_date|date:"d M Y" }}</span>
+        <span class="badge-glass" id="selectedSlotDateBadge"><i class="bi bi-calendar3 me-1"></i>{{ selected_slot_date|date:"d M Y" }}</span>
     </div>
 
     <div class="booking-calendar-shell mb-3">
@@ -151,17 +153,17 @@
     <div class="row g-4 mb-4">
         <div class="col-md-4">
             <label class="form-label text-muted">Jump to Date</label>
-            <form method="get">
-                <input type="date" name="slot_date" class="form-control" min="{{ today }}" value="{{ selected_slot_date }}" onchange="this.form.submit()" required>
+            <form method="get" id="staffSlotDateForm">
+                <input type="date" id="staffSlotDateInput" name="slot_date" class="form-control" min="{{ today }}" value="{{ selected_slot_date }}" required>
             </form>
         </div>
         <div class="col-md-4">
             <label class="form-label text-muted">Full Day Status</label>
-            <form method="post" class="d-grid m-0">
+            <form method="post" id="staffLeaveToggleForm" class="d-grid m-0">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="toggle_leave_date">
                 <input type="hidden" name="leave_date" value="{{ selected_slot_date }}">
-                <button type="submit" class="btn {% if is_leave_date_selected %}btn-danger{% else %}btn-outline-success{% endif %} rounded-pill">
+                <button type="submit" id="staffLeaveToggleBtn" class="btn {% if is_leave_date_selected %}btn-danger{% else %}btn-outline-success{% endif %} rounded-pill">
                     {% if is_leave_date_selected %}Blocked (Tap to Available){% else %}Available (Tap to Block Day){% endif %}
                 </button>
             </form>
@@ -169,64 +171,68 @@
         <div class="col-md-4">
             <label class="form-label text-muted">Jobs on Date</label>
             <div class="p-3 text-center border rounded-3" style="border-color: var(--glass-border) !important; background: rgba(255,255,255,0.85);">
-                <strong class="fs-5">{{ selected_date_bookings|length }}</strong> active bookings
+                <strong class="fs-5" id="selectedJobsCount">{{ selected_date_bookings|length }}</strong> active bookings
             </div>
         </div>
     </div>
 
-    <div class="mb-4">
-        <h5 class="mb-3">Time Slots Configuration <span class="fs-6 text-muted ms-2">(Toggle status)</span></h5>
-        <div class="d-flex flex-wrap gap-2">
+    <div class="mb-4 staff-slots-section">
+        <h5 class="mb-3 staff-section-title">Time Slots Configuration <span class="fs-6 text-muted ms-2">(Toggle status)</span></h5>
+        <div class="d-flex flex-wrap gap-2 staff-slots-grid">
             {% for slot in time_slot_options %}
-                <form method="post" class="m-0">
+                <form method="post" class="m-0 staff-slot-form">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="toggle_blocked_slot">
                     <input type="hidden" name="slot_date" value="{{ selected_slot_date }}">
                     <input type="hidden" name="slot_time" value="{{ slot }}">
 
                     {% if slot in booked_slot_times %}
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" disabled>{{ slot }} - Booked</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 staff-slot-btn" disabled>{{ slot }} - Booked</button>
                     {% elif is_leave_date_selected %}
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" disabled>{{ slot }} - Day Off</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 staff-slot-btn" disabled>{{ slot }} - Day Off</button>
                     {% elif slot in blocked_slot_times %}
-                        <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3">{{ slot }} - Blocked</button>
+                        <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3 staff-slot-btn">{{ slot }} - Blocked</button>
                     {% else %}
-                        <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3">{{ slot }} - Available</button>
+                        <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3 staff-slot-btn">{{ slot }} - Available</button>
                     {% endif %}
                 </form>
             {% endfor %}
         </div>
     </div>
 
-    <div class="row g-4 border-top pt-4" style="border-color: var(--glass-border) !important;">
+    <div class="row g-4 border-top pt-4 m-0 w-100 staff-availability-lists" style="border-color: var(--glass-border) !important;">
         <div class="col-md-6">
-            <h6 class="mb-3">Bookings Scheduled</h6>
-            <ul class="list-group list-group-flush bg-transparent">
-                {% for booking in selected_date_bookings %}
-                <li class="list-group-item bg-transparent border-bottom border-secondary px-0">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span><strong class="text-primary">{{ booking.scheduled_at|time:"g:i A" }}</strong> &middot; {{ booking.service.name }}</span>
-                        <span class="badge-glass">{{ booking.get_status_display }}</span>
-                    </div>
-                    <div class="small text-muted mt-1">{{ booking.customer.display_name }}</div>
-                </li>
-                {% empty %}
-                <li class="list-group-item bg-transparent text-muted px-0 border-0">No bookings for this date.</li>
-                {% endfor %}
-            </ul>
+            <div class="availability-subpanel">
+                <h6 class="mb-3">Bookings Scheduled</h6>
+                <ul class="list-group list-group-flush bg-transparent availability-list" id="staffSelectedBookingsList">
+                    {% for booking in selected_date_bookings %}
+                    <li class="list-group-item bg-transparent border-bottom border-secondary px-0 availability-list-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><strong class="text-primary">{{ booking.scheduled_at|time:"g:i A" }}</strong> &middot; {{ booking.service.name }}</span>
+                            <span class="badge-glass">{{ booking.get_status_display }}</span>
+                        </div>
+                        <div class="small text-muted mt-1">{{ booking.customer.display_name }}</div>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item bg-transparent text-muted px-0 border-0 availability-empty">No bookings for this date.</li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
         <div class="col-md-6">
-            <h6 class="mb-3">Upcoming Days Off</h6>
-            <ul class="list-group list-group-flush bg-transparent">
-                {% for item in leave_dates %}
-                <li class="list-group-item bg-transparent border-bottom border-secondary px-0 d-flex justify-content-between">
-                    <span><i class="bi bi-calendar-x text-danger me-2"></i>{{ item.date|date:"D, d M Y" }}</span>
-                    <span class="text-muted small">Blocked</span>
-                </li>
-                {% empty %}
-                <li class="list-group-item bg-transparent text-muted px-0 border-0">No full-day blocks ahead.</li>
-                {% endfor %}
-            </ul>
+            <div class="availability-subpanel">
+                <h6 class="mb-3">Upcoming Days Off</h6>
+                <ul class="list-group list-group-flush bg-transparent availability-list" id="staffLeaveDatesList">
+                    {% for item in leave_dates %}
+                    <li class="list-group-item bg-transparent border-bottom border-secondary px-0 staff-leave-item availability-list-item">
+                        <span class="staff-leave-date"><i class="bi bi-calendar-x text-danger me-2"></i>{{ item.date|date:"D, d M Y" }}</span>
+                        <span class="text-muted small staff-leave-status">Blocked</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item bg-transparent text-muted px-0 border-0 availability-empty">No full-day blocks ahead.</li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
 </section>
@@ -305,25 +311,209 @@ document.addEventListener('DOMContentLoaded', function () {
     const staffCalendarPrev = document.getElementById('staffCalendarPrev');
     const staffCalendarNext = document.getElementById('staffCalendarNext');
     const staffCalendarDataNode = document.getElementById('staff-calendar-data');
+    const slotDateInput = document.getElementById('staffSlotDateInput');
+    const leaveToggleForm = document.getElementById('staffLeaveToggleForm');
+    const leaveToggleButton = document.getElementById('staffLeaveToggleBtn');
+    const jobsCountNode = document.getElementById('selectedJobsCount');
+    const selectedSlotDateBadge = document.getElementById('selectedSlotDateBadge');
+    const selectedBookingsList = document.getElementById('staffSelectedBookingsList');
+    const leaveDatesList = document.getElementById('staffLeaveDatesList');
 
     if (!staffCalendarGrid || !staffCalendarTitle || !staffCalendarDataNode) {
         return;
     }
 
-    const staffCalendarData = JSON.parse(staffCalendarDataNode.textContent || '{}');
-    const selectedSlotIso = "{{ selected_slot_date }}";
+    let staffCalendarData = JSON.parse(staffCalendarDataNode.textContent || '{}');
+    let selectedSlotIso = "{{ selected_slot_date }}";
     const initialDate = selectedSlotIso ? new Date(`${selectedSlotIso}T00:00:00`) : new Date();
     let staffCalendarMonth = initialDate.getMonth();
     let staffCalendarYear = initialDate.getFullYear();
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function csrfToken() {
+        const tokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        return tokenInput ? tokenInput.value : '';
+    }
+
+    function syncDateFields(isoDate) {
+        document.querySelectorAll('input[name="slot_date"]').forEach(function (node) {
+            node.value = isoDate;
+        });
+        document.querySelectorAll('input[name="leave_date"]').forEach(function (node) {
+            node.value = isoDate;
+        });
+        if (slotDateInput) {
+            slotDateInput.value = isoDate;
+        }
+    }
+
+    function updateSlotsUI(payload) {
+        const blockedSet = new Set(payload.blocked_slot_times || []);
+        const bookedSet = new Set(payload.booked_slot_times || []);
+        const isLeaveDate = Boolean(payload.is_leave_date_selected);
+
+        document.querySelectorAll('.staff-slot-form').forEach(function (form) {
+            const timeInput = form.querySelector('input[name="slot_time"]');
+            const button = form.querySelector('.staff-slot-btn');
+            if (!timeInput || !button) {
+                return;
+            }
+
+            const time = timeInput.value;
+            button.classList.remove('btn-danger', 'btn-outline-success', 'btn-outline-secondary');
+
+            if (bookedSet.has(time)) {
+                button.classList.add('btn-outline-secondary');
+                button.disabled = true;
+                button.textContent = `${time} - Booked`;
+            } else if (isLeaveDate) {
+                button.classList.add('btn-outline-secondary');
+                button.disabled = true;
+                button.textContent = `${time} - Day Off`;
+            } else if (blockedSet.has(time)) {
+                button.classList.add('btn-danger');
+                button.disabled = false;
+                button.textContent = `${time} - Blocked`;
+            } else {
+                button.classList.add('btn-outline-success');
+                button.disabled = false;
+                button.textContent = `${time} - Available`;
+            }
+        });
+    }
+
+    function updateBookingsList(payload) {
+        if (!selectedBookingsList) {
+            return;
+        }
+
+        const rows = payload.selected_date_bookings || [];
+        if (!rows.length) {
+            selectedBookingsList.innerHTML = '<li class="list-group-item bg-transparent text-muted px-0 border-0 availability-empty">No bookings for this date.</li>';
+            return;
+        }
+
+        selectedBookingsList.innerHTML = rows.map(function (booking) {
+            return `
+                <li class="list-group-item bg-transparent border-bottom border-secondary px-0 availability-list-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><strong class="text-primary">${escapeHtml(booking.time)}</strong> &middot; ${escapeHtml(booking.service)}</span>
+                        <span class="badge-glass">${escapeHtml(booking.status)}</span>
+                    </div>
+                    <div class="small text-muted mt-1">${escapeHtml(booking.customer)}</div>
+                </li>
+            `;
+        }).join('');
+    }
+
+    function updateLeaveDatesList(payload) {
+        if (!leaveDatesList) {
+            return;
+        }
+
+        const rows = payload.leave_dates || [];
+        if (!rows.length) {
+            leaveDatesList.innerHTML = '<li class="list-group-item bg-transparent text-muted px-0 border-0 availability-empty">No full-day blocks ahead.</li>';
+            return;
+        }
+
+        leaveDatesList.innerHTML = rows.map(function (item) {
+            return `
+                <li class="list-group-item bg-transparent border-bottom border-secondary px-0 staff-leave-item availability-list-item">
+                    <span class="staff-leave-date"><i class="bi bi-calendar-x text-danger me-2"></i>${escapeHtml(item.display)}</span>
+                    <span class="text-muted small staff-leave-status">${escapeHtml(item.status)}</span>
+                </li>
+            `;
+        }).join('');
+    }
+
+    function applyAvailabilityPayload(payload) {
+        if (!payload || !payload.selected_slot_date) {
+            return;
+        }
+
+        selectedSlotIso = payload.selected_slot_date;
+        syncDateFields(selectedSlotIso);
+
+        if (selectedSlotDateBadge) {
+            selectedSlotDateBadge.innerHTML = `<i class="bi bi-calendar3 me-1"></i>${escapeHtml(payload.selected_slot_date_display || payload.selected_slot_date)}`;
+        }
+
+        if (jobsCountNode) {
+            jobsCountNode.textContent = String(payload.jobs_count || 0);
+        }
+
+        if (leaveToggleButton) {
+            const blocked = Boolean(payload.is_leave_date_selected);
+            leaveToggleButton.classList.remove('btn-danger', 'btn-outline-success');
+            leaveToggleButton.classList.add(blocked ? 'btn-danger' : 'btn-outline-success');
+            leaveToggleButton.textContent = blocked ? 'Blocked (Tap to Available)' : 'Available (Tap to Block Day)';
+        }
+
+        if (payload.staff_calendar_data) {
+            staffCalendarData = payload.staff_calendar_data;
+        }
+
+        updateSlotsUI(payload);
+        updateBookingsList(payload);
+        updateLeaveDatesList(payload);
+        renderStaffCalendar();
+    }
+
+    async function fetchAvailabilityState(isoDate) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('slot_date', isoDate);
+        url.searchParams.set('ajax', '1');
+
+        const response = await fetch(url.pathname + '?' + url.searchParams.toString(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load date state');
+        }
+
+        const payload = await response.json();
+        applyAvailabilityPayload(payload);
+    }
+
+    async function submitAvailabilityForm(form) {
+        const formData = new FormData(form);
+        const response = await fetch(window.location.pathname, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken(),
+            },
+            body: formData,
+            credentials: 'same-origin',
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save availability');
+        }
+
+        const payload = await response.json();
+        applyAvailabilityPayload(payload);
+    }
 
     function formatCalendarDate(dateObj) {
         return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
     }
 
     function goToSlotDate(isoDate) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('slot_date', isoDate);
-        window.location.href = `${url.pathname}?${url.searchParams.toString()}`;
+        fetchAvailabilityState(isoDate).catch(function (error) {
+            console.error(error);
+        });
     }
 
     function renderStaffCalendar() {
@@ -351,13 +541,22 @@ document.addEventListener('DOMContentLoaded', function () {
             const isPast = dateObj < todayStart;
             const status = isPast ? 'past' : dayInfo.status;
             const count = Number(dayInfo.count || 0);
+            const statusLabel = isPast
+                ? 'Past'
+                : (status === 'closed'
+                    ? 'Blocked'
+                    : status === 'booked-out'
+                        ? 'Fully unavailable'
+                        : status === 'partial'
+                            ? `${count} slot${count > 1 ? 's' : ''} unavailable`
+                            : 'Available');
 
             const cell = document.createElement('button');
             cell.type = 'button';
             cell.className = 'calendar-day';
             cell.classList.add(`is-${status}`);
-            cell.innerHTML = `<span class="calendar-day-number">${day}</span><span class="calendar-day-label">${isPast ? 'Past' : (status === 'closed' ? 'Blocked' : status === 'booked-out' ? 'Booked out' : status === 'partial' ? `${count} booking${count > 1 ? 's' : ''}` : 'Available')}</span>`;
-            cell.title = isPast ? 'Past date' : `${status} (${count} booking${count === 1 ? '' : 's'})`;
+            cell.innerHTML = `<span class="calendar-day-number">${day}</span><span class="calendar-day-label">${statusLabel}</span>`;
+            cell.title = isPast ? 'Past date' : statusLabel;
 
             if (isoDate === selectedSlotIso) {
                 cell.classList.add('is-selected');
@@ -396,6 +595,35 @@ document.addEventListener('DOMContentLoaded', function () {
             renderStaffCalendar();
         });
     }
+
+    if (slotDateInput) {
+        slotDateInput.addEventListener('change', function () {
+            if (!slotDateInput.value) {
+                return;
+            }
+            fetchAvailabilityState(slotDateInput.value).catch(function (error) {
+                console.error(error);
+            });
+        });
+    }
+
+    if (leaveToggleForm) {
+        leaveToggleForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            submitAvailabilityForm(leaveToggleForm).catch(function (error) {
+                console.error(error);
+            });
+        });
+    }
+
+    document.querySelectorAll('.staff-slot-form').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            submitAvailabilityForm(form).catch(function (error) {
+                console.error(error);
+            });
+        });
+    });
 
     renderStaffCalendar();
 });

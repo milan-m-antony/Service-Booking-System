@@ -6,6 +6,8 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
+from django.http import JsonResponse
+from django.db.utils import DatabaseError, OperationalError
 from django.db.models import Avg, Count, Prefetch, Q
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -21,67 +23,198 @@ from .models import Booking, BookingFeedback, CustomUser, Service, ServiceCatego
 @login_required
 def message_center(request):
     """Message center with presets and persistent inbox/sent messages."""
-    presets = [
-        ("greeting", "Hello! I would like to book a service."),
-        ("availability", "Are you available on a specific date?"),
-        ("pricing", "Can you confirm the price for this service?"),
-    ]
+    presets = _message_presets_for_role(request.user.role)
 
-    recipients = CustomUser.objects.filter(is_active=True).exclude(id=request.user.id)
-    if request.user.role == CustomUser.Roles.CUSTOMER:
-        recipients = recipients.filter(role=CustomUser.Roles.STAFF)
-    elif request.user.role == CustomUser.Roles.STAFF:
-        recipients = recipients.filter(role__in=[CustomUser.Roles.CUSTOMER, CustomUser.Roles.ADMIN])
-    recipients = recipients.order_by("first_name", "last_name", "username")
+    prefill_label = (request.GET.get("preset_label") or "").strip()
+    prefill_subject = (request.GET.get("subject") or "").strip()
+    prefill_body = (request.GET.get("body") or "").strip()
 
-    if request.method == "POST":
-        preset_label = (request.POST.get("preset_label") or "").strip()
-        subject = (request.POST.get("subject") or "").strip()
-        body = (request.POST.get("body") or "").strip()
-        target_id = request.POST.get("recipient_id")
+    if prefill_label and not prefill_body:
+        preset_map = {item["key"]: item for item in presets}
+        matched_preset = preset_map.get(prefill_label)
+        if matched_preset:
+            prefill_body = matched_preset["body"]
+            if not prefill_subject:
+                prefill_subject = matched_preset["subject"]
 
-        recipient = recipients.filter(id=target_id).first() if target_id else None
+    try:
+        recipients = CustomUser.objects.filter(is_active=True).exclude(id=request.user.id)
+        if request.user.role == CustomUser.Roles.CUSTOMER:
+            recipients = recipients.filter(role=CustomUser.Roles.STAFF)
+        elif request.user.role == CustomUser.Roles.STAFF:
+            recipients = recipients.filter(role__in=[CustomUser.Roles.CUSTOMER, CustomUser.Roles.ADMIN])
+        recipients = recipients.order_by("first_name", "last_name", "username")
 
-        if not recipient:
-            messages.error(request, "Please choose a valid recipient.")
-        elif not body:
-            messages.error(request, "Message body is required.")
-        else:
-            UserMessage.objects.create(
-                sender=request.user,
-                recipient=recipient,
-                subject=subject,
-                body=body,
-                preset_label=preset_label,
-            )
-            messages.success(request, f"Message sent to {recipient.display_name}.")
+        if request.method == "POST":
+            action = (request.POST.get("action") or "").strip()
+            selected_message_ids = [
+                int(message_id)
+                for message_id in request.POST.getlist("selected_message_ids")
+                if message_id.isdigit()
+            ]
+
+            if action.startswith("delete_inbox_message:"):
+                message_id = action.split(":", 1)[1]
+                if not message_id.isdigit():
+                    messages.warning(request, "Invalid inbox message.")
+                    return redirect("messages")
+
+                deleted_count = UserMessage.objects.filter(
+                    id=int(message_id),
+                    recipient=request.user,
+                    recipient_deleted=False,
+                ).update(recipient_deleted=True)
+                if deleted_count:
+                    _purge_fully_deleted_messages()
+                    messages.success(request, "Inbox message deleted.")
+                else:
+                    messages.info(request, "Message was already removed.")
+                return redirect("messages")
+
+            if action.startswith("delete_sent_message:"):
+                message_id = action.split(":", 1)[1]
+                if not message_id.isdigit():
+                    messages.warning(request, "Invalid sent message.")
+                    return redirect("messages")
+
+                deleted_count = UserMessage.objects.filter(
+                    id=int(message_id),
+                    sender=request.user,
+                    sender_deleted=False,
+                ).update(sender_deleted=True)
+                if deleted_count:
+                    _purge_fully_deleted_messages()
+                    messages.success(request, "Sent message deleted.")
+                else:
+                    messages.info(request, "Message was already removed.")
+                return redirect("messages")
+
+            if action == "delete_inbox_selected":
+                if not selected_message_ids:
+                    messages.warning(request, "Select at least one inbox message to delete.")
+                    return redirect("messages")
+
+                deleted_count = UserMessage.objects.filter(
+                    id__in=selected_message_ids,
+                    recipient=request.user,
+                    recipient_deleted=False,
+                ).update(recipient_deleted=True)
+                if deleted_count:
+                    _purge_fully_deleted_messages()
+                    messages.success(request, f"Deleted {deleted_count} inbox message(s).")
+                else:
+                    messages.info(request, "No inbox messages were deleted.")
+                return redirect("messages")
+
+            if action == "delete_sent_selected":
+                if not selected_message_ids:
+                    messages.warning(request, "Select at least one sent message to delete.")
+                    return redirect("messages")
+
+                deleted_count = UserMessage.objects.filter(
+                    id__in=selected_message_ids,
+                    sender=request.user,
+                    sender_deleted=False,
+                ).update(sender_deleted=True)
+                if deleted_count:
+                    _purge_fully_deleted_messages()
+                    messages.success(request, f"Deleted {deleted_count} sent message(s).")
+                else:
+                    messages.info(request, "No sent messages were deleted.")
+                return redirect("messages")
+
+            if action == "delete_all_inbox":
+                deleted_count = UserMessage.objects.filter(recipient=request.user, recipient_deleted=False).update(
+                    recipient_deleted=True
+                )
+                if deleted_count:
+                    _purge_fully_deleted_messages()
+                    messages.success(request, f"Deleted all inbox messages ({deleted_count}).")
+                else:
+                    messages.info(request, "Inbox is already empty.")
+                return redirect("messages")
+
+            if action == "delete_all_sent":
+                deleted_count = UserMessage.objects.filter(sender=request.user, sender_deleted=False).update(
+                    sender_deleted=True
+                )
+                if deleted_count:
+                    _purge_fully_deleted_messages()
+                    messages.success(request, f"Deleted all sent messages ({deleted_count}).")
+                else:
+                    messages.info(request, "Sent items are already empty.")
+                return redirect("messages")
+
+            preset_label = (request.POST.get("preset_label") or "").strip()
+            subject = (request.POST.get("subject") or "").strip()
+            body = (request.POST.get("body") or "").strip()
+            target_id = request.POST.get("recipient_id")
+
+            recipient = recipients.filter(id=target_id).first() if target_id else None
+
+            if not recipient:
+                messages.error(request, "Please choose a valid recipient.")
+            elif not body:
+                messages.error(request, "Message body is required.")
+            else:
+                UserMessage.objects.create(
+                    sender=request.user,
+                    recipient=recipient,
+                    subject=subject,
+                    body=body,
+                    preset_label=preset_label,
+                )
+                messages.success(request, f"Message sent to {recipient.display_name}.")
+                return redirect("messages")
+
+        unread_ids = list(
+            UserMessage.objects.filter(recipient=request.user, is_read=False, recipient_deleted=False).values_list("id", flat=True)
+        )
+        if unread_ids:
+            UserMessage.objects.filter(id__in=unread_ids).update(is_read=True)
+
+        inbox_messages = (
+            UserMessage.objects.filter(recipient=request.user, recipient_deleted=False)
+            .select_related("sender")
+            .order_by("-created_at")[:20]
+        )
+        sent_messages = (
+            UserMessage.objects.filter(sender=request.user, sender_deleted=False)
+            .select_related("recipient")
+            .order_by("-created_at")[:20]
+        )
+
+        context = {
+            "presets": presets,
+            "recipients": recipients,
+            "inbox_messages": inbox_messages,
+            "sent_messages": sent_messages,
+            "inbox_count": UserMessage.objects.filter(recipient=request.user, recipient_deleted=False).count(),
+            "sent_count": UserMessage.objects.filter(sender=request.user, sender_deleted=False).count(),
+            "unread_count": len(unread_ids),
+            "prefill_label": prefill_label,
+            "prefill_subject": prefill_subject,
+            "prefill_body": prefill_body,
+        }
+        return render(request, "bookings/message_center.html", context)
+    except (OperationalError, DatabaseError):
+        if request.method == "POST":
+            messages.error(request, "Message service is temporarily unavailable. Please try again.")
             return redirect("messages")
 
-    unread_ids = list(
-        UserMessage.objects.filter(recipient=request.user, is_read=False).values_list("id", flat=True)
-    )
-    if unread_ids:
-        UserMessage.objects.filter(id__in=unread_ids).update(is_read=True)
-
-    inbox_messages = (
-        UserMessage.objects.filter(recipient=request.user)
-        .select_related("sender")
-        .order_by("-created_at")[:20]
-    )
-    sent_messages = (
-        UserMessage.objects.filter(sender=request.user)
-        .select_related("recipient")
-        .order_by("-created_at")[:20]
-    )
-
-    context = {
-        "presets": presets,
-        "recipients": recipients,
-        "inbox_messages": inbox_messages,
-        "sent_messages": sent_messages,
-        "unread_count": len(unread_ids),
-    }
-    return render(request, "bookings/message_center.html", context)
+        context = {
+            "presets": presets,
+            "recipients": [],
+            "inbox_messages": [],
+            "sent_messages": [],
+            "inbox_count": 0,
+            "sent_count": 0,
+            "unread_count": 0,
+            "prefill_label": prefill_label,
+            "prefill_subject": prefill_subject,
+            "prefill_body": prefill_body,
+        }
+        return render(request, "bookings/message_center.html", context)
 
 
 def _dashboard_name_for(user):
@@ -90,6 +223,72 @@ def _dashboard_name_for(user):
     if user.role == CustomUser.Roles.STAFF:
         return "staff_dashboard"
     return "user_dashboard"
+
+
+def _message_presets_for_role(role):
+    if role == CustomUser.Roles.CUSTOMER:
+        return [
+            {"key": "booking_request", "label": "Booking request", "subject": "Booking request", "body": "Hello, I would like to book a service. Please share availability and next steps."},
+            {"key": "availability", "label": "Availability check", "subject": "Availability check", "body": "Are you available on a specific date or time slot?"},
+            {"key": "pricing", "label": "Pricing question", "subject": "Pricing question", "body": "Can you confirm the price for this service and any extra charges?"},
+        ]
+    if role == CustomUser.Roles.STAFF:
+        return [
+            {"key": "job_update", "label": "Job update", "subject": "Job update", "body": "Hello, I am sending a quick update on the job status and timing."},
+            {"key": "availability_notice", "label": "Availability notice", "subject": "Availability notice", "body": "Please confirm your preferred time so I can check my schedule."},
+            {"key": "follow_up", "label": "Follow up", "subject": "Follow up", "body": "Thanks for your booking. Please reply if you need any changes or support."},
+        ]
+    return [
+        {"key": "review_request", "label": "Review request", "subject": "Review request", "body": "Please review the latest booking updates and confirm if any action is needed."},
+        {"key": "system_notice", "label": "System notice", "subject": "System notice", "body": "A booking or message status has changed. Please review the dashboard for updates."},
+        {"key": "follow_up", "label": "Follow up", "subject": "Follow up", "body": "Please follow up on any pending items or unanswered messages."},
+    ]
+
+
+def _dashboard_quick_presets_for_role(role):
+    if role == CustomUser.Roles.CUSTOMER:
+        return [
+            {"key": "book", "label": "Book service", "subject": "Booking request", "body": "Hello, I would like to book a service."},
+            {"key": "reschedule", "label": "Reschedule", "subject": "Reschedule request", "body": "I need to change my booking date or time. Please help me reschedule."},
+        ]
+    if role == CustomUser.Roles.STAFF:
+        return [
+            {"key": "update", "label": "Job update", "subject": "Job update", "body": "I am sending a quick status update for the assigned job."},
+            {"key": "availability", "label": "Availability", "subject": "Availability check", "body": "Please confirm the preferred time so I can align my schedule."},
+        ]
+    return [
+        {"key": "notice", "label": "Notice", "subject": "Admin notice", "body": "Please review the dashboard for the latest updates and pending items."},
+        {"key": "review", "label": "Review request", "subject": "Review request", "body": "Please review the pending bookings and respond when ready."},
+    ]
+
+
+def _purge_fully_deleted_messages():
+    UserMessage.objects.filter(sender_deleted=True, recipient_deleted=True).delete()
+
+
+def _dashboard_message_context(user, limit=5):
+    try:
+        unread_count = UserMessage.objects.filter(recipient=user, is_read=False, recipient_deleted=False).count()
+        inbox_count = UserMessage.objects.filter(recipient=user, recipient_deleted=False).count()
+        sent_count = UserMessage.objects.filter(sender=user, sender_deleted=False).count()
+        recent_messages = (
+            UserMessage.objects.filter(Q(recipient=user, recipient_deleted=False) | Q(sender=user, sender_deleted=False))
+            .select_related("sender", "recipient")
+            .order_by("-created_at")[:limit]
+        )
+    except (OperationalError, DatabaseError):
+        unread_count = 0
+        inbox_count = 0
+        sent_count = 0
+        recent_messages = []
+
+    return {
+        "dashboard_unread_count": unread_count,
+        "dashboard_inbox_count": inbox_count,
+        "dashboard_sent_count": sent_count,
+        "dashboard_messages": recent_messages,
+        "dashboard_message_presets": _dashboard_quick_presets_for_role(user.role),
+    }
 
 
 def home(request):
@@ -368,6 +567,7 @@ def user_dashboard(request):
         "active_bookings": bookings.filter(status__in=[Booking.Status.PENDING, Booking.Status.IN_PROGRESS]).count(),
         "total_spent": total_spent if isinstance(total_spent, Decimal) else Decimal("0.00"),
     }
+    context.update(_dashboard_message_context(request.user))
     return render(request, "bookings/user_dashboard.html", context)
 
 
@@ -383,6 +583,10 @@ def staff_availability(request):
 
 def _render_staff_dashboard(request, view_mode="home"):
     redirect_name = "staff_availability" if view_mode == "availability" else "staff_dashboard"
+    ajax_mode = request.headers.get("x-requested-with") == "XMLHttpRequest" or request.GET.get("ajax") == "1"
+    selected_slot_date_override = None
+    ajax_success = True
+    ajax_message = ""
     time_slot_options = [
         "09:00", "10:00", "11:00", "12:00", "13:00",
         "14:00", "15:00", "16:00", "17:00", "18:00",
@@ -404,6 +608,8 @@ def _render_staff_dashboard(request, view_mode="home"):
                     date_obj = datetime.strptime(raw_date, "%Y-%m-%d").date()
                     if date_obj < timezone.localdate():
                         messages.error(request, "Cannot update past dates.")
+                        ajax_success = False
+                        ajax_message = "Cannot update past dates."
                     else:
                         existing_leave = StaffLeaveDate.objects.filter(
                             staff=request.user,
@@ -413,6 +619,7 @@ def _render_staff_dashboard(request, view_mode="home"):
                         if existing_leave:
                             existing_leave.delete()
                             messages.success(request, "Selected date is now available.")
+                            ajax_message = "Selected date is now available."
                         else:
                             active_bookings = Booking.objects.filter(
                                 staff=request.user,
@@ -425,13 +632,23 @@ def _render_staff_dashboard(request, view_mode="home"):
                             )
                             if active_bookings:
                                 messages.warning(request, f"Date blocked. Note: {active_bookings} booking(s) already exist on this date.")
+                                ajax_message = f"Date blocked. Note: {active_bookings} booking(s) already exist on this date."
                             else:
                                 messages.success(request, "Selected date is now blocked.")
+                                ajax_message = "Selected date is now blocked."
                 except ValueError:
                     messages.error(request, "Invalid date.")
+                    ajax_success = False
+                    ajax_message = "Invalid date."
             else:
                 messages.error(request, "Please choose a valid date.")
-            return _redirect_with_slot_date(raw_date or None)
+                ajax_success = False
+                ajax_message = "Please choose a valid date."
+
+            if ajax_mode:
+                selected_slot_date_override = raw_date or timezone.localdate().isoformat()
+            else:
+                return _redirect_with_slot_date(raw_date or None)
 
         if action == "toggle_blocked_slot":
             raw_date = request.POST.get("slot_date", "").strip()
@@ -442,6 +659,8 @@ def _render_staff_dashboard(request, view_mode="home"):
                     time_obj = datetime.strptime(raw_time, "%H:%M").time()
                     if date_obj < timezone.localdate():
                         messages.error(request, "Cannot update slots for past dates.")
+                        ajax_success = False
+                        ajax_message = "Cannot update slots for past dates."
                     else:
                         has_booking = Booking.objects.filter(
                             staff=request.user,
@@ -451,6 +670,8 @@ def _render_staff_dashboard(request, view_mode="home"):
 
                         if has_booking:
                             messages.error(request, "This slot already has a booking and cannot be blocked.")
+                            ajax_success = False
+                            ajax_message = "This slot already has a booking and cannot be blocked."
                         else:
                             existing_slot = StaffBlockedSlot.objects.filter(
                                 staff=request.user,
@@ -461,6 +682,7 @@ def _render_staff_dashboard(request, view_mode="home"):
                             if existing_slot:
                                 existing_slot.delete()
                                 messages.success(request, "Slot is now available.")
+                                ajax_message = "Slot is now available."
                             else:
                                 StaffBlockedSlot.objects.create(
                                     staff=request.user,
@@ -469,11 +691,20 @@ def _render_staff_dashboard(request, view_mode="home"):
                                     is_active=True,
                                 )
                                 messages.success(request, "Slot blocked successfully.")
+                                ajax_message = "Slot blocked successfully."
                 except ValueError:
                     messages.error(request, "Invalid date or time.")
+                    ajax_success = False
+                    ajax_message = "Invalid date or time."
             else:
                 messages.error(request, "Missing date/time to toggle slot.")
-            return _redirect_with_slot_date(raw_date or None)
+                ajax_success = False
+                ajax_message = "Missing date/time to toggle slot."
+
+            if ajax_mode:
+                selected_slot_date_override = raw_date or timezone.localdate().isoformat()
+            else:
+                return _redirect_with_slot_date(raw_date or None)
 
         if action == "add_leave_date":
             raw_date = request.POST.get("leave_date", "").strip()
@@ -540,7 +771,7 @@ def _render_staff_dashboard(request, view_mode="home"):
     leave_dates = StaffLeaveDate.objects.filter(staff=request.user, is_active=True).order_by("date")
     blocked_slots = StaffBlockedSlot.objects.filter(staff=request.user, is_active=True).order_by("date", "time")
 
-    selected_slot_date_raw = request.GET.get("slot_date", "").strip()
+    selected_slot_date_raw = (selected_slot_date_override or request.GET.get("slot_date", "")).strip()
     if selected_slot_date_raw:
         try:
             selected_slot_date = datetime.strptime(selected_slot_date_raw, "%Y-%m-%d").date()
@@ -589,27 +820,41 @@ def _render_staff_dashboard(request, view_mode="home"):
         )
 
     leave_date_set = set(leave_dates.values_list("date", flat=True))
-    calendar_day_stats = {}
+    daily_unavailable_slots = {}
+
+    for slot in blocked_slots:
+        day_iso = slot.date.isoformat()
+        slot_set = daily_unavailable_slots.setdefault(day_iso, set())
+        slot_set.add(slot.time.strftime("%H:%M"))
+
     for booking in bookings.exclude(status=Booking.Status.CANCELLED).values_list("scheduled_at", flat=True):
         if not booking:
             continue
         day_iso = booking.date().isoformat()
-        calendar_day_stats[day_iso] = calendar_day_stats.get(day_iso, 0) + 1
+        slot_set = daily_unavailable_slots.setdefault(day_iso, set())
+        slot_set.add(booking.strftime("%H:%M"))
 
+    total_slots_per_day = len(time_slot_options)
     staff_calendar_data = {}
+
     for leave_date in leave_date_set:
         day_iso = leave_date.isoformat()
         staff_calendar_data[day_iso] = {
-            "count": calendar_day_stats.get(day_iso, 0),
+            "count": total_slots_per_day,
             "status": "closed",
         }
 
-    for day_iso, count in calendar_day_stats.items():
+    for day_iso, slot_set in daily_unavailable_slots.items():
         if day_iso in staff_calendar_data:
             continue
+
+        unavailable_count = len(slot_set)
+        if unavailable_count <= 0:
+            continue
+
         staff_calendar_data[day_iso] = {
-            "count": count,
-            "status": "booked-out" if count >= 3 else "partial",
+            "count": unavailable_count,
+            "status": "booked-out" if unavailable_count >= total_slots_per_day else "partial",
         }
 
     available_slots_for_date = []
@@ -644,6 +889,39 @@ def _render_staff_dashboard(request, view_mode="home"):
         "selected_date_bookings": booked_on_date.order_by("scheduled_at"),
         "staff_calendar_data": staff_calendar_data,
     }
+    context.update(_dashboard_message_context(request.user))
+
+    if ajax_mode:
+        return JsonResponse(
+            {
+                "ok": ajax_success,
+                "message": ajax_message,
+                "selected_slot_date": selected_slot_date.isoformat(),
+                "selected_slot_date_display": selected_slot_date.strftime("%d %b %Y"),
+                "is_leave_date_selected": selected_slot_date in leave_date_set,
+                "jobs_count": booked_on_date.count(),
+                "blocked_slot_times": sorted(blocked_slot_times),
+                "booked_slot_times": sorted(booked_slot_times),
+                "selected_date_bookings": [
+                    {
+                        "time": booking.scheduled_at.strftime("%I:%M %p"),
+                        "service": booking.service.name,
+                        "customer": booking.customer.display_name,
+                        "status": booking.get_status_display(),
+                    }
+                    for booking in booked_on_date.order_by("scheduled_at")
+                ],
+                "leave_dates": [
+                    {
+                        "display": leave.date.strftime("%a, %d %b %Y"),
+                        "status": "Blocked",
+                    }
+                    for leave in leave_dates
+                ],
+                "staff_calendar_data": staff_calendar_data,
+            }
+        )
+
     return render(request, "bookings/staff_dashboard.html", context)
 
 
@@ -667,6 +945,7 @@ def admin_dashboard(request):
         "pending_bookings": pending_bookings[:8],
         "recent_bookings": bookings[:8],
     }
+    context.update(_dashboard_message_context(request.user))
     return render(request, "bookings/admin_dashboard.html", context)
 
 

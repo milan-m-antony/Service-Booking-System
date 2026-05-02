@@ -1,0 +1,54 @@
+<section class="panel-lite role-panel p-0 overflow-hidden mb-4">
+    <div class="p-4 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h4 class="mb-0">Messages</h4>
+            <p class="text-muted mb-0 small">Quick reply and recent conversation preview.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge-glass"><i class="bi bi-envelope me-1"></i>{{ dashboard_unread_count }} unread</span>
+            <span class="badge-glass">Inbox {{ dashboard_inbox_count }}</span>
+            <span class="badge-glass">Sent {{ dashboard_sent_count }}</span>
+            <a class="btn btn-sm btn-outline-primary rounded-pill px-3" href="{% url 'messages' %}">Open</a>
+        </div>
+    </div>
+    <div class="p-4">
+        {% if dashboard_message_presets %}
+        <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <h6 class="mb-0">Quick Presets</h6>
+                <span class="text-muted small">Role based</span>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                {% for preset in dashboard_message_presets %}
+                <a class="btn btn-sm btn-outline-primary rounded-pill px-3" href="{% url 'messages' %}?preset_label={{ preset.key|urlencode }}&subject={{ preset.subject|urlencode }}&body={{ preset.body|urlencode }}">{{ preset.label }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <div class="message-list" style="max-height: 280px;">
+            {% for item in dashboard_messages %}
+            <article class="message-item">
+                <div class="d-flex justify-content-between flex-wrap gap-1">
+                    <strong>
+                        {% if item.sender_id == request.user.id %}
+                            To {{ item.recipient.display_name }}
+                        {% else %}
+                            From {{ item.sender.display_name }}
+                        {% endif %}
+                    </strong>
+                    <small class="text-muted">{{ item.created_at|date:"d M Y, h:i A" }}</small>
+                </div>
+                <p class="mb-1 small text-muted">
+                    {{ item.subject|default:"No subject" }}
+                    {% if item.recipient_id == request.user.id and not item.is_read %}
+                        <span class="ms-2 badge badge-status-pending">New</span>
+                    {% endif %}
+                </p>
+                <p class="mb-0">{{ item.body|truncatechars:160 }}</p>
+            </article>
+            {% empty %}
+            <p class="text-muted mb-0">No conversations yet. Start by sending a message.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
