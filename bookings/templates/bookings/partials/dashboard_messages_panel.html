@@ -25,29 +25,33 @@
             </div>
         </div>
         {% endif %}
-        <div class="message-list" style="max-height: 280px;">
+        <div class="message-list-dashboard">
             {% for item in dashboard_messages %}
-            <article class="message-item">
-                <div class="d-flex justify-content-between flex-wrap gap-1">
-                    <strong>
+            <article class="message-item mb-2 {% if item.recipient_id == request.user.id and not item.is_read %}unread{% endif %}" style="padding: 1rem;">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-800 small">
                         {% if item.sender_id == request.user.id %}
-                            To {{ item.recipient.display_name }}
+                            <i class="bi bi-arrow-right text-primary me-1"></i> To {{ item.recipient.display_name }}
                         {% else %}
-                            From {{ item.sender.display_name }}
+                            <i class="bi bi-arrow-left text-success me-1"></i> From {{ item.sender.display_name }}
                         {% endif %}
-                    </strong>
-                    <small class="text-muted">{{ item.created_at|date:"d M Y, h:i A" }}</small>
+                    </span>
+                    <span class="text-muted" style="font-size: 0.7rem;">{{ item.created_at|date:"d M, h:i A" }}</span>
                 </div>
-                <p class="mb-1 small text-muted">
-                    {{ item.subject|default:"No subject" }}
+                <div class="d-flex justify-content-between align-items-center">
+                    <p class="mb-0 small text-truncate" style="max-width: 80%;">
+                        <span class="fw-600 text-dark me-1">{{ item.subject|default:"No subject" }}</span>
+                        <span class="text-muted">- {{ item.body|truncatechars:60 }}</span>
+                    </p>
                     {% if item.recipient_id == request.user.id and not item.is_read %}
-                        <span class="ms-2 badge badge-status-pending">New</span>
+                        <span class="badge rounded-pill bg-primary" style="font-size: 0.6rem;">New</span>
                     {% endif %}
-                </p>
-                <p class="mb-0">{{ item.body|truncatechars:160 }}</p>
+                </div>
             </article>
             {% empty %}
-            <p class="text-muted mb-0">No conversations yet. Start by sending a message.</p>
+            <div class="text-center py-4">
+                <p class="text-muted small mb-0">No conversations yet.</p>
+            </div>
             {% endfor %}
         </div>
     </div>

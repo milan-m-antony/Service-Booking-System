@@ -1,359 +1,188 @@
-{% extends 'bookings/base.html' %}
-{% block title %}Manage Services{% endblock %}
-{% block content %}
-<section class="role-hero role-hero-admin mb-4">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>
-            <span class="role-chip">Admin Workspace</span>
-            <h2 class="mb-1 mt-2">Manage Services</h2>
-            <p class="text-muted mb-0">Create services, assign staff, and control visibility from one screen.</p>
-        </div>
-        <a class="btn btn-outline-light rounded-pill px-4" href="{% url 'admin_dashboard' %}"><i class="bi bi-arrow-left me-2"></i>Dashboard</a>
-    </div>
-</section>
+{% extends 'bookings/dashboard_layout.html' %}
+{% block title %}Manage Services | Admin{% endblock %}
 
-<section class="dashboard-actions mb-4" aria-label="Quick actions">
-    <a class="dashboard-action-btn" href="{% url 'admin_categories' %}"><i class="bi bi-tags"></i><span>Categories</span></a>
-    <a class="dashboard-action-btn" href="{% url 'admin_users' %}"><i class="bi bi-people"></i><span>Staff Accounts</span></a>
-    <a class="dashboard-action-btn" href="{% url 'analytics' %}"><i class="bi bi-bar-chart"></i><span>Analytics</span></a>
-    <span class="dashboard-action-btn"><i class="bi bi-tools"></i><span>{{ services|length }} Services</span></span>
-</section>
+{% block dashboard_content %}
+<div class="dash-section-header">
+    <h2 class="mb-1">Manage Services</h2>
+    <p class="text-muted">Create services, assign staff, and control visibility.</p>
+</div>
 
-<section class="mb-4">
-    <article class="panel-lite role-panel service-admin-create mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Add Service</h5>
-            <span class="badge-glass">New</span>
+<div class="panel-lite p-4 mb-4 border-primary-light">
+    <h5 class="fw-800 mb-3">Add New Service</h5>
+    <form method="post" class="row g-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create">
+        <div class="col-md-4">
+            <label class="form-label small fw-700 text-muted text-uppercase">Service Name</label>
+            <input type="text" name="name" class="form-control rounded-pill" placeholder="e.g. Deep Cleaning" required>
         </div>
-        <form method="post" class="row g-2">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="create">
-            <div class="col-md-3"><input type="text" name="name" class="form-control" placeholder="Service name" required></div>
-            <div class="col-md-2"><select name="category" class="form-select" required>
-                <option value="">Category</option>
+        <div class="col-md-3">
+            <label class="form-label small fw-700 text-muted text-uppercase">Category</label>
+            <select name="category" class="form-select rounded-pill" required>
+                <option value="">Choose...</option>
                 {% for category in categories %}
                 <option value="{{ category.id }}">{{ category.name }}</option>
                 {% endfor %}
-            </select></div>
-            <div class="col-md-2"><input type="number" step="0.01" min="0" name="price" class="form-control" placeholder="Price" required></div>
-            <div class="col-md-2"><input type="number" min="15" step="15" name="duration" class="form-control" placeholder="Minutes" value="60" required></div>
-            <div class="col-md-2"><input type="text" name="description" class="form-control" placeholder="Description (optional)"></div>
-            <div class="col-md-1 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-lg me-1"></i>Add</button>
-            </div>
-        </form>
-    </article>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-700 text-muted text-uppercase">Price (₹)</label>
+            <input type="number" step="0.01" min="0" name="price" class="form-control rounded-pill" placeholder="0.00" required>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-700 text-muted text-uppercase">Duration (min)</label>
+            <input type="number" min="15" step="15" name="duration" class="form-control rounded-pill" value="60" required>
+        </div>
+        <div class="col-12">
+            <label class="form-label small fw-700 text-muted text-uppercase">Description</label>
+            <textarea name="description" class="form-control" rows="2" placeholder="Describe the service offerings..."></textarea>
+        </div>
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary rounded-pill px-4">Create Service</button>
+        </div>
+    </form>
+</div>
 
-    <article class="panel-lite role-panel p-0 overflow-hidden">
-            <div class="p-4 border-bottom">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-                    <div>
-                        <h5 class="mb-0">Service Assignments</h5>
-                        <small class="text-muted"><span id="service-count">{{ services|length }}</span> total services</small>
-                    </div>
-                    <span class="badge-glass"><i class="bi bi-cursor-click me-1"></i>Click staff to assign</span>
+<div class="panel-lite p-0 overflow-hidden">
+    <div class="p-4 border-bottom bg-light">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" id="search-input" class="form-control border-start-0" placeholder="Search services...">
                 </div>
-                
-                <div class="row g-2 align-items-end">
-                    <div class="col-md-4 col-sm-6">
-                        <input type="text" id="search-input" class="form-control" placeholder="🔍 Search services..." autocomplete="off">
-                    </div>
-                    <div class="col-md-3 col-sm-6">
-                        <select id="category-filter" class="form-select">
-                            <option value="">All Categories</option>
-                            {% for category in categories %}
-                            <option value="{{ category.name }}">{{ category.name }}</option>
+            </div>
+            <div class="col-md-3">
+                <select id="category-filter" class="form-select rounded-pill">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.name }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select id="status-filter" class="form-select rounded-pill">
+                    <option value="">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">Service</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Duration</th>
+                    <th>Staff Assignments</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                <tr class="service-row" 
+                    data-service-name="{{ service.name|lower }}" 
+                    data-category="{{ service.category.name }}" 
+                    data-status="{% if service.is_active %}Active{% else %}Inactive{% endif %}">
+                    <td class="ps-4">
+                        <div class="fw-bold">{{ service.name }}</div>
+                    </td>
+                    <td>{{ service.category.name }}</td>
+                    <td class="fw-bold text-primary">₹{{ service.price }}</td>
+                    <td>{{ service.duration_minutes }} min</td>
+                    <td>
+                        <div class="staff-pills-container d-flex flex-wrap gap-1" data-service-id="{{ service.id }}">
+                            {% for staff in staff_users %}
+                            <button type="button" class="staff-pill-toggle {% if staff in service.staff.all %}assigned{% endif %}" 
+                                data-staff-id="{{ staff.id }}" 
+                                data-staff-name="{{ staff.display_name }}">
+                                {{ staff.display_name|first }}
+                            </button>
                             {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-2 col-sm-6">
-                        <select id="status-filter" class="form-select">
-                            <option value="">All Status</option>
-                            <option value="Active">Active Only</option>
-                            <option value="Inactive">Inactive Only</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 col-sm-6">
-                        <select id="sort-by" class="form-select">
-                            <option value="name-asc">Sort: Name A-Z</option>
-                            <option value="name-desc">Sort: Name Z-A</option>
-                            <option value="price-asc">Sort: Price Low-High</option>
-                            <option value="price-desc">Sort: Price High-Low</option>
-                            <option value="duration-asc">Sort: Duration Short</option>
-                            <option value="duration-desc">Sort: Duration Long</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="mt-2 text-end small text-muted" id="filter-status" style="display: none;">
-                    Showing <span id="filtered-count">0</span> of <span id="total-count">{{ services|length }}</span>
-                </div>
-            </div>
-
-            <div class="table-responsive-stack p-4">
-                <table class="table table-hover mb-0 align-middle">
-                    <thead>
-                        <tr>
-                            <th>Service</th>
-                            <th>Category</th>
-                            <th>Price</th>
-                            <th>Duration</th>
-                            <th>Assigned Staff</th>
-                            <th>Status</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for service in services %}
-                        <tr class="service-row" data-service-name="{{ service.name|lower }}" data-category="{{ service.category.name }}" data-price="{{ service.price }}" data-duration="{{ service.duration_minutes }}" data-status="{% if service.is_active %}Active{% else %}Inactive{% endif %}">
-                            <td data-label="Service" class="fw-bold">{{ service.name }}</td>
-                            <td data-label="Category">{{ service.category.name }}</td>
-                            <td data-label="Price" class="text-primary fw-semibold">INR {{ service.price }}</td>
-                            <td data-label="Duration">{{ service.duration_minutes }} min</td>
-                            <td data-label="Assigned Staff">
-                                <div class="staff-pills-container" data-service-id="{{ service.id }}" data-csrf="{{ csrf_token }}">
-                                    {% for staff in staff_users %}
-                                    <button type="button" class="staff-pill-toggle" data-staff-id="{{ staff.id }}" data-staff-name="{{ staff.display_name }}" {% if staff in service.staff.all %}data-assigned="true"{% endif %}>
-                                        <span class="staff-pill-name">{{ staff.display_name }}</span>
-                                        <span class="staff-pill-icon">{% if staff in service.staff.all %}<i class="bi bi-check-circle-fill"></i>{% else %}<i class="bi bi-plus-circle"></i>{% endif %}</span>
-                                    </button>
-                                    {% empty %}
-                                    <span class="text-muted small">No staff available</span>
-                                    {% endfor %}
-                                </div>
-                            </td>
-                            <td data-label="Status">
-                                {% if service.is_active %}
-                                    <span class="badge-glass badge-status-completed">Active</span>
-                                {% else %}
-                                    <span class="badge-glass">Inactive</span>
-                                {% endif %}
-                            </td>
-                            <td data-label="Actions" class="text-md-end">
-                                <form method="post" class="m-0">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="toggle_active">
-                                    <input type="hidden" name="service_id" value="{{ service.id }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-primary">Toggle</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="7" class="text-center py-4 text-muted">No services found.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </article>
-</section>
-
-<section class="d-grid gap-3 d-lg-none">
-    {% for service in services %}
-    <article class="panel-lite role-panel service-mobile-card">
-        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-            <h6 class="mb-0">{{ service.name }}</h6>
-            {% if service.is_active %}
-                <span class="badge-glass badge-status-completed">Active</span>
-            {% else %}
-                <span class="badge-glass">Inactive</span>
-            {% endif %}
-        </div>
-        <p class="mb-1"><strong>Category:</strong> {{ service.category.name }}</p>
-        <p class="mb-1"><strong>Price:</strong> INR {{ service.price }}</p>
-        <p class="mb-2"><strong>Duration:</strong> {{ service.duration_minutes }} min</p>
-
-        <div class="staff-pills-container" data-service-id="{{ service.id }}" data-csrf="{{ csrf_token }}">
-            <small class="d-block mb-2 text-muted">Click staff to assign/remove</small>
-            <div class="d-flex gap-2 flex-wrap">
-                {% for staff in staff_users %}
-                <button type="button" class="staff-pill-toggle" data-staff-id="{{ staff.id }}" data-staff-name="{{ staff.display_name }}" {% if staff in service.staff.all %}data-assigned="true"{% endif %}>
-                    <span class="staff-pill-name">{{ staff.display_name }}</span>
-                    <span class="staff-pill-icon">{% if staff in service.staff.all %}<i class="bi bi-check-circle-fill"></i>{% else %}<i class="bi bi-plus-circle"></i>{% endif %}</span>
-                </button>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge-glass {% if service.is_active %}badge-status-completed{% endif %}">
+                            {% if service.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td class="text-end pe-4">
+                        <form method="post" class="m-0">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle_active">
+                            <input type="hidden" name="service_id" value="{{ service.id }}">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill">Toggle</button>
+                        </form>
+                    </td>
+                </tr>
                 {% endfor %}
-            </div>
-        </div>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
 
-        <form method="post" class="d-grid">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="toggle_active">
-            <input type="hidden" name="service_id" value="{{ service.id }}">
-            <button type="submit" class="btn btn-sm btn-outline-primary">Toggle Active</button>
-        </form>
-    </article>
-    {% empty %}
-    <p class="text-muted mb-0">No services found.</p>
-    {% endfor %}
-</section>
-
+{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-save staff assignments on pill toggle
-    const staffPills = document.querySelectorAll('.staff-pill-toggle');
-    
-    staffPills.forEach(pill => {
-        pill.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const container = this.closest('.staff-pills-container');
-            const serviceId = container.getAttribute('data-service-id');
-            const staffId = this.getAttribute('data-staff-id');
-            const staffName = this.getAttribute('data-staff-name');
-            const isAssigned = this.hasAttribute('data-assigned');
-            
-            // Toggle assigned state
-            if (isAssigned) {
-                this.removeAttribute('data-assigned');
-            } else {
-                this.setAttribute('data-assigned', 'true');
-            }
-            
-            // Update visual feedback
-            this.classList.add('saving');
-            const icon = this.querySelector('.staff-pill-icon i');
-            if (isAssigned) {
-                icon.className = 'bi bi-plus-circle';
-            } else {
-                icon.className = 'bi bi-check-circle-fill';
-            }
-            
-            // Collect all assigned staff for this service
-            const assignedStaffIds = Array.from(
-                container.querySelectorAll('[data-assigned="true"]')
-            ).map(btn => btn.getAttribute('data-staff-id'));
-            
-            // Create FormData
-            const formData = new FormData();
-            formData.append('action', 'assign_staff');
-            formData.append('service_id', serviceId);
-            assignedStaffIds.forEach(id => {
-                formData.append('staff_ids', id);
-            });
-            
-            // Get CSRF token from the page
-            const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
-            
-            // Submit via AJAX
-            fetch(window.location.href, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': csrfToken
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    this.classList.remove('saving');
-                    this.classList.add('saved');
-                    setTimeout(() => {
-                        this.classList.remove('saved');
-                    }, 1500);
-                } else {
-                    throw new Error('Save failed');
-                }
-            })
-            .catch(error => {
-                console.error('Error saving staff assignment:', error);
-                this.classList.remove('saving');
-                this.classList.add('error');
-                setTimeout(() => {
-                    this.classList.remove('error');
-                }, 1500);
-                // Revert toggle
-                if (isAssigned) {
-                    this.setAttribute('data-assigned', 'true');
-                    icon.className = 'bi bi-check-circle-fill';
-                } else {
-                    this.removeAttribute('data-assigned');
-                    icon.className = 'bi bi-plus-circle';
-                }
-            });
-        });
-    });
-});
-</script>
-
-<script>
-// Search, Filter and Sort functionality
-document.addEventListener('DOMContentLoaded', function() {
+    // 1. Filter logic
     const searchInput = document.getElementById('search-input');
     const categoryFilter = document.getElementById('category-filter');
     const statusFilter = document.getElementById('status-filter');
-    const sortBy = document.getElementById('sort-by');
     const serviceRows = document.querySelectorAll('.service-row');
-    const filterStatus = document.getElementById('filter-status');
-    const filteredCount = document.getElementById('filtered-count');
-    const totalCount = document.getElementById('total-count');
-    const serviceCount = document.getElementById('service-count');
 
-    function filterAndSort() {
+    function applyFilters() {
         const searchTerm = searchInput.value.toLowerCase();
-        const selectedCategory = categoryFilter.value.toLowerCase();
-        const selectedStatus = statusFilter.value;
-        const sortMethod = sortBy.value;
-        
-        let visibleRows = Array.from(serviceRows);
-        
-        // Filter
-        visibleRows = visibleRows.filter(row => {
+        const cat = categoryFilter.value;
+        const stat = statusFilter.value;
+
+        serviceRows.forEach(row => {
             const name = row.getAttribute('data-service-name');
-            const category = row.getAttribute('data-category').toLowerCase();
+            const category = row.getAttribute('data-category');
             const status = row.getAttribute('data-status');
-            
+
             const matchSearch = name.includes(searchTerm);
-            const matchCategory = !selectedCategory || category === selectedCategory;
-            const matchStatus = !selectedStatus || status === selectedStatus;
-            
-            return matchSearch && matchCategory && matchStatus;
+            const matchCat = !cat || category === cat;
+            const matchStat = !stat || status === stat;
+
+            row.style.display = (matchSearch && matchCat && matchStat) ? '' : 'none';
         });
-        
-        // Sort
-        visibleRows.sort((a, b) => {
-            let compareA, compareB;
-            
-            switch(sortMethod) {
-                case 'name-asc':
-                    compareA = a.getAttribute('data-service-name');
-                    compareB = b.getAttribute('data-service-name');
-                    return compareA.localeCompare(compareB);
-                case 'name-desc':
-                    compareA = a.getAttribute('data-service-name');
-                    compareB = b.getAttribute('data-service-name');
-                    return compareB.localeCompare(compareA);
-                case 'price-asc':
-                    return parseFloat(a.getAttribute('data-price')) - parseFloat(b.getAttribute('data-price'));
-                case 'price-desc':
-                    return parseFloat(b.getAttribute('data-price')) - parseFloat(a.getAttribute('data-price'));
-                case 'duration-asc':
-                    return parseInt(a.getAttribute('data-duration')) - parseInt(b.getAttribute('data-duration'));
-                case 'duration-desc':
-                    return parseInt(b.getAttribute('data-duration')) - parseInt(a.getAttribute('data-duration'));
-                default:
-                    return 0;
-            }
-        });
-        
-        // Show/hide rows
-        serviceRows.forEach(row => row.style.display = 'none');
-        visibleRows.forEach(row => row.style.display = '');
-        
-        // Update filter status
-        const filteredNum = visibleRows.length;
-        const totalNum = serviceRows.length;
-        
-        if (filteredNum < totalNum) {
-            filterStatus.style.display = 'block';
-            filteredCount.textContent = filteredNum;
-            totalCount.textContent = totalNum;
-        } else {
-            filterStatus.style.display = 'none';
-        }
     }
-    
-    // Add event listeners
-    searchInput.addEventListener('input', filterAndSort);
-    categoryFilter.addEventListener('change', filterAndSort);
-    statusFilter.addEventListener('change', filterAndSort);
-    sortBy.addEventListener('change', filterAndSort);
+
+    searchInput.addEventListener('input', applyFilters);
+    categoryFilter.addEventListener('change', applyFilters);
+    statusFilter.addEventListener('change', applyFilters);
+
+    // 2. Staff Pills Logic (simplified)
+    const staffPills = document.querySelectorAll('.staff-pill-toggle');
+    staffPills.forEach(pill => {
+        pill.addEventListener('click', function() {
+            const container = this.closest('.staff-pills-container');
+            const serviceId = container.getAttribute('data-service-id');
+            const staffId = this.getAttribute('data-staff-id');
+            const isAssigned = this.classList.contains('assigned');
+
+            this.classList.toggle('assigned');
+            
+            const assignedIds = Array.from(container.querySelectorAll('.staff-pill-toggle.assigned'))
+                                     .map(p => p.getAttribute('data-staff-id'));
+
+            const formData = new FormData();
+            formData.append('action', 'assign_staff');
+            formData.append('service_id', serviceId);
+            assignedIds.forEach(id => formData.append('staff_ids', id));
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+        });
+    });
 });
 </script>
 {% endblock %}

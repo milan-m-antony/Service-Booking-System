@@ -82,3 +82,13 @@ def message_badges(request):
     except (OperationalError, DatabaseError):
         unread_count = 0
     return {"nav_unread_messages": unread_count}
+
+
+def platform_admin(request):
+    """Provides the ID of the first active admin for support links."""
+    try:
+        admin = CustomUser.objects.filter(role=CustomUser.Roles.ADMIN, is_active=True).first()
+        admin_id = admin.id if admin else None
+    except (OperationalError, DatabaseError):
+        admin_id = None
+    return {"platform_admin_id": admin_id}

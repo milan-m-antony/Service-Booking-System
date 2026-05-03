@@ -1,127 +1,335 @@
-{% extends 'bookings/base.html' %}
-{% block title %}Manage Users{% endblock %}
-{% block content %}
-<section class="panel-lite mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h4 class="mb-0">Manage Users</h4>
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'admin_dashboard' %}">Back to Dashboard</a>
-    </div>
+{% extends 'bookings/dashboard_layout.html' %}
+{% block title %}User Management | Admin{% endblock %}
 
-    <div class="row g-3 mb-4 d-none d-lg-flex">
-        <div class="col-lg-4">
-            <div class="card border-0 bg-light-subtle h-100">
-                <div class="card-body">
-            <h5 class="mb-3">Create Staff Account</h5>
-            <form method="post" class="row g-3">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="create_staff">
+{% block dashboard_content %}
+<div class="dash-section-header">
+    <span class="role-chip mb-2">Platform Administration</span>
+    <h2 class="mb-1">User Management</h2>
+    <p class="text-muted">Manage staff accounts, user roles, and access controls.</p>
+</div>
 
-                <div class="col-md-6">
-                    <label class="form-label" for="staff_first_name">First Name</label>
-                    <input class="form-control" type="text" id="staff_first_name" name="first_name" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="staff_last_name">Last Name</label>
-                    <input class="form-control" type="text" id="staff_last_name" name="last_name" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="staff_email">Email</label>
-                    <input class="form-control" type="email" id="staff_email" name="email" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="staff_phone">Phone</label>
-                    <input class="form-control" type="text" id="staff_phone" name="phone" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="staff_temp_password">Temporary Password</label>
-                    <input class="form-control" type="text" id="staff_temp_password" name="temp_password" required>
-                </div>
-                <div class="col-12 d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary">Create Staff</button>
-                </div>
-            </form>
+<div class="panel-lite p-0 overflow-hidden mb-4">
+    <div class="p-4 border-bottom">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="small fw-700 text-muted text-uppercase mb-1 d-block">
+                    <i class="bi bi-search me-1"></i>Search Users
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="user-search" class="form-control border-start-0" placeholder="Search by name or email...">
                 </div>
             </div>
-        </div>
-        <div class="col-lg-8">
-            <div class="panel-lite h-100 bg-light-subtle">
-                <h5 class="mb-3">All Users</h5>
-                <div class="table-responsive mb-0">
-                    <table class="table align-middle mb-0">
-                        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
-                        <tbody>
-                            {% for item in users %}
-                            <tr>
-                                <td>{{ item.display_name }}</td>
-                                <td>{{ item.email|default:'-' }}</td>
-                                <td>
-                                    <form method="post" class="d-flex gap-2 align-items-center">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="set_role">
-                                        <input type="hidden" name="user_id" value="{{ item.id }}">
-                                        <select name="role" class="form-select form-select-sm">
-                                            <option value="customer" {% if item.role == 'customer' %}selected{% endif %}>Customer</option>
-                                            <option value="staff" {% if item.role == 'staff' %}selected{% endif %}>Staff</option>
-                                            <option value="admin" {% if item.role == 'admin' %}selected{% endif %}>Admin</option>
-                                        </select>
-                                        <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
-                                    </form>
-                                </td>
-                                <td>{% if item.is_active %}<span class="status completed">Active</span>{% else %}<span class="status cancelled">Disabled</span>{% endif %}</td>
-                                <td>
-                                    <form method="post">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="toggle_active">
-                                        <input type="hidden" name="user_id" value="{{ item.id }}">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Toggle Active</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr><td colspan="5">No users found.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="col-md-3">
+                <label class="small fw-700 text-muted text-uppercase mb-1 d-block">
+                    <i class="bi bi-funnel me-1"></i>Filter by Role
+                </label>
+                <select id="role-filter" class="form-select">
+                    <option value="">All Roles</option>
+                    <option value="customer">👤 Customer</option>
+                    <option value="staff">🔧 Staff</option>
+                    <option value="admin">🛡️ Admin</option>
+                </select>
+            </div>
+            <div class="col-md-3 text-end">
+                <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+                    <i class="bi bi-person-plus me-2"></i>Add Staff
+                </button>
             </div>
         </div>
     </div>
 
-    <div class="d-md-none d-grid gap-2 mb-2">
-        {% for item in users %}
-        <article class="user-booking-card">
-            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                <h6 class="mb-0">{{ item.display_name }}</h6>
-                {% if item.is_active %}
-                    <span class="status completed">Active</span>
+    <!-- Desktop Table -->
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr class="bg-light">
+                    <th class="ps-4 py-3 border-0 small text-uppercase fw-700 text-muted">User</th>
+                    <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Email</th>
+                    <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Role</th>
+                    <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Phone</th>
+                    <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Status</th>
+                    <th class="text-center pe-4 py-3 border-0 small text-uppercase fw-700 text-muted">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="users-tbody">
+                {% for user in users %}
+                <tr class="user-row" data-name="{{ user.display_name|lower }}" data-role="{{ user.role }}" data-email="{{ user.email|lower }}">
+                    <td class="ps-4 py-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon bg-primary-soft text-primary" style="width:38px;height:38px;font-size:0.9rem;flex-shrink:0;">
+                                {{ user.first_name|first|default:user.username|first|upper }}
+                            </div>
+                            <div>
+                                <div class="fw-bold">{{ user.display_name }}</div>
+                                <div class="small text-muted">@{{ user.username }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 small">{{ user.email }}</td>
+                    <td class="py-3">
+                        <!-- Role Change Form -->
+                        <form method="post" class="m-0">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="set_role">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <select name="role" class="form-select form-select-sm" style="min-width:110px;border-radius:8px;" onchange="this.form.submit()">
+                                <option value="admin"    {% if user.role == 'admin'    %}selected{% endif %}>Admin</option>
+                                <option value="staff"    {% if user.role == 'staff'    %}selected{% endif %}>Staff</option>
+                                <option value="customer" {% if user.role == 'customer' %}selected{% endif %}>Customer</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td class="py-3 small">{{ user.phone|default:'-' }}</td>
+                    <td class="py-3">
+                        {% if user.is_active %}
+                            <span class="badge rounded-pill bg-success-soft text-success px-3 py-2"><i class="bi bi-circle-fill me-1" style="font-size:0.45rem;vertical-align:middle;"></i>Active</span>
+                        {% else %}
+                            <span class="badge rounded-pill bg-danger-soft text-danger px-3 py-2"><i class="bi bi-circle-fill me-1" style="font-size:0.45rem;vertical-align:middle;"></i>Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 pe-4">
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="button"
+                                class="btn btn-sm {% if user.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-pill px-3"
+                                onclick="openConfirmModal({{ user.id }}, '{{ user.display_name|escapejs }}', {{ user.is_active|yesno:'true,false' }})">
+                                {% if user.is_active %}
+                                    <i class="bi bi-person-slash me-1"></i>Deactivate
+                                {% else %}
+                                    <i class="bi bi-person-check me-1"></i>Activate
+                                {% endif %}
+                            </button>
+                            {% if user.id != request.user.id %}
+                            <button type="button"
+                                class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                onclick="openDeleteModal({{ user.id }}, '{{ user.display_name|escapejs }}')"
+                                title="Delete user permanently">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="d-md-none p-3">
+        {% for user in users %}
+        <div class="glass-card mb-3 p-3 user-row" data-name="{{ user.display_name|lower }}" data-role="{{ user.role }}" data-email="{{ user.email|lower }}">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="stat-icon bg-primary-soft text-primary" style="width:44px;height:44px;font-size:1rem;flex-shrink:0;">
+                    {{ user.first_name|first|default:user.username|first|upper }}
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold">{{ user.display_name }}</div>
+                    <div class="small text-muted">{{ user.email }}</div>
+                </div>
+                {% if user.is_active %}
+                    <span class="badge rounded-pill bg-success-soft text-success px-2 py-1 small">Active</span>
                 {% else %}
-                    <span class="status cancelled">Disabled</span>
+                    <span class="badge rounded-pill bg-danger-soft text-danger px-2 py-1 small">Inactive</span>
                 {% endif %}
             </div>
-            <p class="mb-2"><strong>Email:</strong> {{ item.email|default:'-' }}</p>
-
-            <form method="post" class="d-grid gap-2 mb-2">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="set_role">
-                <input type="hidden" name="user_id" value="{{ item.id }}">
-                <select name="role" class="form-select form-select-sm">
-                    <option value="customer" {% if item.role == 'customer' %}selected{% endif %}>Customer</option>
-                    <option value="staff" {% if item.role == 'staff' %}selected{% endif %}>Staff</option>
-                    <option value="admin" {% if item.role == 'admin' %}selected{% endif %}>Admin</option>
-                </select>
-                <button type="submit" class="btn btn-sm btn-outline-primary">Save Role</button>
-            </form>
-
-            <form method="post" class="d-grid">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="toggle_active">
-                <input type="hidden" name="user_id" value="{{ item.id }}">
-                <button type="submit" class="btn btn-sm btn-outline-danger">Toggle Active</button>
-            </form>
-        </article>
-        {% empty %}
-        <p class="text-muted mb-0">No users found.</p>
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <div class="small text-muted mb-1">Phone</div>
+                    <div class="small fw-700">{{ user.phone|default:'-' }}</div>
+                </div>
+                <div class="col-6">
+                    <div class="small text-muted mb-1">Role</div>
+                    <form method="post" class="m-0">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="set_role">
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <select name="role" class="form-select form-select-sm" style="border-radius:8px;" onchange="this.form.submit()">
+                            <option value="admin"    {% if user.role == 'admin'    %}selected{% endif %}>Admin</option>
+                            <option value="staff"    {% if user.role == 'staff'    %}selected{% endif %}>Staff</option>
+                            <option value="customer" {% if user.role == 'customer' %}selected{% endif %}>Customer</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            <div class="pt-2 border-top d-flex gap-2">
+                <button type="button"
+                    class="btn btn-sm flex-grow-1 {% if user.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-pill"
+                    onclick="openConfirmModal({{ user.id }}, '{{ user.display_name|escapejs }}', {{ user.is_active|yesno:'true,false' }})">
+                    {% if user.is_active %}
+                        <i class="bi bi-person-slash me-1"></i>Deactivate
+                    {% else %}
+                        <i class="bi bi-person-check me-1"></i>Activate
+                    {% endif %}
+                </button>
+                {% if user.id != request.user.id %}
+                <button type="button"
+                    class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                    onclick="openDeleteModal({{ user.id }}, '{{ user.display_name|escapejs }}')">
+                    <i class="bi bi-trash"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
         {% endfor %}
     </div>
-</section>
+</div>
+
+<!-- ── Delete Confirm Modal ── -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3" style="font-size:2.8rem;"><i class="bi bi-exclamation-triangle-fill text-danger"></i></div>
+                <h5 class="fw-800 mb-2">Delete User</h5>
+                <p class="text-muted small mb-1">You are about to permanently delete</p>
+                <p class="fw-700 mb-2" id="deleteUserName"></p>
+                <p class="text-danger small mb-0"><i class="bi bi-exclamation-circle me-1"></i>This action <strong>cannot be undone</strong>. All their bookings and data will be removed.</p>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-0 d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary rounded-pill flex-grow-1" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" id="deleteUserForm" class="flex-grow-1 m-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_user">
+                    <input type="hidden" name="user_id" id="deleteUserId">
+                    <button type="submit" class="btn btn-danger rounded-pill w-100">
+                        <i class="bi bi-trash me-1"></i>Yes, Delete Permanently
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Custom Confirm Modal ── -->
+<div class="modal fade" id="confirmToggleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-body p-4 text-center">
+                <div id="confirmIcon" class="mb-3" style="font-size:2.8rem;"></div>
+                <h5 class="fw-800 mb-2" id="confirmTitle"></h5>
+                <p class="text-muted small mb-0" id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-0 d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary rounded-pill flex-grow-1" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" id="confirmToggleForm" class="flex-grow-1 m-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="toggle_active">
+                    <input type="hidden" name="user_id" id="confirmUserId">
+                    <button type="submit" id="confirmBtn" class="btn rounded-pill w-100"></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Add Staff Modal ── -->
+<div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <div>
+                    <h5 class="modal-title fw-800 mb-1" id="addStaffModalLabel">Add New Staff</h5>
+                    <p class="small text-muted mb-0">Create a staff account with a temporary password.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'admin_users' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_staff">
+                <div class="modal-body px-4 py-3">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="small fw-600 text-muted mb-1">First Name <span class="text-danger">*</span></label>
+                            <input type="text" name="first_name" class="form-control rounded-pill" placeholder="John" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="small fw-600 text-muted mb-1">Last Name</label>
+                            <input type="text" name="last_name" class="form-control rounded-pill" placeholder="Doe">
+                        </div>
+                        <div class="col-12">
+                            <label class="small fw-600 text-muted mb-1">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control rounded-pill" placeholder="john@example.com" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="small fw-600 text-muted mb-1">Phone Number</label>
+                            <input type="text" name="phone" class="form-control rounded-pill" placeholder="+91 98765 43210">
+                        </div>
+                        <div class="col-12">
+                            <label class="small fw-600 text-muted mb-1">Temporary Password <span class="text-danger">*</span></label>
+                            <input type="text" name="temp_password" class="form-control rounded-pill" placeholder="Staff must change this on first login" required>
+                        </div>
+                    </div>
+                    <div class="rounded-3 mt-3 py-2 px-3 small mb-0" style="background:rgba(245,158,11,0.1);color:#b45309;">
+                        <i class="bi bi-info-circle me-1"></i>Staff will be prompted to change their password on first login.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm">
+                        <i class="bi bi-person-plus me-2"></i>Create Staff
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Search & Filter ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('user-search');
+    const roleFilter  = document.getElementById('role-filter');
+    const rows        = document.querySelectorAll('.user-row');
+
+    function filterUsers() {
+        const term = searchInput.value.toLowerCase();
+        const role = roleFilter.value;
+        rows.forEach(row => {
+            const name  = row.getAttribute('data-name')  || '';
+            const email = row.getAttribute('data-email') || '';
+            const r     = row.getAttribute('data-role')  || '';
+            row.style.display = ((name.includes(term) || email.includes(term)) && (!role || r === role)) ? '' : 'none';
+        });
+    }
+    searchInput.addEventListener('input',  filterUsers);
+    roleFilter.addEventListener('change',  filterUsers);
+});
+
+// ── Delete User Modal ────────────────────────────────────────
+function openDeleteModal(userId, name) {
+    document.getElementById('deleteUserId').value = userId;
+    document.getElementById('deleteUserName').textContent = name;
+    new bootstrap.Modal(document.getElementById('deleteUserModal')).show();
+}
+
+// ── Custom Confirm Modal ─────────────────────────────────────
+function openConfirmModal(userId, name, isActive) {
+    document.getElementById('confirmUserId').value = userId;
+
+    const title   = document.getElementById('confirmTitle');
+    const message = document.getElementById('confirmMessage');
+    const icon    = document.getElementById('confirmIcon');
+    const btn     = document.getElementById('confirmBtn');
+
+    if (isActive) {
+        icon.innerHTML    = '<i class="bi bi-person-slash text-danger"></i>';
+        title.textContent = 'Deactivate User';
+        message.innerHTML = `Are you sure you want to deactivate <strong>${name}</strong>?<br>They will no longer be able to log in.`;
+        btn.className     = 'btn btn-danger rounded-pill w-100';
+        btn.innerHTML     = '<i class="bi bi-person-slash me-1"></i>Yes, Deactivate';
+    } else {
+        icon.innerHTML    = '<i class="bi bi-person-check text-success"></i>';
+        title.textContent = 'Activate User';
+        message.innerHTML = `Are you sure you want to activate <strong>${name}</strong>?<br>They will regain access to their account.`;
+        btn.className     = 'btn btn-success rounded-pill w-100';
+        btn.innerHTML     = '<i class="bi bi-person-check me-1"></i>Yes, Activate';
+    }
+
+    new bootstrap.Modal(document.getElementById('confirmToggleModal')).show();
+}
+</script>
 {% endblock %}

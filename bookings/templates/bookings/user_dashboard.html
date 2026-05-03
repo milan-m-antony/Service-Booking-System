@@ -1,326 +1,435 @@
-{% extends 'bookings/base.html' %}
-{% block title %}User Dashboard{% endblock %}
-{% block content %}
-<section class="role-hero role-hero-user mb-4">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>
-            <span class="role-chip">Customer Workspace</span>
-            <h2 class="mb-1 mt-2">My Dashboard</h2>
-            <p class="text-muted mb-0">Track your service bookings and quickly take action.</p>
+{% extends 'bookings/dashboard_layout.html' %}
+{% block title %}User Dashboard | {{ active_tab|capfirst }}{% endblock %}
+
+{% block dashboard_content %}
+    {% if active_tab == 'overview' %}
+        <!-- Overview Tab -->
+        <div class="dash-section-header">
+            <span class="role-chip mb-2">Customer Account</span>
+            <h2 class="mb-1">Hello, {{ request.user.first_name }}</h2>
+            <p class="text-muted">Manage your bookings and communications here.</p>
         </div>
-        <a class="btn btn-primary rounded-pill px-4" href="{% url 'booking_create' %}"><i class="bi bi-plus-lg me-2"></i>New Booking</a>
-    </div>
-</section>
 
-<section class="dashboard-actions mb-4" aria-label="Quick actions">
-    <a class="dashboard-action-btn" href="{% url 'booking_create' %}"><i class="bi bi-calendar2-plus"></i><span>Book Service</span></a>
-    <a class="dashboard-action-btn" href="{% url 'messages' %}"><i class="bi bi-chat-dots"></i><span>Messages</span></a>
-    <a class="dashboard-action-btn" href="{% url 'profile' %}"><i class="bi bi-person"></i><span>Profile</span></a>
-</section>
-
-{% include 'bookings/partials/dashboard_messages_panel.html' %}
-
-<section class="row g-3 mb-4">
-    <div class="col-md-4"><article class="kpi-card"><h6>{{ total_bookings }}</h6><p>Total Bookings</p></article></div>
-    <div class="col-md-4"><article class="kpi-card"><h6>{{ active_bookings }}</h6><p>Active Tasks</p></article></div>
-    <div class="col-md-4"><article class="kpi-card"><h6>₹{{ total_spent }}</h6><p>Total Spent</p></article></div>
-</section>
-
-<section class="mb-4">
-    <div class="panel-lite p-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="mb-0">Your Bookings Calendar</h5>
-            <div class="d-flex align-items-center gap-2">
-                <small class="text-muted">Click a date to filter bookings</small>
-                <button type="button" id="clearCalendarFilter" class="btn-clear-filter">Clear Filter</button>
+        <!-- Stats Overview -->
+        <div class="dash-stats-grid mb-5">
+            <div class="dash-stat-card">
+                <div class="stat-icon bg-primary-soft text-primary"><i class="bi bi-calendar-event"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ total_bookings }}</div>
+                    <div class="stat-label">Total Bookings</div>
+                </div>
             </div>
-        </div>
-        <div class="booking-calendar-shell">
-            <div class="calendar-toolbar">
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="userCalendarPrev"><i class="bi bi-chevron-left"></i></button>
-                <div class="calendar-toolbar-title" id="userCalendarTitle"></div>
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="userCalendarNext"><i class="bi bi-chevron-right"></i></button>
+            <div class="dash-stat-card">
+                <div class="stat-icon bg-success-soft text-success"><i class="bi bi-chat-text"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ dashboard_unread_count }}</div>
+                    <div class="stat-label">Messages</div>
+                </div>
             </div>
-            <div class="calendar-weekdays">
-                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-            </div>
-            <div class="calendar-grid" id="userCalendarGrid"></div>
-        </div>
-    </div>
-</section>
-
-<section class="panel-lite role-panel p-0 overflow-hidden">
-    <div class="p-4 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0">Recent Bookings</h4>
-        <span class="badge-glass"><i class="bi bi-list-check me-1"></i>{{ total_bookings }} total</span>
-    </div>
-
-    <div class="px-4 pt-4">
-        <div class="search-filter-controls dashboard-table-controls">
-            <div>
-                <input type="text" id="user-booking-search" class="form-control" placeholder="Search by service or staff">
-            </div>
-            <div>
-                <select id="user-booking-status-filter" class="form-select">
-                    <option value="">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
-            </div>
-            <div>
-                <select id="user-booking-sort" class="form-select">
-                    <option value="date-desc">Sort: Newest First</option>
-                    <option value="date-asc">Sort: Oldest First</option>
-                    <option value="price-desc">Sort: Price High-Low</option>
-                    <option value="price-asc">Sort: Price Low-High</option>
-                </select>
+            <div class="dash-stat-card">
+                <div class="stat-icon bg-info-soft text-info"><i class="bi bi-cash-stack"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value">₹{{ total_spent|floatformat:0 }}</div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
             </div>
         </div>
-        <div class="dashboard-filter-status" id="user-booking-filter-status" style="display:none;">
-            Showing <span id="user-booking-filtered-count">0</span> of <span id="user-booking-total-count">{{ total_bookings }}</span> bookings
-        </div>
-    </div>
 
-    <div class="table-responsive-stack p-4">
-        <table class="table table-hover mb-0">
-            <thead>
-                <tr>
-                    <th>Service</th>
-                    <th>Staff</th>
-                    <th>Contact</th>
-                    <th>Scheduled</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th class="text-end">Action</th>
-                </tr>
-            </thead>
-            <tbody id="user-bookings-tbody">
-                {% for booking in bookings %}
-                <tr class="user-booking-row"
-                    data-service="{{ booking.service.name|lower }}"
-                    data-staff="{{ booking.staff.display_name|lower }}"
-                    data-status="{{ booking.status }}"
-                    data-price="{{ booking.service.price }}"
-                    data-scheduled="{{ booking.scheduled_at|date:'U' }}">
-                    <td data-label="Service" class="fw-bold">{{ booking.service.name }}</td>
-                    <td data-label="Staff">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-person-circle text-muted"></i> {{ booking.staff.display_name }}
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="panel-lite p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-800 mb-0">Recent Bookings</h5>
+                        <a href="?tab=bookings" class="btn btn-link btn-sm p-0">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <tbody>
+                                {% for booking in bookings|slice:":5" %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ booking.service.name }}</div>
+                                        <div class="small text-muted">{{ booking.staff.display_name }}</div>
+                                    </td>
+                                    <td>{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
+                                    <td>
+                                        <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                                            {{ booking.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3" class="text-center py-4 text-muted">No upcoming bookings.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="panel-lite p-4 h-100 border-primary-light bg-primary-soft-light d-flex flex-column justify-content-center align-items-center text-center">
+                    <div class="kpi-icon bg-white text-primary mb-3 shadow-sm" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                        <i class="bi bi-calendar-plus"></i>
+                    </div>
+                    <h5 class="fw-800 mb-2">Book a Service</h5>
+                    <p class="small text-muted mb-4">Find professional help for your home needs in just a few clicks.</p>
+                    <a href="{% url 'booking_create' %}" class="btn btn-primary rounded-pill px-4">Book Now</a>
+                </div>
+            </div>
+        </div>
+
+    {% elif active_tab == 'bookings' %}
+        <!-- Bookings Tab -->
+        <div class="dash-section-header">
+            <h2 class="mb-1">Your Bookings</h2>
+            <p class="text-muted">Track history and manage upcoming service sessions.</p>
+        </div>
+
+        <div class="panel-lite p-0 overflow-hidden">
+            <div class="p-4 border-bottom bg-light">
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                            <input type="text" id="user-booking-search" class="form-control border-start-0" placeholder="Filter by service or staff...">
                         </div>
-                    </td>
-                    <td data-label="Contact">{{ booking.staff.phone|default:'Not provided' }}</td>
-                    <td data-label="Scheduled">{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
-                    <td data-label="Price" class="text-primary fw-bold">₹{{ booking.service.price }}</td>
-                    <td data-label="Status">
-                        {% if booking.status == 'completed' %}
-                            <span class="badge-glass badge-status-completed"><i class="bi bi-check-circle me-1"></i>Completed</span>
-                        {% elif booking.status == 'pending' %}
-                            <span class="badge-glass badge-status-pending"><i class="bi bi-clock-history me-1"></i>Pending</span>
-                        {% else %}
-                            <span class="badge-glass">{{ booking.get_status_display }}</span>
-                        {% endif %}
-                    </td>
-                    <td data-label="Action" class="text-md-end">
-                        <div class="d-flex gap-2 justify-content-md-end">
-                            {% if booking.status == 'pending' %}
-                            <form method="post" action="{% url 'cancel_booking' booking.id %}" class="m-0">
-                                {% csrf_token %}
-                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3" type="submit">Cancel</button>
-                            </form>
-                            {% elif booking.status == 'completed' %}
-                                {% if booking.feedback_entry %}
-                                    <span class="badge badge-glass text-warning border-0"><i class="bi bi-star-fill me-1"></i>{{ booking.feedback_entry.rating }}/5</span>
-                                {% else %}
-                                    <a class="btn btn-sm btn-outline-success rounded-pill px-3" href="{% url 'booking_feedback' booking.id %}">Feedback</a>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="user-booking-status-filter" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <!-- Desktop Table View -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Service</th>
+                            <th>Staff Member</th>
+                            <th>Scheduled Date</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr class="user-booking-row" 
+                            data-service="{{ booking.service.name|lower }}" 
+                            data-staff="{{ booking.staff.display_name|lower }}" 
+                            data-status="{{ booking.status }}">
+                            <td class="ps-4">
+                                <div class="fw-bold">{{ booking.service.name }}</div>
+                                <div class="small text-muted">{{ booking.service.category.name }}</div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-sm bg-primary-soft text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                        {{ booking.staff.first_name|first }}{{ booking.staff.last_name|first }}
+                                    </div>
+                                    <span>{{ booking.staff.display_name }}</span>
+                                </div>
+                            </td>
+                            <td>{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
+                            <td class="fw-bold">₹{{ booking.service.price }}</td>
+                            <td>
+                                <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
+                                    <a href="{% url 'messages' %}?recipient_id={{ booking.staff.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <i class="bi bi-chat-text"></i> Message
+                                    </a>
+                                    {% if booking.staff.phone %}
+                                    <a href="https://wa.me/{{ booking.staff.phone|cut:' '|cut:'+' }}" target="_blank" class="btn btn-sm rounded-pill px-3" style="background: #25D366; color: #fff; border: none;" title="WhatsApp">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </a>
+                                    <a href="tel:{{ booking.staff.phone }}" class="btn btn-sm btn-outline-info rounded-pill px-3" title="Call">
+                                        <i class="bi bi-telephone"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if booking.status == 'pending' %}
+                                        <form action="{% url 'cancel_booking' booking.id %}" method="post" onsubmit="return confirm('Are you sure you want to cancel this booking?');" class="m-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                <i class="bi bi-x-circle"></i> Cancel
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    {% if booking.status == 'completed' %}
+                                        <a href="{% url 'booking_feedback' booking.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                            <i class="bi bi-star"></i> Feedback
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center py-5 text-muted">No bookings found in your history.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="d-md-none">
+                {% for booking in bookings %}
+                <div class="glass-card mb-3 p-3 border-start border-4 {% if booking.status == 'completed' %}border-success{% elif booking.status == 'pending' %}border-warning{% else %}border-primary{% endif %} user-booking-row"
+                     data-service="{{ booking.service.name|lower }}" 
+                     data-staff="{{ booking.staff.display_name|lower }}" 
+                     data-status="{{ booking.status }}">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="fw-bold fs-5">{{ booking.service.name }}</div>
+                            <div class="small text-muted">{{ booking.service.category.name }}</div>
+                        </div>
+                        <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                            {{ booking.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="small text-muted">Scheduled For</div>
+                            <div class="small fw-bold">{{ booking.scheduled_at|date:"d M Y" }}</div>
+                            <div class="small fw-bold">{{ booking.scheduled_at|date:"h:i A" }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="small text-muted">Professional</div>
+                            <div class="d-flex align-items-center gap-1">
+                                <div class="avatar-xs bg-primary-soft text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 0.7rem;">
+                                    {{ booking.staff.first_name|first }}{{ booking.staff.last_name|first }}
+                                </div>
+                                <span class="small fw-bold">{{ booking.staff.display_name }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-top">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="fw-800 text-primary">₹{{ booking.service.price }}</div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <a href="{% url 'messages' %}?recipient_id={{ booking.staff.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="Message">
+                                    <i class="bi bi-chat-text"></i>
+                                </a>
+                                {% if booking.staff.phone %}
+                                <a href="https://wa.me/{{ booking.staff.phone|cut:' '|cut:'+' }}" target="_blank" class="btn btn-sm rounded-pill px-3" style="background: #25D366; color: #fff; border: none;" title="WhatsApp">
+                                    <i class="bi bi-whatsapp"></i>
+                                </a>
+                                <a href="tel:{{ booking.staff.phone }}" class="btn btn-sm btn-outline-info rounded-pill px-3" title="Call">
+                                    <i class="bi bi-telephone"></i>
+                                </a>
                                 {% endif %}
-                            {% else %}
-                                <span class="text-muted">-</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            {% if booking.status == 'pending' %}
+                                <form action="{% url 'cancel_booking' booking.id %}" method="post" onsubmit="return confirm('Are you sure you want to cancel this booking?');" class="m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </button>
+                                </form>
+                            {% endif %}
+                            {% if booking.status == 'completed' %}
+                                <a href="{% url 'booking_feedback' booking.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                    <i class="bi bi-star"></i> Feedback
+                                </a>
                             {% endif %}
                         </div>
-                    </td>
-                </tr>
+                    </div>
+                </div>
                 {% empty %}
-                <tr><td colspan="7" class="text-center py-4 text-muted">No bookings found. <a href="{% url 'booking_create' %}">Book your first service</a>.</td></tr>
+                <div class="text-center py-5 glass-panel">
+                    <i class="bi bi-calendar-x text-muted mb-3 d-block" style="font-size: 2.5rem;"></i>
+                    <p class="text-muted">No bookings found in your history.</p>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
-        <p class="text-muted small mb-0 mt-3" id="user-bookings-empty" style="display:none;">No bookings match your current filters.</p>
-    </div>
-</section>
+            </div>
+        </div>
+
+    {% elif active_tab == 'calendar' %}
+        <!-- Calendar Tab -->
+        <div class="dash-section-header">
+            <h2 class="mb-1">Booking Calendar</h2>
+            <p class="text-muted">View your scheduled services in a chronological grid.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="panel-lite p-4">
+                    <div class="booking-calendar-shell">
+                        <div class="calendar-toolbar">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="userCalendarPrev"><i class="bi bi-chevron-left"></i></button>
+                            <div class="calendar-toolbar-title fw-800" id="userCalendarTitle"></div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="userCalendarNext"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                        </div>
+                        <div class="calendar-grid" id="userCalendarGrid"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="panel-lite p-4 border-primary-light h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-800 mb-0">Date Details</h5>
+                        <span class="badge-glass bg-primary-soft text-primary">{{ selected_slot_date|date:"d M Y" }}</span>
+                    </div>
+
+                    <div class="selected-date-bookings">
+                        <h6 class="small fw-700 text-uppercase text-muted mb-3">Your Bookings</h6>
+                        {% for booking in selected_date_bookings %}
+                            <div class="glass-card mb-3 p-3 border-start border-4 border-primary">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="fw-bold">{{ booking.service.name }}</div>
+                                    <span class="small fw-bold">{{ booking.scheduled_at|time:"h:i A" }}</span>
+                                </div>
+                                <div class="small text-muted mb-2">Staff: {{ booking.staff.display_name }}</div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                                        {{ booking.get_status_display }}
+                                    </span>
+                                    <a href="{% url 'messages' %}?recipient_id={{ booking.staff.id }}" class="btn btn-xs btn-outline-primary rounded-pill">Message</a>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-calendar-x text-muted mb-3 d-block" style="font-size: 2rem;"></i>
+                                <p class="text-muted mb-0">No bookings scheduled for this date.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% elif active_tab == 'messages' %}
+        <!-- Messages Tab -->
+        <div class="dash-section-header">
+            <h2 class="mb-1">Messages</h2>
+            <p class="text-muted">Chat with service providers and platform support.</p>
+        </div>
+        <div class="panel-lite p-0 overflow-hidden" style="height: 600px;">
+            {% include 'bookings/partials/dashboard_messages_panel.html' %}
+        </div>
+    {% endif %}
+
+<!-- Calendar Data -->
+{{ user_calendar_data|json_script:"user-calendar-data" }}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('user-booking-search');
-    const statusFilter = document.getElementById('user-booking-status-filter');
-    const sortSelect = document.getElementById('user-booking-sort');
-    const rows = Array.from(document.querySelectorAll('.user-booking-row'));
-    const tbody = document.getElementById('user-bookings-tbody');
-    const filterStatus = document.getElementById('user-booking-filter-status');
-    const filteredCount = document.getElementById('user-booking-filtered-count');
-    const totalCount = document.getElementById('user-booking-total-count');
-    const emptyState = document.getElementById('user-bookings-empty');
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarGrid = document.getElementById('userCalendarGrid');
+    if (calendarGrid) {
+        const calendarTitle = document.getElementById('userCalendarTitle');
+        const prevBtn = document.getElementById('userCalendarPrev');
+        const nextBtn = document.getElementById('userCalendarNext');
 
-    if (!searchInput || !statusFilter || !sortSelect || rows.length === 0 || !tbody) {
-        return;
-    }
-
-    const total = rows.length;
-    totalCount.textContent = String(total);
-
-    function applyFilters() {
-        const searchTerm = searchInput.value.trim().toLowerCase();
-        const selectedStatus = statusFilter.value;
-        const sortMode = sortSelect.value;
-
-        let visibleRows = rows.filter((row) => {
-            const service = row.getAttribute('data-service') || '';
-            const staff = row.getAttribute('data-staff') || '';
-            const status = row.getAttribute('data-status') || '';
-            const matchesText = !searchTerm || service.includes(searchTerm) || staff.includes(searchTerm);
-            const matchesStatus = !selectedStatus || status === selectedStatus;
-            return matchesText && matchesStatus;
-        });
-
-        visibleRows.sort((a, b) => {
-            if (sortMode === 'date-asc') {
-                return Number(a.getAttribute('data-scheduled')) - Number(b.getAttribute('data-scheduled'));
-            }
-            if (sortMode === 'price-asc') {
-                return Number(a.getAttribute('data-price')) - Number(b.getAttribute('data-price'));
-            }
-            if (sortMode === 'price-desc') {
-                return Number(b.getAttribute('data-price')) - Number(a.getAttribute('data-price'));
-            }
-            return Number(b.getAttribute('data-scheduled')) - Number(a.getAttribute('data-scheduled'));
-        });
-
-        rows.forEach((row) => {
-            row.style.display = 'none';
-        });
-
-        visibleRows.forEach((row) => {
-            tbody.appendChild(row);
-            row.style.display = '';
-        });
-
-        filteredCount.textContent = String(visibleRows.length);
-        filterStatus.style.display = visibleRows.length < total ? 'block' : 'none';
-        emptyState.style.display = visibleRows.length === 0 ? 'block' : 'none';
-    }
-
-    searchInput.addEventListener('input', applyFilters);
-    statusFilter.addEventListener('change', applyFilters);
-    sortSelect.addEventListener('change', applyFilters);
-});
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Small calendar showing count of user's bookings per date
-    const userCalendarGrid = document.getElementById('userCalendarGrid');
-    const userCalendarTitle = document.getElementById('userCalendarTitle');
-    const userPrev = document.getElementById('userCalendarPrev');
-    const userNext = document.getElementById('userCalendarNext');
-
-    if (!userCalendarGrid || !userCalendarTitle) return;
-
-    // build a map of date -> count from server-side bookings rendered in template
-    const bookingRows = Array.from(document.querySelectorAll('.user-booking-row'));
-    const bookMap = {};
-    bookingRows.forEach(r => {
-        const scheduled = r.getAttribute('data-scheduled');
-        if (!scheduled) return;
-        const d = new Date(Number(scheduled) * 1000);
-        const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        bookMap[iso] = (bookMap[iso] || 0) + 1;
-    });
-
-    let now = new Date();
-    let ucMonth = now.getMonth();
-    let ucYear = now.getFullYear();
-
-    function renderUserCalendar() {
-        userCalendarGrid.innerHTML = '';
-        const monthStart = new Date(ucYear, ucMonth, 1);
-        const monthEnd = new Date(ucYear, ucMonth + 1, 0);
-        const firstDay = (monthStart.getDay() + 6) % 7;
-        const totalDays = monthEnd.getDate();
-        userCalendarTitle.textContent = monthStart.toLocaleString('default', { month: 'long', year: 'numeric' });
-
-        for (let i = 0; i < firstDay; i++) {
-            const spacer = document.createElement('span');
-            spacer.className = 'calendar-empty';
-            userCalendarGrid.appendChild(spacer);
-        }
-
-            for (let day = 1; day <= totalDays; day++) {
-            const dateObj = new Date(ucYear, ucMonth, day);
-            const iso = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}-${String(dateObj.getDate()).padStart(2,'0')}`;
-
-            const count = bookMap[iso] || 0;
-            // determine status: neutral when no bookings, partial for small counts, booked-out for many
-            const status = count === 0 ? 'neutral' : (count >= 3 ? 'booked-out' : 'partial');
-
-            const cell = document.createElement('button');
-            cell.type = 'button';
-            cell.className = 'calendar-day';
-            if (status !== 'neutral') cell.classList.add(`is-${status}`);
-            const todayIso = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-            if (iso === todayIso) cell.classList.add('is-today');
-
-            cell.innerHTML = `<span class="calendar-day-number">${day}</span><span class="calendar-day-label">${status === 'neutral' ? '' : (status === 'booked-out' ? 'Booked out' : count + ' booking' + (count>1?'s':''))}</span>`;
-
-            if (selectedUserIso === iso) cell.classList.add('is-selected');
-
-            cell.addEventListener('click', function () {
-                selectedUserIso = iso;
-                document.querySelectorAll('#userCalendarGrid .calendar-day').forEach(d => d.classList.remove('is-selected'));
-                cell.classList.add('is-selected');
-
-                const rows = Array.from(document.querySelectorAll('.user-booking-row'));
-                rows.forEach(r => {
-                    const scheduled = r.getAttribute('data-scheduled');
-                    if (!scheduled) { r.style.display = 'none'; return; }
-                    const d = new Date(Number(scheduled) * 1000);
-                    const riso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                    r.style.display = riso === iso ? '' : 'none';
+        // BOOKINGS FILTERING
+        const bookingSearch = document.getElementById('user-booking-search');
+        if (bookingSearch) {
+            const statusFilter = document.getElementById('user-booking-status-filter');
+            const bookingRows = Array.from(document.querySelectorAll('.user-booking-row'));
+            
+            function applyUserFilters() {
+                const term = bookingSearch.value.trim().toLowerCase();
+                const status = statusFilter.value;
+                
+                bookingRows.forEach(row => {
+                    const service = row.getAttribute('data-service') || '';
+                    const staff = row.getAttribute('data-staff') || '';
+                    const rowStatus = row.getAttribute('data-status') || '';
+                    
+                    const matchesText = !term || service.includes(term) || staff.includes(term);
+                    const matchesStatus = !status || rowStatus === status;
+                    
+                    row.style.display = (matchesText && matchesStatus) ? '' : 'none';
                 });
-                const filteredCount = document.getElementById('user-booking-filtered-count');
-                const totalCount = document.getElementById('user-booking-total-count');
-                if (filteredCount) filteredCount.textContent = String(bookMap[iso] || 0);
-                if (totalCount) totalCount.textContent = String(document.querySelectorAll('.user-booking-row').length);
-                const filterStatus = document.getElementById('user-booking-filter-status');
-                if (filterStatus) filterStatus.style.display = 'block';
-            });
-
-            userCalendarGrid.appendChild(cell);
+            }
+            
+            bookingSearch.addEventListener('input', applyUserFilters);
+            statusFilter.addEventListener('change', applyUserFilters);
         }
-    }
 
-    if (userPrev) userPrev.addEventListener('click', function () { ucMonth -= 1; if (ucMonth < 0) { ucMonth = 11; ucYear -= 1; } renderUserCalendar(); });
-    if (userNext) userNext.addEventListener('click', function () { ucMonth += 1; if (ucMonth > 11) { ucMonth = 0; ucYear += 1; } renderUserCalendar(); });
+        const calendarData = JSON.parse(document.getElementById('user-calendar-data').textContent || '{}');
+        
+        let selectedDateStr = "{{ selected_slot_date }}";
+        const initialDate = selectedDateStr ? new Date(selectedDateStr) : new Date();
+        let currentMonth = initialDate.getMonth();
+        let currentYear = initialDate.getFullYear();
 
-    // selected ISO for dashboard calendar
-    let selectedUserIso = null;
+        function renderCalendar() {
+            calendarGrid.innerHTML = '';
+            const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+            const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+            
+            // Adjust to Monday start
+            let firstDayIndex = (firstDayOfMonth.getDay() + 6) % 7;
+            const daysInMonth = lastDayOfMonth.getDate();
 
-    const clearBtn = document.getElementById('clearCalendarFilter');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function () {
-            // show all rows
-            const rows = Array.from(document.querySelectorAll('.user-booking-row'));
-            rows.forEach(r => r.style.display = '');
-            const filterStatus = document.getElementById('user-booking-filter-status'); if (filterStatus) filterStatus.style.display = 'none';
-            const filteredCount = document.getElementById('user-booking-filtered-count'); if (filteredCount) filteredCount.textContent = String(rows.length);
-            // clear selection visuals
-            selectedUserIso = null; document.querySelectorAll('#userCalendarGrid .date-badge').forEach(d => d.classList.remove('selected'));
+            calendarTitle.textContent = firstDayOfMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+            // Empty slots for previous month
+            for (let i = 0; i < firstDayIndex; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'calendar-empty';
+                calendarGrid.appendChild(empty);
+            }
+
+            // Days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                
+                const cell = document.createElement('button');
+                cell.type = 'button';
+                cell.className = 'calendar-day';
+                
+                if (calendarData[iso]) {
+                    cell.classList.add('is-booked'); // Highlight if there's a booking
+                }
+                
+                if (iso === "{{ today }}") cell.classList.add('is-today');
+                if (iso === selectedDateStr) cell.classList.add('is-selected');
+
+                cell.innerHTML = `<span class="calendar-day-number">${day}</span>`;
+                cell.addEventListener('click', () => {
+                    window.location.href = `?tab=calendar&slot_date=${iso}`;
+                });
+                calendarGrid.appendChild(cell);
+            }
+        }
+
+        prevBtn.addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
         });
-    }
 
-    renderUserCalendar();
+        nextBtn.addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        });
+
+        renderCalendar();
+    }
 });
 </script>
 {% endblock %}

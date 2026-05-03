@@ -62,6 +62,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "bookings.context_processors.mobile_notifications",
                 "bookings.context_processors.message_badges",
+                "bookings.context_processors.platform_admin",
             ],
         },
     },

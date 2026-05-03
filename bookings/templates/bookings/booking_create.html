@@ -113,12 +113,14 @@
             <section class="booking-flow-card glass-panel wizard-step active" data-step="1">
                 <div class="booking-service-grid mt-3" id="serviceGrid">
                     {% for service in services_payload %}
-                        <label class="booking-service-card" data-service-card data-service-id="{{ service.id }}" data-service-name="{{ service.name|lower }}" data-category-name="{{ service.category_name|lower }}" data-description="{{ service.description|lower }}" data-price="{{ service.price }}" data-duration="{{ service.duration }}" data-staff-count="{{ service.staff|length }}">
-                            <input type="radio" name="service_pick" value="{{ service.id }}" {% if form.service.value|stringformat:'s' == service.id|stringformat:'s' %}checked{% endif %}>
+                        <label class="booking-service-card {% if service.staff|length == 0 %}is-disabled{% endif %}" data-service-card data-service-id="{{ service.id }}" data-service-name="{{ service.name|lower }}" data-category-name="{{ service.category_name|lower }}" data-description="{{ service.description|lower }}" data-price="{{ service.price }}" data-duration="{{ service.duration }}" data-staff-count="{{ service.staff|length }}">
+                            <input type="radio" name="service_pick" value="{{ service.id }}" {% if form.service.value|stringformat:'s' == service.id|stringformat:'s' %}checked{% endif %} {% if service.staff|length == 0 %}disabled{% endif %}>
                             <span class="booking-service-card-inner">
                                 <span class="booking-service-topline">
                                     <span class="booking-service-name">{{ service.name }}</span>
-                                    <span class="service-availability-badge" data-service-availability>Available</span>
+                                    <span class="service-availability-badge" data-service-availability>
+                                        {% if service.staff|length == 0 %}Unavailable{% else %}Available{% endif %}
+                                    </span>
                                 </span>
                                 <span class="booking-service-meta">{{ service.category_name }}</span>
                                 <span class="booking-service-description">{{ service.description }}</span>
@@ -126,7 +128,13 @@
                                     <span>INR {{ service.price }}</span>
                                     <span>{{ service.duration }} min</span>
                                 </span>
-                                <span class="booking-service-footer-note">{{ service.staff|length }} professional{% if service.staff|length != 1 %}s{% endif %} assigned</span>
+                                <span class="booking-service-footer-note">
+                                    {% if service.staff|length == 0 %}
+                                        <span class="text-danger">No professionals assigned</span>
+                                    {% else %}
+                                        {{ service.staff|length }} professional{% if service.staff|length != 1 %}s{% endif %} assigned
+                                    {% endif %}
+                                </span>
                             </span>
                         </label>
                     {% empty %}

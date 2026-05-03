@@ -13,7 +13,10 @@
         <!-- Rating Overlay -->
         <div class="position-absolute top-0 end-0 m-2 m-lg-3 z-index-2 bg-white rounded-pill px-2 py-1 shadow-sm d-flex align-items-center gap-1" style="z-index: 10;">
             <i class="bi bi-star-fill text-warning" style="font-size: 0.7rem;"></i>
-            <span class="fw-800 text-dark" style="font-size: 0.7rem;">4.8</span>
+            <span class="fw-800 text-dark" style="font-size: 0.7rem;">
+                {{ service.avg_rating|default:"4.8"|floatformat:1 }}
+            </span>
+            <span class="text-muted fw-600" style="font-size: 0.6rem;">({{ service.review_count|default:"0" }})</span>
         </div>
 
         <div class="card-img-wrapper overflow-hidden position-relative">

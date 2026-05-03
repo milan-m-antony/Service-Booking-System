@@ -26,126 +26,166 @@
 {% endif %}
 
 <div class="row g-4">
-  <div class="col-lg-5">
-    <div class="panel-lite role-panel p-3 mb-3">
-      <h5 class="mb-3">Quick Presets</h5>
-      <div class="d-flex flex-wrap gap-2">
-        {% for preset in presets %}
-        <button type="button" class="btn btn-outline-primary preset-btn" data-label="{{ preset.key }}" data-subject="{{ preset.subject|escape }}" data-body="{{ preset.body|escape }}">{{ preset.label }}</button>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="panel-lite role-panel p-3">
-      <h5 class="mb-3">Send Message</h5>
-      <form method="post" class="d-grid gap-2">
+  <div class="col-lg-4">
+    <!-- Send Message Panel -->
+    <div class="panel-lite role-panel p-4 mb-4">
+      <h5 class="fw-800 mb-4"><i class="bi bi-pencil-square me-2"></i>New Message</h5>
+      <form method="post" class="d-grid gap-3">
         {% csrf_token %}
         <input type="hidden" name="preset_label" id="preset-label" value="{{ prefill_label }}">
+        
         <div>
-          <label class="form-label">Recipient</label>
-          <select name="recipient_id" class="form-select" required>
-            <option value="">Select recipient</option>
+          <label class="form-label small fw-700 text-uppercase text-muted">Recipient</label>
+          <select name="recipient_id" class="form-select border-0 bg-light" required>
+            <option value="">Select recipient...</option>
             {% for user in recipients %}
-            <option value="{{ user.id }}">{{ user.display_name }} ({{ user.get_role_display }})</option>
+            <option value="{{ user.id }}" {% if prefill_recipient_id == user.id %}selected{% endif %}>
+                {{ user.display_name }} ({{ user.get_role_display }})
+            </option>
             {% endfor %}
           </select>
         </div>
+
         <div>
-          <label class="form-label">Subject</label>
-          <input name="subject" class="form-control" maxlength="140" placeholder="Subject (optional)" value="{{ prefill_subject|default:'' }}">
+          <label class="form-label small fw-700 text-uppercase text-muted">Subject</label>
+          <input name="subject" class="form-control border-0 bg-light" maxlength="140" placeholder="What is this about?" value="{{ prefill_subject|default:'' }}">
         </div>
+
         <div>
-          <label class="form-label">Message</label>
-          <textarea name="body" id="message-body" rows="5" class="form-control" required>{{ prefill_body|default:'' }}</textarea>
+          <label class="form-label small fw-700 text-uppercase text-muted">Message</label>
+          <textarea name="body" id="message-body" rows="6" class="form-control border-0 bg-light" placeholder="Type your message here..." required>{{ prefill_body|default:'' }}</textarea>
         </div>
-        <button class="btn btn-primary" type="submit"><i class="bi bi-send me-1"></i>Send</button>
+
+        <button class="btn btn-primary w-100 py-3 shadow-sm" type="submit">
+          <i class="bi bi-send-fill me-2"></i>Send Message
+        </button>
       </form>
+    </div>
+
+    <!-- Presets Panel -->
+    <div class="panel-lite role-panel p-4">
+      <h6 class="fw-800 mb-3 text-muted text-uppercase small">Quick Presets</h6>
+      <div class="d-flex flex-wrap gap-2">
+        {% for preset in presets %}
+        <button type="button" class="btn btn-sm btn-outline-primary preset-btn rounded-pill px-3" 
+                data-label="{{ preset.key }}" 
+                data-subject="{{ preset.subject|escape }}" 
+                data-body="{{ preset.body|escape }}">
+          {{ preset.label }}
+        </button>
+        {% endfor %}
+      </div>
     </div>
   </div>
 
-  <div class="col-lg-7">
-    <div class="panel-lite role-panel p-3 mb-3">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <h5 class="mb-0">Inbox</h5>
-          <span class="badge-glass">{{ inbox_count }}</span>
-          <span class="badge-glass">Latest 20</span>
-        </div>
-      </div>
-      <form method="post" class="message-list-actions">
-        {% csrf_token %}
-        <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2 message-toolbar">
-          <span class="small text-muted">Single delete: use each message row button.</span>
-          <div class="form-check m-0">
-            <input class="form-check-input js-select-all" type="checkbox" id="select-all-inbox" data-target="inbox-message-check">
-            <label class="form-check-label small" for="select-all-inbox">Select all</label>
-          </div>
-          <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" name="action" value="delete_inbox_selected" {% if not inbox_count %}disabled{% endif %}>Delete selected</button>
-          <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" name="action" value="delete_all_inbox" {% if not inbox_count %}disabled{% endif %}>Delete all</button>
-        </div>
-        <div class="message-list">
-          {% for item in inbox_messages %}
-          <article class="message-item">
-            <div class="d-flex justify-content-between flex-wrap gap-2">
-              <label class="form-check m-0 message-check-wrap">
-                <input class="form-check-input inbox-message-check" type="checkbox" name="selected_message_ids" value="{{ item.id }}">
-                <span><strong>{{ item.sender.display_name }}</strong></span>
-              </label>
-              <small class="text-muted">{{ item.created_at|date:"d M Y, h:i A" }}</small>
-            </div>
-            <p class="mb-1 small text-muted">{{ item.subject|default:"No subject" }}</p>
-            <p class="mb-0">{{ item.body|linebreaksbr }}</p>
-            <div class="mt-2 d-flex justify-content-end">
-              <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" name="action" value="delete_inbox_message:{{ item.id }}">Delete</button>
-            </div>
-          </article>
-          {% empty %}
-          <p class="text-muted mb-0">No received messages yet. Messages sent to you will appear here.</p>
-          {% endfor %}
-        </div>
-      </form>
-    </div>
+  <div class="col-lg-8">
+    <!-- Tabs for Inbox/Sent -->
+    <ul class="nav nav-pills mb-4 gap-2" id="messageTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active rounded-pill px-4 fw-700" id="inbox-tab" data-bs-toggle="pill" data-bs-target="#inbox" type="button" role="tab">
+          <i class="bi bi-inbox me-2"></i>Inbox {% if unread_count %}<span class="badge bg-danger ms-1">{{ unread_count }}</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link rounded-pill px-4 fw-700" id="sent-tab" data-bs-toggle="pill" data-bs-target="#sent" type="button" role="tab">
+          <i class="bi bi-send me-2"></i>Sent
+        </button>
+      </li>
+    </ul>
 
-    <div class="panel-lite role-panel p-3">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          <h5 class="mb-0">Sent</h5>
-          <span class="badge-glass">{{ sent_count }}</span>
-          <span class="badge-glass">Latest 20</span>
-        </div>
-      </div>
-      <form method="post" class="message-list-actions">
-        {% csrf_token %}
-        <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2 message-toolbar">
-          <span class="small text-muted">Single delete: use each message row button.</span>
-          <div class="form-check m-0">
-            <input class="form-check-input js-select-all" type="checkbox" id="select-all-sent" data-target="sent-message-check">
-            <label class="form-check-label small" for="select-all-sent">Select all</label>
+    <div class="tab-content" id="messageTabsContent">
+      <!-- Inbox Pane -->
+      <div class="tab-pane fade show active" id="inbox" role="tabpanel">
+        <form method="post" class="message-list-actions">
+          {% csrf_token %}
+          <div class="message-toolbar d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div class="form-check m-0">
+              <input class="form-check-input js-select-all" type="checkbox" id="select-all-inbox" data-target="inbox-message-check">
+              <label class="form-check-label small fw-600" for="select-all-inbox">Select All</label>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-sm btn-outline-danger px-3" name="action" value="delete_inbox_selected" {% if not inbox_count %}disabled{% endif %}>Delete Selected</button>
+              <button type="submit" class="btn btn-sm btn-danger px-3" name="action" value="delete_all_inbox" onclick="return confirm('Delete all messages?')" {% if not inbox_count %}disabled{% endif %}>Clear All</button>
+            </div>
           </div>
-          <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" name="action" value="delete_sent_selected" {% if not sent_count %}disabled{% endif %}>Delete selected</button>
-          <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" name="action" value="delete_all_sent" {% if not sent_count %}disabled{% endif %}>Delete all</button>
-        </div>
-        <div class="message-list">
-          {% for item in sent_messages %}
-          <article class="message-item">
-            <div class="d-flex justify-content-between flex-wrap gap-2">
-              <label class="form-check m-0 message-check-wrap">
-                <input class="form-check-input sent-message-check" type="checkbox" name="selected_message_ids" value="{{ item.id }}">
-                <span><strong>To {{ item.recipient.display_name }}</strong></span>
-              </label>
-              <small class="text-muted">{{ item.created_at|date:"d M Y, h:i A" }}</small>
+
+          <div class="message-list">
+            {% for item in inbox_messages %}
+            <article class="message-item {% if not item.is_read %}unread{% endif %}">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="message-check-wrap">
+                  <input class="form-check-input inbox-message-check" type="checkbox" name="selected_message_ids" value="{{ item.id }}">
+                  <div>
+                    <h6 class="mb-0 fw-800">{{ item.sender.display_name }}</h6>
+                    <div class="text-muted small">{{ item.sender.get_role_display }}</div>
+                  </div>
+                </div>
+                <div class="text-end">
+                  <div class="small text-muted">{{ item.created_at|date:"d M, h:i A" }}</div>
+                  {% if not item.is_read %}
+                    <span class="badge bg-primary small mt-1">New</span>
+                  {% endif %}
+                </div>
+              </div>
+              <p class="mb-2 fw-700">{{ item.subject|default:"(No Subject)" }}</p>
+              <p class="mb-3 text-secondary">{{ item.body|linebreaksbr }}</p>
+              <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-sm btn-light rounded-pill px-3 preset-btn" data-body="Replying to: {{ item.subject }} - " data-label="reply">Reply</button>
+                <button type="submit" class="btn btn-sm btn-link text-danger p-0" name="action" value="delete_inbox_message:{{ item.id }}">Delete</button>
+              </div>
+            </article>
+            {% empty %}
+            <div class="text-center py-5 bg-light rounded-4">
+              <i class="bi bi-chat-left-dots text-muted" style="font-size: 3rem;"></i>
+              <p class="text-muted mt-3">Your inbox is empty.</p>
             </div>
-            <p class="mb-1 small text-muted">{{ item.subject|default:"No subject" }}</p>
-            <p class="mb-0">{{ item.body|linebreaksbr }}</p>
-            <div class="mt-2 d-flex justify-content-end">
-              <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" name="action" value="delete_sent_message:{{ item.id }}">Delete</button>
+            {% endfor %}
+          </div>
+        </form>
+      </div>
+
+      <!-- Sent Pane -->
+      <div class="tab-pane fade" id="sent" role="tabpanel">
+        <form method="post" class="message-list-actions">
+          {% csrf_token %}
+          <div class="message-toolbar d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div class="form-check m-0">
+              <input class="form-check-input js-select-all" type="checkbox" id="select-all-sent" data-target="sent-message-check">
+              <label class="form-check-label small fw-600" for="select-all-sent">Select All</label>
             </div>
-          </article>
-          {% empty %}
-          <p class="text-muted mb-0">No sent messages yet. Messages you send will appear here.</p>
-          {% endfor %}
-        </div>
-      </form>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-sm btn-outline-danger px-3" name="action" value="delete_sent_selected" {% if not sent_count %}disabled{% endif %}>Delete Selected</button>
+            </div>
+          </div>
+
+          <div class="message-list">
+            {% for item in sent_messages %}
+            <article class="message-item">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="message-check-wrap">
+                  <input class="form-check-input sent-message-check" type="checkbox" name="selected_message_ids" value="{{ item.id }}">
+                  <div>
+                    <h6 class="mb-0 fw-800">To: {{ item.recipient.display_name }}</h6>
+                    <div class="text-muted small">{{ item.recipient.get_role_display }}</div>
+                  </div>
+                </div>
+                <div class="small text-muted">{{ item.created_at|date:"d M, h:i A" }}</div>
+              </div>
+              <p class="mb-2 fw-700">{{ item.subject|default:"(No Subject)" }}</p>
+              <p class="mb-3 text-secondary">{{ item.body|linebreaksbr }}</p>
+              <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-sm btn-link text-danger p-0" name="action" value="delete_sent_message:{{ item.id }}">Delete</button>
+              </div>
+            </article>
+            {% empty %}
+            <div class="text-center py-5 bg-light rounded-4">
+              <i class="bi bi-send-x text-muted" style="font-size: 3rem;"></i>
+              <p class="text-muted mt-3">You haven't sent any messages yet.</p>
+            </div>
+            {% endfor %}
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </div>

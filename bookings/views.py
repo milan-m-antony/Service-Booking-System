@@ -28,8 +28,14 @@ def message_center(request):
     presets = _message_presets_for_role(request.user.role)
 
     prefill_label = (request.GET.get("preset_label") or "").strip()
+    prefill_recipient_id = request.GET.get("recipient_id", "")
     prefill_subject = (request.GET.get("subject") or "").strip()
     prefill_body = (request.GET.get("body") or "").strip()
+    
+    if prefill_recipient_id.isdigit():
+        prefill_recipient_id = int(prefill_recipient_id)
+    else:
+        prefill_recipient_id = None
 
     if prefill_label and not prefill_body:
         preset_map = {item["key"]: item for item in presets}
@@ -42,7 +48,7 @@ def message_center(request):
     try:
         recipients = CustomUser.objects.filter(is_active=True).exclude(id=request.user.id)
         if request.user.role == CustomUser.Roles.CUSTOMER:
-            recipients = recipients.filter(role=CustomUser.Roles.STAFF)
+            recipients = recipients.filter(role__in=[CustomUser.Roles.STAFF, CustomUser.Roles.ADMIN])
         elif request.user.role == CustomUser.Roles.STAFF:
             recipients = recipients.filter(role__in=[CustomUser.Roles.CUSTOMER, CustomUser.Roles.ADMIN])
         recipients = recipients.order_by("first_name", "last_name", "username")
@@ -195,6 +201,7 @@ def message_center(request):
             "sent_count": UserMessage.objects.filter(sender=request.user, sender_deleted=False).count(),
             "unread_count": len(unread_ids),
             "prefill_label": prefill_label,
+            "prefill_recipient_id": prefill_recipient_id,
             "prefill_subject": prefill_subject,
             "prefill_body": prefill_body,
         }
@@ -213,6 +220,7 @@ def message_center(request):
             "sent_count": 0,
             "unread_count": 0,
             "prefill_label": prefill_label,
+            "prefill_recipient_id": prefill_recipient_id,
             "prefill_subject": prefill_subject,
             "prefill_body": prefill_body,
         }
@@ -304,7 +312,15 @@ def home(request):
         .prefetch_related("services")
         .order_by("name")
     )
-    services = Service.objects.filter(is_active=True).select_related("category").prefetch_related("staff")
+    services = (
+        Service.objects.filter(is_active=True)
+        .select_related("category")
+        .prefetch_related("staff")
+        .annotate(
+            avg_rating=Avg("bookings__feedback__rating"),
+            review_count=Count("bookings__feedback", distinct=True),
+        )
+    )
     return render(
         request,
         "bookings/home.html",
@@ -321,7 +337,14 @@ def filter_services(request):
     query = request.GET.get("query")
     mode = request.GET.get("mode")
     
-    services = Service.objects.filter(is_active=True).select_related("category")
+    services = (
+        Service.objects.filter(is_active=True)
+        .select_related("category")
+        .annotate(
+            avg_rating=Avg("bookings__feedback__rating"),
+            review_count=Count("bookings__feedback", distinct=True),
+        )
+    )
     
     if category_id and category_id != "all":
         services = services.filter(category_id=category_id)
@@ -424,7 +447,17 @@ def logout_view(request):
 def role_dashboard(request):
     if request.user.must_change_password:
         return redirect("force_password_change")
-    return redirect(_dashboard_name_for(request.user))
+    
+    # Get the target dashboard view name based on role
+    target_view = _dashboard_name_for(request.user)
+    
+    # Construct the redirect URL with preserved query parameters
+    url = reverse(target_view)
+    query_string = request.GET.urlencode()
+    if query_string:
+        url = f"{url}?{query_string}"
+    
+    return redirect(url)
 
 
 @login_required
@@ -582,14 +615,32 @@ def booking_create(request):
     return render(request, "bookings/booking_create.html", context)
 
 
-@role_required(CustomUser.Roles.CUSTOMER)
+@login_required
 @never_cache
 def user_dashboard(request):
+    active_tab = request.GET.get("tab", "overview")
+    
     bookings = (
         Booking.objects.filter(customer=request.user)
         .select_related("service", "staff")
         .order_by("-scheduled_at")
     )
+    
+    # Calendar Data Logic
+    selected_date_str = request.GET.get("slot_date", timezone.localdate().isoformat())
+    try:
+        selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
+    except ValueError:
+        selected_date = timezone.localdate()
+
+    user_calendar_data = {}
+    for b in bookings:
+        d_iso = b.scheduled_at.date().isoformat()
+        if d_iso not in user_calendar_data:
+            user_calendar_data[d_iso] = {"status": "booked"}
+    
+    selected_date_bookings = bookings.filter(scheduled_at__date=selected_date)
+
     feedback_map = {
         item.booking_id: item
         for item in BookingFeedback.objects.filter(customer=request.user, booking__in=bookings)
@@ -603,6 +654,11 @@ def user_dashboard(request):
         "total_bookings": bookings.count(),
         "active_bookings": bookings.filter(status__in=[Booking.Status.PENDING, Booking.Status.IN_PROGRESS]).count(),
         "total_spent": total_spent if isinstance(total_spent, Decimal) else Decimal("0.00"),
+        "active_tab": active_tab,
+        "selected_slot_date": selected_date.isoformat(),
+        "selected_date_bookings": selected_date_bookings,
+        "user_calendar_data": user_calendar_data,
+        "today": timezone.localdate().isoformat(),
     }
     context.update(_dashboard_message_context(request.user))
     return render(request, "bookings/user_dashboard.html", context)
@@ -620,6 +676,11 @@ def staff_availability(request):
 
 
 def _render_staff_dashboard(request, view_mode="home"):
+    active_tab = request.GET.get("tab", "overview")
+    # map view_mode to active_tab for backward compatibility if needed
+    if view_mode == "availability":
+        active_tab = "availability"
+    
     redirect_name = "staff_availability" if view_mode == "availability" else "staff_dashboard"
     ajax_mode = request.headers.get("x-requested-with") == "XMLHttpRequest" or request.GET.get("ajax") == "1"
     selected_slot_date_override = None
@@ -908,10 +969,14 @@ def _render_staff_dashboard(request, view_mode="home"):
 
     marked_slots_for_date.sort(key=lambda item: item["time"])
 
+    total_earnings = sum(booking.service.price for booking in bookings if booking.status == Booking.Status.COMPLETED)
+
     context = {
         "bookings": bookings.order_by("scheduled_at"),
+        "total_jobs": bookings.count(),
         "pending_count": bookings.filter(status=Booking.Status.PENDING).count(),
         "completed_count": bookings.filter(status=Booking.Status.COMPLETED).count(),
+        "total_earnings": total_earnings if isinstance(total_earnings, (Decimal, int, float)) else 0,
         "leave_dates": leave_dates,
         "blocked_slots": blocked_slots,
         "today": timezone.localdate().isoformat(),
@@ -926,6 +991,7 @@ def _render_staff_dashboard(request, view_mode="home"):
         "is_leave_date_selected": selected_slot_date in leave_date_set,
         "selected_date_bookings": booked_on_date.order_by("scheduled_at"),
         "staff_calendar_data": staff_calendar_data,
+        "active_tab": active_tab,
     }
     context.update(_dashboard_message_context(request.user))
 
@@ -966,6 +1032,7 @@ def _render_staff_dashboard(request, view_mode="home"):
 @role_required(CustomUser.Roles.ADMIN)
 @never_cache
 def admin_dashboard(request):
+    active_tab = request.GET.get("tab", "overview")
     bookings = Booking.objects.select_related("customer", "service", "staff").order_by("-scheduled_at")
     pending_bookings = bookings.filter(status=Booking.Status.PENDING)
     completed_bookings = bookings.filter(status=Booking.Status.COMPLETED)
@@ -975,6 +1042,7 @@ def admin_dashboard(request):
 
     context = {
         "bookings": bookings,
+        "all_bookings": bookings,
         "total_bookings": bookings.count(),
         "pending_count": pending_bookings.count(),
         "completed_count": completed_bookings.count(),
@@ -983,6 +1051,7 @@ def admin_dashboard(request):
         "completed_revenue": completed_revenue,
         "pending_bookings": pending_bookings[:8],
         "recent_bookings": bookings[:8],
+        "active_tab": active_tab,
     }
     context.update(_dashboard_message_context(request.user))
     return render(request, "bookings/admin_dashboard.html", context)
@@ -992,10 +1061,35 @@ def admin_dashboard(request):
 @never_cache
 def admin_categories(request):
     if request.method == "POST":
+        action = request.POST.get("action", "create")
         name = request.POST.get("name", "").strip()
         icon = request.POST.get("icon", "").strip()
         color = request.POST.get("color", "#34d399").strip() or "#34d399"
 
+        if action == "delete":
+            cat_id = request.POST.get("category_id")
+            category = ServiceCategory.objects.filter(id=cat_id).first()
+            if category:
+                category.delete()
+                messages.success(request, f"Category '{category.name}' deleted.")
+            else:
+                messages.error(request, "Category not found.")
+            return redirect("admin_categories")
+
+        if action == "edit":
+            cat_id = request.POST.get("category_id")
+            category = ServiceCategory.objects.filter(id=cat_id).first()
+            if category and name:
+                category.name = name
+                category.icon = icon
+                category.color = color
+                category.save()
+                messages.success(request, f"Category '{category.name}' updated.")
+            else:
+                messages.error(request, "Category name is required.")
+            return redirect("admin_categories")
+
+        # Default: create
         if name:
             _, created = ServiceCategory.objects.get_or_create(
                 name=name,
@@ -1127,10 +1221,18 @@ def admin_users(request):
                     target_user.save(update_fields=["role"])
                     messages.success(request, "User role updated.")
 
-            if action == "toggle_active":
+            elif action == "toggle_active":
                 target_user.is_active = not target_user.is_active
                 target_user.save(update_fields=["is_active"])
                 messages.success(request, "User status updated.")
+
+            elif action == "delete_user":
+                if target_user.id == request.user.id:
+                    messages.error(request, "You cannot delete your own account.")
+                else:
+                    name = target_user.display_name
+                    target_user.delete()
+                    messages.success(request, f"User '{name}' has been permanently deleted.")
 
         return redirect("admin_users")
 

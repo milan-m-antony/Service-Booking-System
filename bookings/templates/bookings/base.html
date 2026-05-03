@@ -37,22 +37,10 @@
             <span class="brand-dot"></span> Home Service
         </a>
         <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; color: var(--text-main); border-color: var(--glass-border);" data-bs-toggle="collapse" data-bs-target="#mobileSearchCollapse">
-                <i class="bi bi-search"></i>
-            </button>
         </div>
     </header>
     {% endblock %}
 
-    <div class="collapse d-lg-none mx-3 my-2" id="mobileSearchCollapse">
-        <form action="{% url 'global_search' %}" method="get" class="d-flex w-100">
-            {% if request.path != global_search_url %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            {% endif %}
-            <input type="search" name="q" value="{{ request.GET.q|default:'' }}" class="form-control" placeholder="Search...">
-            <button type="submit" class="btn btn-primary ms-2 d-flex align-items-center justify-content-center"><i class="bi bi-search"></i></button>
-        </form>
-    </div>
 
     <!-- App Layout Container -->
     <div class="app-layout">
@@ -62,30 +50,59 @@
                 <span class="brand-dot"></span> Home Service
             </a>
             
-            <form action="{% url 'global_search' %}" method="get" class="mb-4 form-group position-relative">
-                <input type="search" name="q" class="form-control" style="padding-left: 2.5rem;" placeholder="Search..." value="{{ request.GET.q|default:'' }}">
-                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-            </form>
 
             <nav class="sidebar-nav">
-                <a href="{% url 'role_dashboard' %}" class="{% if request.resolver_match.url_name == 'role_dashboard' %}active{% endif %}"><i class="bi bi-house"></i> Home</a>
+                <a href="{% url 'role_dashboard' %}" class="{% if active_tab == 'overview' or request.resolver_match.url_name == 'role_dashboard' and not active_tab and not request.GET.tab %}active{% endif %}">
+                    <i class="bi bi-house"></i> Home
+                </a>
+                
                 {% if user.role == 'customer' %}
-                    <a href="{% url 'booking_create' %}"><i class="bi bi-calendar-plus"></i> Book Service</a>
-                {% elif user.role == 'staff' %}
-                    <a href="{% url 'staff_availability' %}"><i class="bi bi-calendar-check"></i> My Availability</a>
-                    <a href="{% url 'analytics' %}"><i class="bi bi-bar-chart"></i> Analytics</a>
-                {% elif user.role == 'admin' %}
-                    <a href="{% url 'analytics' %}"><i class="bi bi-bar-chart"></i> Analytics</a>
-                    <a href="{% url 'admin_categories' %}"><i class="bi bi-tags"></i> Categories</a>
-                    <a href="{% url 'admin_services' %}"><i class="bi bi-tools"></i> Services</a>
-                    <a href="{% url 'admin_users' %}"><i class="bi bi-people"></i> Users</a>
+                    <a href="{% url 'booking_create' %}" class="{% if request.resolver_match.url_name == 'booking_create' %}active{% endif %}">
+                        <i class="bi bi-calendar-plus"></i> Book Service
+                    </a>
                 {% endif %}
-                <a href="{% url 'messages' %}">
+
+                <a href="{% url 'messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
                     <i class="bi bi-chat-dots"></i> Messages
                     {% if nav_unread_messages %}
                         <span class="nav-unread-badge">{{ nav_unread_messages }}</span>
                     {% endif %}
                 </a>
+
+                {% if user.role == 'customer' %}
+                    <a href="{% url 'role_dashboard' %}?tab=bookings" class="{% if active_tab == 'bookings' %}active{% endif %}">
+                        <i class="bi bi-list-ul"></i> My Bookings
+                    </a>
+                    <a href="{% url 'role_dashboard' %}?tab=calendar" class="{% if active_tab == 'calendar' %}active{% endif %}">
+                        <i class="bi bi-calendar3"></i> Calendar
+                    </a>
+                {% elif user.role == 'staff' %}
+                    <a href="{% url 'role_dashboard' %}?tab=jobs" class="{% if active_tab == 'jobs' %}active{% endif %}">
+                        <i class="bi bi-briefcase"></i> My Jobs
+                    </a>
+                    <a href="{% url 'role_dashboard' %}?tab=availability" class="{% if active_tab == 'availability' %}active{% endif %}">
+                        <i class="bi bi-calendar-event"></i> Availability
+                    </a>
+                    <a href="{% url 'analytics' %}" class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                        <i class="bi bi-graph-up"></i> Analytics
+                    </a>
+                {% elif user.role == 'admin' %}
+                    <a href="{% url 'role_dashboard' %}?tab=bookings" class="{% if active_tab == 'bookings' %}active{% endif %}">
+                        <i class="bi bi-journal-bookmark"></i> Bookings
+                    </a>
+                    <a href="{% url 'admin_categories' %}" class="{% if request.resolver_match.url_name == 'admin_categories' %}active{% endif %}">
+                        <i class="bi bi-tags"></i> Categories
+                    </a>
+                    <a href="{% url 'admin_services' %}" class="{% if request.resolver_match.url_name == 'admin_services' %}active{% endif %}">
+                        <i class="bi bi-tools"></i> Services
+                    </a>
+                    <a href="{% url 'admin_users' %}" class="{% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+                        <i class="bi bi-people"></i> Users
+                    </a>
+                    <a href="{% url 'analytics' %}" class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                        <i class="bi bi-graph-up"></i> Analytics
+                    </a>
+                {% endif %}
             </nav>
 
             <div class="mt-auto">
@@ -225,9 +242,16 @@
         {% if user.role == 'customer' %}
             <a href="{% url 'booking_create' %}" class="{% if request.resolver_match.url_name == 'booking_create' %}active{% endif %}"><i class="bi bi-calendar2-plus"></i> Book</a>
         {% elif user.role == 'staff' %}
-            <a href="{% url 'staff_dashboard' %}" class="{% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}"><i class="bi bi-briefcase"></i> Jobs</a>
+            <a href="{% url 'messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
+                <i class="bi bi-chat-dots"></i> Messages
+                {% if nav_unread_messages %}
+                    <span class="mobile-unread-dot">{{ nav_unread_messages }}</span>
+                {% endif %}
+            </a>
         {% elif user.role == 'admin' %}
-            <a href="{% url 'admin_services' %}" class="{% if request.resolver_match.url_name == 'admin_services' %}active{% endif %}"><i class="bi bi-tools"></i> Services</a>
+            <a href="{% url 'role_dashboard' %}?tab=bookings" class="{% if active_tab == 'bookings' %}active{% endif %}">
+                <i class="bi bi-journal-bookmark"></i> Bookings
+            </a>
         {% endif %}
         
         <!-- Mobile App FAB (+ Icon) for More Menu -->
@@ -242,21 +266,23 @@
                     <span class="mobile-unread-dot">{{ nav_unread_messages }}</span>
                 {% endif %}
             </a>
-            <a href="{% url 'profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-                <i class="bi bi-person"></i> Profile
+            <a href="{% url 'role_dashboard' %}?tab=calendar" class="{% if active_tab == 'calendar' %}active{% endif %}">
+                <i class="bi bi-calendar3"></i> Calendar
             </a>
         {% elif user.role == 'staff' %}
-            <a href="{% url 'analytics' %}" class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Stats</a>
-            <a href="{% url 'profile' %}" class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-                <i class="bi bi-person"></i> Profile
+            <a href="{% url 'staff_dashboard' %}" class="{% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}"><i class="bi bi-briefcase"></i> Jobs</a>
+            <a href="{% url 'role_dashboard' %}?tab=availability" class="{% if active_tab == 'availability' %}active{% endif %}">
+                <i class="bi bi-calendar-event"></i> Availability
             </a>
         {% elif user.role == 'admin' %}
-            <a href="{% url 'analytics' %}" class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}"><i class="bi bi-bar-chart"></i> Stats</a>
             <a href="{% url 'messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
                 <i class="bi bi-chat-dots"></i> Messages
                 {% if nav_unread_messages %}
                     <span class="mobile-unread-dot">{{ nav_unread_messages }}</span>
                 {% endif %}
+            </a>
+            <a href="{% url 'admin_users' %}" class="{% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+                <i class="bi bi-people"></i> Users
             </a>
         {% endif %}
     </nav>
@@ -264,56 +290,75 @@
     <!-- Mobile More Menu (for all roles) -->
     <div class="offcanvas offcanvas-bottom rounded-top-4 shadow-lg" tabindex="-1" id="mobileMoreMenu" style="background: var(--bg-surface-solid); border-top: 1px solid var(--glass-border); height: auto;">
         <div class="offcanvas-header border-bottom" style="border-color: rgba(0,0,0,0.05) !important;">
-            <h5 class="offcanvas-title fw-bold" style="color: var(--text-main);">More Actions</h5>
+            <h5 class="offcanvas-title fw-bold" style="color: var(--text-main);">More</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="offcanvas-body p-4">
-            <div class="row g-3">
+        <div class="offcanvas-body p-4 pb-5">
+            <div class="row g-3 mb-4">
+
                 {% if user.role == 'customer' %}
                     <div class="col-6">
-                        <a href="{% url 'booking_create' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
-                            <i class="bi bi-calendar-plus text-primary fs-3"></i>
-                            <span style="color: var(--text-main); font-weight: 500;">Book</span>
+                        <a href="{% url 'role_dashboard' %}?tab=bookings" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
+                            <i class="bi bi-list-ul text-primary fs-3"></i>
+                            <span style="color:var(--text-main);font-weight:500;">My Bookings</span>
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="{% url 'analytics' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
-                            <i class="bi bi-bar-chart text-primary fs-3"></i>
-                            <span style="color: var(--text-main); font-weight: 500;">My Bookings</span>
-                        </a>
-                    </div>
-                {% elif user.role == 'staff' %}
-                    <!-- Staff More Actions intentionally simplified -->
-                {% elif user.role == 'admin' %}
-                    <div class="col-6">
-                        <a href="{% url 'admin_categories' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
-                            <i class="bi bi-tags text-primary fs-3"></i>
-                            <span style="color: var(--text-main); font-weight: 500;">Categories</span>
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="{% url 'admin_users' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
-                            <i class="bi bi-people text-primary fs-3"></i>
-                            <span style="color: var(--text-main); font-weight: 500;">Users</span>
-                        </a>
-                    </div>
-                {% endif %}
-                <div class="col-6" aria-hidden="true"></div>
-                {% if user.role == 'staff' %}
-                    <div class="col-6" aria-hidden="true"></div>
-                {% else %}
-                    <div class="col-6">
-                        <a href="{% url 'profile' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background: #fff;">
+                        <a href="{% url 'profile' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
                             <i class="bi bi-person text-primary fs-3"></i>
-                            <span style="color: var(--text-main); font-weight: 500;">Profile</span>
+                            <span style="color:var(--text-main);font-weight:500;">Profile</span>
                         </a>
                     </div>
                 {% endif %}
-                <div class="col-12 mt-4">
-                    <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100 py-2 fw-bold">
-                        <i class="bi bi-power"></i> Logout
-                    </a>
-                </div>
+
+                {% if user.role == 'staff' %}
+                    <div class="col-6">
+                        <a href="{% url 'analytics' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
+                            <i class="bi bi-graph-up text-primary fs-3"></i>
+                            <span style="color:var(--text-main);font-weight:500;">Analytics</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'profile' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
+                            <i class="bi bi-person text-primary fs-3"></i>
+                            <span style="color:var(--text-main);font-weight:500;">Profile</span>
+                        </a>
+                    </div>
+                {% endif %}
+
+                {% if user.role == 'admin' %}
+                    <div class="col-6">
+                        <a href="{% url 'admin_categories' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
+                            <i class="bi bi-tags text-primary fs-3"></i>
+                            <span style="color:var(--text-main);font-weight:500;">Categories</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'admin_services' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
+                            <i class="bi bi-tools text-primary fs-3"></i>
+                            <span style="color:var(--text-main);font-weight:500;">Services</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'analytics' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
+                            <i class="bi bi-bar-chart text-primary fs-3"></i>
+                            <span style="color:var(--text-main);font-weight:500;">Analytics</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'profile' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
+                            <i class="bi bi-person text-primary fs-3"></i>
+                            <span style="color:var(--text-main);font-weight:500;">Profile</span>
+                        </a>
+                    </div>
+                {% endif %}
+
+            </div>
+
+            <div class="mt-2 mb-5">
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100 py-3 rounded-pill fw-800 d-flex align-items-center justify-content-center gap-2" style="border-width:2px;">
+                    <i class="bi bi-power fs-5"></i> Logout
+                </a>
             </div>
         </div>
     </div>

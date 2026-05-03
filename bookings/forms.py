@@ -140,6 +140,13 @@ class BookingForm(forms.ModelForm):
                 css_class = "form-select"
             field.widget.attrs.update({"class": css_class})
 
+    def clean(self):
+        cleaned_data = super().clean()
+        service = cleaned_data.get("service")
+        if service and service.staff.count() == 0:
+            raise forms.ValidationError("This service currently has no professionals assigned and cannot be booked.")
+        return cleaned_data
+
     def clean_scheduled_at(self):
         scheduled_at = self.cleaned_data["scheduled_at"]
         if scheduled_at <= timezone.now():
