@@ -316,6 +316,38 @@ def home(request):
     )
 
 
+def filter_services(request):
+    category_id = request.GET.get("category")
+    query = request.GET.get("query")
+    mode = request.GET.get("mode")
+    
+    services = Service.objects.filter(is_active=True).select_related("category")
+    
+    if category_id and category_id != "all":
+        services = services.filter(category_id=category_id)
+        
+    if query:
+        services = services.filter(
+            Q(name__icontains=query) | 
+            Q(description__icontains=query) |
+            Q(category__name__icontains=query)
+        )
+
+    if mode == "suggestions":
+        from django.http import JsonResponse
+        results = []
+        for s in services[:5]:
+            results.append({
+                "id": s.id,
+                "name": s.name,
+                "category": s.category.name,
+                "image_url": s.image.url
+            })
+        return JsonResponse(results, safe=False)
+        
+    return render(request, "bookings/services_list.html", {"services": services})
+
+
 def professional_staff(request):
     staff_members = (
         CustomUser.objects.filter(role=CustomUser.Roles.STAFF, is_active=True)

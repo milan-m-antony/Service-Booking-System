@@ -25,4 +25,5 @@ urlpatterns = [
     path("bookings/<int:booking_id>/feedback/", views.booking_feedback, name="booking_feedback"),
     path("bookings/<int:booking_id>/cancel/", views.cancel_booking, name="cancel_booking"),
     path("profile/", views.profile, name="profile"),
+    path("filter-services/", views.filter_services, name="filter_services"),
 ]

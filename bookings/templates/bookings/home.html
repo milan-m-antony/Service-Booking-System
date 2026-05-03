@@ -1,74 +1,457 @@
 {% extends 'bookings/base.html' %}
-{% block title %}Home Service - Book trusted professionals{% endblock %}
+{% load static %}
+{% block title %}Home Service - Trusted Professionals at Your Doorstep{% endblock %}
 
 {% block content %}
-<section class="home-hero role-hero role-hero-home mb-5">
-    <div class="row align-items-center g-5">
-    <div class="col-lg-6">
-        <span class="role-chip">Premium Home Service</span>
-        <h1 class="display-5 fw-bold mt-3 mb-3">Trusted professionals at your doorstep</h1>
-        <p class="role-hero-copy">Cleaning, plumbing, appliance repair, electrical and more. Fast booking, transparent pricing, and reliable support.</p>
-        <div class="d-flex flex-wrap gap-2 mt-4">
-            {% if user.is_authenticated %}
-                <a class="btn btn-primary btn-lg" href="{% url 'role_dashboard' %}">Go to Dashboard</a>
-            {% else %}
-                <a class="btn btn-primary btn-lg" href="{% url 'register' %}">Get Started Today</a>
-            {% endif %}
-            <a class="btn btn-outline-primary btn-lg" href="#all-services">Browse Services</a>
-        </div>
+<!-- Premium Cinematic Marketplace Hero -->
+<section class="hero-marketplace d-flex flex-column position-relative">
+    <!-- Cinematic Background Slider -->
+    <div class="hero-slider-bg">
+        <div class="hero-slide"></div>
+        <div class="hero-slide"></div>
+        <div class="hero-slide"></div>
+        <div class="hero-slide"></div>
     </div>
-    <div class="col-lg-6">
-        <div class="hero-showcase">
-            <img src="https://picsum.photos/seed/hero-{{ random_seed }}/1200/800" alt="Home service" class="img-fluid rounded-4 shadow-lg w-100">
-        </div>
-    </div>
-</div>
-</section>
+    <div class="hero-overlay" style="background: rgba(0,0,0,0.4);"></div>
 
-{# Professional Staff section removed as requested #}
+    <!-- Main Hero Content -->
+    <div class="container-fluid px-lg-5 position-relative flex-grow-1 d-flex align-items-center" style="z-index: 10; padding-top: 60px;">
+        <div class="row w-100 mx-0">
+            <div class="col-lg-8 py-5 text-start mx-auto mx-lg-0">
+                <div class="discovery-pill mb-3">
+                    <span class="badge bg-primary rounded-pill px-3 py-2 fw-800">
+                        <i class="bi bi-stars me-1 text-white"></i> PREMIUM HOME SERVICES
+                    </span>
+                </div>
+                <h1 class="display-3 fw-900 mb-3 text-white" style="line-height: 1.05; letter-spacing: -2px; font-weight: 950 !important;">
+                    Professional <span class="text-primary">Home Care</span> <br> at your Doorstep
+                </h1>
+                <p class="lead text-white mb-4 fw-700" style="max-width: 600px; font-size: 1.1rem; line-height: 1.4; opacity: 1;">
+                    Book trusted experts for cleaning, repair, and grooming. <br>Experience seamless service with guaranteed quality.
+                </p>
 
-<section id="all-services" class="mb-5">
-    <div class="role-section-head mb-4">
-        <div>
-            <h3 class="mb-1">Our Services</h3>
-            <p class="text-muted mb-0">Book exactly what you need.</p>
-        </div>
-        <div class="d-flex flex-wrap gap-2" id="categoryFilter">
-            <button type="button" class="btn btn-primary active rounded-pill px-4" data-filter="all">All</button>
-            {% for category in categories %}
-                <button type="button" class="btn btn-outline-primary rounded-pill px-4" data-filter="cat-{{ category.id }}">{{ category.name }}</button>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="responsive-grid">
-        {% for service in services %}
-            <div class="service-item" data-category="cat-{{ service.category.id }}">
-                <a class="service-card text-decoration-none h-100" href="{% url 'booking_create' %}">
-                    <img src="https://picsum.photos/seed/service-{{ random_seed }}-{{ service.id }}/800/520" alt="{{ service.name }}">
-                    <div class="service-card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge badge-glass text-uppercase" style="font-size: 0.7rem; color: #fff;">{{ service.category.name }}</span>
-                            <span class="text-muted small"><i class="bi bi-clock me-1"></i>{{ service.duration_minutes }}m</span>
-                        </div>
-                        <h4 class="service-card-title">{{ service.name }}</h4>
-                        <p class="text-muted small mb-3 flex-grow-1">{{ service.description|default:'Professional and reliable service.'|truncatechars:85 }}</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3" style="border-top: 1px solid var(--glass-border);">
-                            <span class="service-card-price" style="font-size: 1.25rem;">₹{{ service.price }}</span>
-                            <span class="btn btn-primary btn-sm rounded-pill px-3">Book Now</span>
+                <div class="hero-search-wrapper mb-4" style="max-width: 600px; position: relative;">
+                    <div class="glass-search-container p-1" style="background: #ffffff !important; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); opacity: 1 !important;">
+                        <div class="input-group align-items-center">
+                            <span class="input-group-text bg-transparent border-0 ps-3">
+                                <i class="bi bi-search text-primary fs-6"></i>
+                            </span>
+                            <input type="text" class="form-control border-0 bg-transparent shadow-none fs-6 fw-600" placeholder="What service are you looking for?" id="serviceSearch" autocomplete="off" style="background: #ffffff !important;">
+                            <button class="btn btn-primary rounded-pill px-4 py-2 fw-800">Search</button>
                         </div>
                     </div>
-                </a>
+                    <!-- Suggestions Box -->
+                    <div id="searchSuggestions" class="search-suggestions-dropdown d-none"></div>
+                </div>
+
+                <div class="trust-icons d-flex gap-4 mt-4 fw-800 text-white" style="font-size: 0.9rem;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-check-circle-fill text-primary"></i>
+                        <span>Verified Pros</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-lock-fill text-primary"></i>
+                        <span>Secure Payments</span>
+                    </div>
+                </div>
             </div>
-        {% empty %}
-            <p class="text-muted">No active services available.</p>
-        {% endfor %}
+        </div>
+    </div>
+
+    <!-- Infinite Horizontal Highlights Slider (At bottom of Hero BG) -->
+    <div class="hero-highlights-infinite">
+        <div class="highlights-track">
+            <div class="highlight-item-horizontal"><i class="bi bi-shield-check text-primary"></i> 100% Verified Pros</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-clock-history text-primary"></i> 60 Min Service</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-wallet2 text-primary"></i> Transparent Pricing</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-star text-primary"></i> 4.8+ Top Rated</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-patch-check text-primary"></i> Satisfaction Guaranteed</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-credit-card text-primary"></i> Cashless Payments</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-headset text-primary"></i> Instant Support</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-calendar-event text-primary"></i> Flexible Scheduling</div>
+            <!-- Duplicated for loop -->
+            <div class="highlight-item-horizontal"><i class="bi bi-shield-check text-primary"></i> 100% Verified Pros</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-clock-history text-primary"></i> 60 Min Service</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-wallet2 text-primary"></i> Transparent Pricing</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-star text-primary"></i> 4.8+ Top Rated</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-patch-check text-primary"></i> Satisfaction Guaranteed</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-credit-card text-primary"></i> Cashless Payments</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-headset text-primary"></i> Instant Support</div>
+            <div class="highlight-item-horizontal"><i class="bi bi-calendar-event text-primary"></i> Flexible Scheduling</div>
+        </div>
     </div>
 </section>
 
-<section class="row g-3 mb-4">
-    <div class="col-md-4"><article class="kpi-card"><h6>2000+</h6><p>Happy Customers</p></article></div>
-    <div class="col-md-4"><article class="kpi-card"><h6>150+</h6><p>Professionals</p></article></div>
-    <div class="col-md-4"><article class="kpi-card"><h6>40+</h6><p>Categories</p></article></div>
+<!-- Marketplace Browsing (Under Hero) -->
+<section id="services-section" class="py-5 bg-white">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h2 class="h2 fw-900 mb-1 text-dark" style="letter-spacing: -1px;">Browse Services</h2>
+                <p class="text-muted mb-0 fw-600">Discover top-rated professionals in your area</p>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-light rounded-pill px-4 fw-800 border shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-filter-right me-1"></i> Sort By
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 p-2 rounded-3">
+                    <li><a class="dropdown-item rounded-2 py-2 small fw-700" href="#">Price: Low to High</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2 small fw-700" href="#">Price: High to Low</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2 small fw-700" href="#">Most Popular</a></li>
+                    <li><a class="dropdown-item rounded-2 py-2 small fw-700" href="#">Top Rated</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="category-pills-container d-flex flex-wrap gap-2 mb-5">
+            <button class="btn btn-primary rounded-pill px-4 py-2 fw-800 shadow-sm category-filter active" data-category="all">All Services</button>
+            {% for category in categories %}
+            <button class="btn btn-white rounded-pill px-4 py-2 fw-700 border shadow-sm category-filter" data-category="{{ category.id }}">{{ category.name }}</button>
+            {% endfor %}
+        </div>
+
+        <div id="services-grid" class="row g-4 guest-services-grid">
+            {% include 'bookings/services_list.html' %}
+        </div>
+    </div>
 </section>
+
+<!-- How it Works Section: The Service Journey -->
+<section id="how-it-works" class="py-5 bg-white position-relative overflow-hidden mb-5 pb-5">
+    <div class="container position-relative py-lg-5">
+        <div class="text-center mb-5 pb-3">
+            <span class="badge bg-primary-soft text-primary rounded-pill px-3 py-2 fw-800 mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">THE EXPERIENCE</span>
+            <h2 class="display-5 fw-900 text-dark mb-2" style="letter-spacing: -2px;">How It <span class="text-primary">Works</span></h2>
+            <p class="lead text-muted fw-600 mx-auto" style="max-width: 600px;">Experience a seamless 4-step process designed for your convenience.</p>
+        </div>
+        
+        <div class="row g-4 journey-row">
+            <!-- Step 1 -->
+            <div class="col-lg-3 col-6 text-center journey-step">
+                <div class="step-icon-box mb-4">
+                    <div class="icon-circle shadow-sm">
+                        <i class="bi bi-search"></i>
+                    </div>
+                    <div class="step-badge">1</div>
+                </div>
+                <h5 class="fw-800 text-dark mb-2">Find</h5>
+                <p class="small text-muted fw-600 mb-0 px-md-3">Browse 50+ premium home services</p>
+            </div>
+            
+            <!-- Step 2 -->
+            <div class="col-lg-3 col-6 text-center journey-step">
+                <div class="step-icon-box mb-4">
+                    <div class="icon-circle shadow-sm">
+                        <i class="bi bi-calendar2-check"></i>
+                    </div>
+                    <div class="step-badge">2</div>
+                </div>
+                <h5 class="fw-800 text-dark mb-2">Book</h5>
+                <p class="small text-muted fw-600 mb-0 px-md-3">Select a date and expert instantly</p>
+            </div>
+            
+            <!-- Step 3 -->
+            <div class="col-lg-3 col-6 text-center journey-step">
+                <div class="step-icon-box mb-4">
+                    <div class="icon-circle shadow-sm">
+                        <i class="bi bi-lightning-charge"></i>
+                    </div>
+                    <div class="step-badge">3</div>
+                </div>
+                <h5 class="fw-800 text-dark mb-2">Receive</h5>
+                <p class="small text-muted fw-600 mb-0 px-md-3">Professional expert arrives at your door</p>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="col-lg-3 col-6 text-center journey-step">
+                <div class="step-icon-box mb-4">
+                    <div class="icon-circle shadow-sm">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div class="step-badge">4</div>
+                </div>
+                <h5 class="fw-800 text-dark mb-2">Relax</h5>
+                <p class="small text-muted fw-600 mb-0 px-md-3">Quality guaranteed & secure payments</p>
+            </div>
+        </div>
+        
+        <div class="text-center mt-5 pt-4">
+            <a href="{% url 'register' %}" class="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-800 w-100-mobile" style="box-shadow: 0 10px 30px rgba(var(--primary-rgb), 0.2);">Get Started Now</a>
+        </div>
+    </div>
+</section>
+
+<style>
+    .bg-primary-soft { background-color: rgba(var(--primary-rgb), 0.1); }
+    
+    .journey-step {
+        position: relative;
+    }
+    
+    .step-icon-box {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .icon-circle {
+        width: 80px;
+        height: 80px;
+        background: #f8fafc;
+        border-radius: 24px; /* Squircle design */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: var(--primary);
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    
+    .journey-step:hover .icon-circle {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-5px);
+    }
+    
+    .step-badge {
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        width: 28px;
+        height: 28px;
+        background: #0f172a;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.75rem;
+        border: 3px solid white;
+    }
+    
+    /* Connection lines for Desktop */
+    @media (min-width: 992px) {
+        .journey-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 60%;
+            width: 80%;
+            height: 2px;
+            background: linear-gradient(to right, rgba(var(--primary-rgb), 0.2), transparent);
+            z-index: 0;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .icon-circle {
+            width: 70px;
+            height: 70px;
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<style>
+    /* How it Works Styles */
+    .glass-icon-circle {
+        width: 120px;
+        height: 120px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        border: 4px solid #f8fafc;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .work-step-icon-wrapper:hover .glass-icon-circle {
+        transform: translateY(-10px) rotate(5deg);
+        box-shadow: 0 30px 60px rgba(var(--primary-rgb), 0.15);
+        border-color: rgba(var(--primary-rgb), 0.1);
+    }
+    .step-number {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 40px;
+        height: 40px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1.2rem;
+        border: 4px solid white;
+    }
+    .animate-spin-slow {
+        animation: spin 15s linear infinite;
+    }
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Search Suggestions Styles */
+    .search-suggestions-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 10px;
+        right: 10px;
+        background: #ffffff !important; /* Solid white */
+        border-radius: 20px;
+        margin-top: 10px;
+        z-index: 1000;
+        max-height: 350px;
+        overflow-y: auto;
+        padding: 8px;
+        border: 1px solid rgba(0,0,0,0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    }
+    .suggestion-item {
+        padding: 10px 15px;
+        border-radius: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s ease;
+    }
+    .suggestion-item:hover {
+        background: #f1f5f9;
+        transform: translateX(5px);
+    }
+    .suggestion-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+    .suggestion-info .name {
+        display: block;
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 0.9rem;
+    }
+    .suggestion-info .cat {
+        display: block;
+        font-size: 0.7rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+</style>
+
+<script>
+    // Category Filtering Logic
+    document.querySelectorAll('.category-filter').forEach(button => {
+        button.addEventListener('click', function() {
+            const category = this.getAttribute('data-category');
+            
+            // UI Update
+            document.querySelectorAll('.category-filter').forEach(btn => {
+                btn.classList.remove('active', 'btn-primary');
+                btn.classList.add('btn-white');
+            });
+            this.classList.remove('btn-white');
+            this.classList.add('active', 'btn-primary');
+
+            // AJAX call to filter services
+            fetch(`{% url 'filter_services' %}?category=${category}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('services-grid').innerHTML = html;
+                    attachCardListeners();
+                });
+        });
+    });
+
+    // Search & Suggestions Logic
+    const searchInput = document.getElementById('serviceSearch');
+    const suggestionsBox = document.getElementById('searchSuggestions');
+
+    if(searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value;
+            if(query.length < 1) {
+                suggestionsBox.classList.add('d-none');
+                return;
+            }
+
+            fetch(`{% url 'filter_services' %}?query=${query}&mode=suggestions`)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.length > 0) {
+                        let html = '';
+                        data.forEach(item => {
+                            html += `
+                                <div class="suggestion-item" onclick="scrollToService('${item.id}')">
+                                    <img src="${item.image_url}" class="suggestion-img">
+                                    <div class="suggestion-info">
+                                        <span class="name">${item.name}</span>
+                                        <span class="cat">${item.category}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        suggestionsBox.innerHTML = html;
+                        suggestionsBox.classList.remove('d-none');
+                    } else {
+                        suggestionsBox.classList.add('d-none');
+                    }
+                });
+        });
+    }
+
+    // Close suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        if (searchInput && suggestionsBox) {
+            if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                suggestionsBox.classList.add('d-none');
+            }
+        }
+    });
+
+    function scrollToService(serviceId) {
+        if (suggestionsBox) suggestionsBox.classList.add('d-none');
+        if (searchInput) searchInput.value = '';
+        
+        const card = document.querySelector(`.service-card[data-service-id="${serviceId}"]`);
+        if(card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.style.transform = 'scale(1.05)';
+            setTimeout(() => card.style.transform = '', 1000);
+        } else {
+            // If not in current view (maybe filtered out), reset filter then scroll
+            const allBtn = document.querySelector('.category-filter[data-category="all"]');
+            if(allBtn) allBtn.click();
+            
+            setTimeout(() => {
+                const newCard = document.querySelector(`.service-card[data-service-id="${serviceId}"]`);
+                if(newCard) {
+                    newCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    newCard.style.transform = 'scale(1.05)';
+                    setTimeout(() => newCard.style.transform = '', 1000);
+                }
+            }, 500);
+        }
+    }
+
+    // Card Click -> Redirect to Login
+    function attachCardListeners() {
+        document.querySelectorAll('.service-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = "{% url 'login' %}?next=" + window.location.pathname;
+            });
+        });
+    }
+
+    // Initial attachment
+    attachCardListeners();
+</script>
 {% endblock %}

@@ -107,20 +107,113 @@
         <main class="main-content">
 
     {% else %}
-    <!-- Guest Layout -->
-    <header class="d-flex flex-row justify-content-between align-items-center gap-3 p-3" style="background: var(--bg-surface); border-bottom: 1px solid var(--glass-border); backdrop-filter: blur(10px);">
-        <a href="{% url 'home' %}" class="d-flex align-items-center gap-2 text-decoration-none" style="color: var(--text-main);">
-            <span class="brand-dot"></span> <strong class="fs-5">Home Service</strong>
-        </a>
-        <div class="d-flex gap-2 flex-wrap">
-            <a href="{% url 'login' %}" class="btn btn-primary">Sign In</a>
-        </div>
-    </header>
-    <main class="container py-5 fade-in">
+    <!-- Guest Layout (New Home Page UI) -->
+    <!-- Floating Pill Header (Guest) -->
+    <div class="header-container fixed-top px-3 pt-2">
+        <header class="navbar navbar-expand-lg bg-white rounded-pill shadow-lg border px-4 py-2" style="backdrop-filter: blur(15px); background: rgba(255,255,255,0.9) !important; max-width: 1200px; margin: 0 auto; min-height: 70px;">
+            <div class="container-fluid d-flex justify-content-between align-items-center">
+                <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center gap-2">
+                    <div style="background: linear-gradient(135deg, var(--primary), #1d4ed8); color: white; width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;">H</div>
+                    <strong class="fs-5 fw-bold">HomeService</strong>
+                </a>
+                
+                <!-- Center Navigation (Desktop Only) -->
+                <div class="collapse navbar-collapse justify-content-center d-none d-lg-flex" id="guestNavbar">
+                    <ul class="navbar-nav gap-4">
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold text-dark small" href="#services-section">Services</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold text-dark small" href="#how-it-works">How it Works</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Right Actions (Desktop Only) -->
+                <div class="d-none d-lg-flex gap-4 align-items-center">
+                    {% if request.path != '/login/' %}
+                    <a href="{% url 'login' %}" class="text-decoration-none fw-bold text-muted small">Login</a>
+                    {% endif %}
+                    {% if request.path != '/register/' %}
+                    <a href="{% url 'register' %}" class="btn btn-primary rounded-pill px-4 py-1 small fw-bold shadow-sm">Join Now</a>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+    </div>
+
+
+
+    <main class="{% if '/login/' in request.path or '/register/' in request.path %}auth-page-main{% else %}pt-0 mt-0 mb-0{% endif %}">
     {% endif %}
 
     {% block content %}{% endblock %}
     </main>
+
+    {% if not user.is_authenticated %}
+    <!-- Guest Mobile Bottom Navigation Dock -->
+    <div class="mobile-bottom-nav d-md-none">
+        <a href="{% url 'home' %}" id="nav-home" class="mobile-nav-item {% if request.resolver_match.url_name == 'home' and '#' not in request.path %}active{% endif %}" onclick="setActiveNav(this)">
+            <i class="bi bi-house-door-fill"></i>
+            <span>Home</span>
+        </a>
+        <a href="{% url 'home' %}#services-section" id="nav-services" class="mobile-nav-item" onclick="setActiveNav(this)">
+            <i class="bi bi-grid-fill"></i>
+            <span>Services</span>
+        </a>
+        <a href="{% url 'home' %}#how-it-works" id="nav-how" class="mobile-nav-item" onclick="setActiveNav(this)">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>How it Works</span>
+        </a>
+        <a href="{% url 'login' %}" id="nav-account" class="mobile-nav-item {% if '/login/' in request.path %}active{% endif %}" onclick="setActiveNav(this)">
+            <i class="bi bi-person-fill"></i>
+            <span>Account</span>
+        </a>
+    </div>
+
+    <script>
+        function setActiveNav(element) {
+            if(!element) return;
+            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+        }
+
+        // Robust ScrollSpy Logic for Guest Bottom Nav
+        window.addEventListener('scroll', () => {
+            if (window.innerWidth > 768) return; 
+            
+            const servicesSection = document.getElementById('services-section');
+            const howSection = document.getElementById('how-it-works');
+            const navHome = document.getElementById('nav-home');
+            const navServices = document.getElementById('nav-services');
+            const navHow = document.getElementById('nav-how');
+            const navAccount = document.getElementById('nav-account');
+
+            if (!servicesSection || !navHome || !navServices) return;
+
+            // Check if we are on the home page (where scrolling matters)
+            const isHome = window.location.pathname === '/' || window.location.pathname === '/home/' || window.location.pathname === '/bookings/';
+
+            if (isHome) {
+                const scrollPos = window.scrollY + 150;
+                const servicesTop = servicesSection.offsetTop;
+                const howTop = howSection ? howSection.offsetTop : 99999;
+
+                if (scrollPos >= howTop) {
+                    setActiveNav(navHow);
+                } else if (scrollPos >= servicesTop) {
+                    setActiveNav(navServices);
+                } else {
+                    setActiveNav(navHome);
+                }
+            } else if (window.location.pathname.includes('login')) {
+                setActiveNav(navAccount);
+            }
+        });
+    </script>
+    {% endif %}
 
     {% if user.is_authenticated %}
     </div>
