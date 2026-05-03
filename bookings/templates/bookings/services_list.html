@@ -20,7 +20,7 @@
             {% if service.image %}
                 <img src="{{ service.image.url }}" class="card-img-top w-100 object-fit-cover service-img" alt="{{ service.name }}">
             {% else %}
-                <img src="{% static 'bookings/images/service-placeholder.jpg' %}" class="card-img-top w-100 object-fit-cover service-img" alt="{{ service.name }}">
+                <img src="{% static 'bookings/img/hero-tech.png' %}" class="card-img-top w-100 object-fit-cover service-img" alt="{{ service.name }}">
             {% endif %}
         </div>
 
@@ -32,8 +32,8 @@
             
             <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
                 <div class="price-box">
-                    <span class="text-muted d-block" style="font-size: 0.6rem; font-weight: 700; text-transform: uppercase;">Starting from</span>
                     <span class="h6 fw-900 text-primary mb-0 service-price">₹{{ service.price }}</span>
+                    <span class="d-block text-muted fw-700" style="font-size: 0.7rem; margin-top: -2px;">{{ service.duration_minutes }} Minutes</span>
                 </div>
                 <!-- Desktop Book Now Button -->
                 <button class="btn btn-primary rounded-pill px-4 py-2 fw-800 d-none d-lg-block" style="font-size: 0.85rem; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);">
