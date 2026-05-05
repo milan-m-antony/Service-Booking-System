@@ -19,11 +19,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me")
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
-if "*" not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append(".onrender.com")
-    render_external_hostname = os.getenv("RENDER_EXTERNAL_HOSTNAME")
-    if render_external_hostname:
-        ALLOWED_HOSTS.append(render_external_hostname)
+if os.getenv("RENDER_EXTERNAL_HOSTNAME"):
+    ALLOWED_HOSTS.append(os.getenv("RENDER_EXTERNAL_HOSTNAME"))
+    # Render health checks come from internal IPs, so we allow all hosts in the Render environment
+    # for simplicity, or we could add specific internal ranges.
+    if "*" not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append("*")
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
