@@ -142,7 +142,12 @@ class Booking(models.Model):
                 raise ValidationError({"scheduled_at": "This staff member is already booked for an overlapping time."})
 
     def save(self, *args, **kwargs):
-        self.full_clean()
+        # Skip full validation when only updating non-scheduling fields
+        # (e.g. status). Allows staff/admin to update status on past bookings.
+        update_fields = kwargs.get("update_fields")
+        scheduling_fields = {"scheduled_at", "staff", "staff_id", "service", "service_id"}
+        if update_fields is None or scheduling_fields.intersection(set(update_fields)):
+            self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -178,7 +183,12 @@ class BookingFeedback(models.Model):
             raise ValidationError({"booking": "Feedback is only allowed after the booking is completed."})
 
     def save(self, *args, **kwargs):
-        self.full_clean()
+        # Skip full validation when only updating non-scheduling fields
+        # (e.g. status). Allows staff/admin to update status on past bookings.
+        update_fields = kwargs.get("update_fields")
+        scheduling_fields = {"scheduled_at", "staff", "staff_id", "service", "service_id"}
+        if update_fields is None or scheduling_fields.intersection(set(update_fields)):
+            self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
