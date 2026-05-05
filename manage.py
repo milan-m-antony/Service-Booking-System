@@ -2,6 +2,15 @@
 import os
 import sys
 
+try:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+    from pymysql.constants import ER
+    if not hasattr(ER, 'CONSTRAINT_FAILED'):
+        ER.CONSTRAINT_FAILED = 4025
+except ImportError:
+    pass
+
 
 def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "service_booking.settings")

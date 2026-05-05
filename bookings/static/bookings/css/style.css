@@ -80,6 +80,94 @@ textarea.form-control {
     resize: vertical;
 }
 
+/* Dashboard Top Navigation */
+.dashboard-top-nav {
+    height: 70px;
+    background: var(--bg-surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 990;
+    margin: -2rem -2rem 2rem -2rem; /* Negate main-content padding */
+}
+
+.search-bar-wrapper {
+    flex: 1;
+    max-width: 600px;
+}
+
+.search-bar-wrapper form {
+    position: relative;
+    width: 100%;
+}
+
+.search-bar-wrapper .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    pointer-events: none;
+}
+
+.search-bar-wrapper .search-input {
+    width: 100%;
+    padding: 0.6rem 1rem 0.6rem 2.8rem;
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+}
+
+.search-bar-wrapper .search-input:focus {
+    background: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+.top-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.user-profile-lite {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+}
+
+.user-profile-lite .user-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
+.user-profile-lite .user-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Mobile Search Icon */
+.mobile-search-trigger {
+    color: var(--text-main);
+    font-size: 1.25rem;
+    padding: 0.5rem;
+}
+
 /* Layout Structure */
 .app-layout {
     display: flex;
@@ -2311,7 +2399,7 @@ textarea.form-control {
     flex-direction: column;
     align-items: flex-start;
     background: #000;
-    overflow: hidden;
+    overflow: visible !important; /* Changed from hidden to allow search dropdown to overflow */
     margin-top: -20px;
     margin-bottom: 0 !important;
     padding: 0 !important;

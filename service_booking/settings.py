@@ -1,10 +1,24 @@
 import os
+try:
+    import pymysql
+    import pymysql.constants.ER
+    if not hasattr(pymysql.constants.ER, 'CONSTRAINT_FAILED'):
+        pymysql.constants.ER.CONSTRAINT_FAILED = 4025
+    # Fake version to satisfy Django 4.2+
+    pymysql.version_info = (2, 2, 1, "final", 0)
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    pass
+
 from pathlib import Path
-from django.db.backends.mysql.base import DatabaseWrapper
-DatabaseWrapper.check_database_version_supported = lambda self: None
-from django.db.backends.mysql.features import DatabaseFeatures
-DatabaseFeatures.can_return_columns_from_insert = property(lambda self: False)
-DatabaseFeatures.can_return_rows_from_bulk_insert = property(lambda self: False)
+try:
+    from django.db.backends.mysql.base import DatabaseWrapper
+    DatabaseWrapper.check_database_version_supported = lambda self: None
+    from django.db.backends.mysql.features import DatabaseFeatures
+    DatabaseFeatures.can_return_columns_from_insert = property(lambda self: False)
+    DatabaseFeatures.can_return_rows_from_bulk_insert = property(lambda self: False)
+except (ImportError, AttributeError):
+    pass
 
 import dj_database_url
 

@@ -328,6 +328,7 @@ def home(request):
             "categories": categories,
             "services": services,
             "random_seed": random.randint(1000, 999999),
+            "is_guest_home": True,
         },
     )
 
@@ -364,7 +365,7 @@ def filter_services(request):
                 "id": s.id,
                 "name": s.name,
                 "category": s.category.name,
-                "image_url": s.image.url
+                "image_url": s.image.url if s.image else "/static/bookings/img/service-placeholder.jpg"
             })
         return JsonResponse(results, safe=False)
         
