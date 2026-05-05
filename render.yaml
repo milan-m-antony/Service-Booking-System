@@ -2,8 +2,9 @@ services:
   - type: web
     name: service-booking-system
     env: python
-    buildCommand: pip install -r requirements.txt && python manage.py migrate --no-input && python manage.py seed_data && python manage.py collectstatic --no-input
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate --no-input && (python manage.py seed_data || true)
     startCommand: gunicorn service_booking.wsgi:application --bind 0.0.0.0:$PORT
+    healthCheckPath: /
     autoDeploy: true
     envVars:
       - key: DATABASE_URL
