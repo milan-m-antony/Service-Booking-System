@@ -18,14 +18,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me")
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv(
-        "ALLOWED_HOSTS",
-        "localhost,127.0.0.1,testserver,0.0.0.0,.onrender.com",
-    ).split(",")
-    if host.strip()
-]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+if "*" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(".onrender.com")
+    render_external_hostname = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+    if render_external_hostname:
+        ALLOWED_HOSTS.append(render_external_hostname)
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
