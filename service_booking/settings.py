@@ -1,10 +1,4 @@
 import os
-try:
-    import pymysql
-    pymysql.install_as_MySQLdb()
-except ImportError:
-    pass
-
 from pathlib import Path
 from django.db.backends.mysql.base import DatabaseWrapper
 DatabaseWrapper.check_database_version_supported = lambda self: None
