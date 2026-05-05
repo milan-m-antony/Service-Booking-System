@@ -634,10 +634,20 @@ def user_dashboard(request):
         selected_date = timezone.localdate()
 
     user_calendar_data = {}
-    for b in bookings:
+    status_priority = {'pending': 3, 'confirmed': 2, 'in_progress': 2, 'completed': 1, 'cancelled': 0}
+    
+    for b in bookings.order_by('scheduled_at'):
         d_iso = b.scheduled_at.date().isoformat()
-        if d_iso not in user_calendar_data:
-            user_calendar_data[d_iso] = {"status": "booked"}
+        current_status = b.status
+        
+        if current_status == 'cancelled':
+            continue
+            
+        if d_iso not in user_calendar_data or status_priority.get(current_status, 0) > status_priority.get(user_calendar_data[d_iso]['status'], 0):
+            user_calendar_data[d_iso] = {
+                "status": current_status, 
+                "has_booking": True
+            }
     
     selected_date_bookings = bookings.filter(scheduled_at__date=selected_date)
 
@@ -926,10 +936,12 @@ def _render_staff_dashboard(request, view_mode="home"):
         slot_set = daily_unavailable_slots.setdefault(day_iso, set())
         slot_set.add(slot.time.strftime("%H:%M"))
 
+    days_with_bookings = set()
     for booking in bookings.exclude(status=Booking.Status.CANCELLED).values_list("scheduled_at", flat=True):
         if not booking:
             continue
         day_iso = booking.date().isoformat()
+        days_with_bookings.add(day_iso)
         slot_set = daily_unavailable_slots.setdefault(day_iso, set())
         slot_set.add(booking.strftime("%H:%M"))
 
@@ -941,10 +953,14 @@ def _render_staff_dashboard(request, view_mode="home"):
         staff_calendar_data[day_iso] = {
             "count": total_slots_per_day,
             "status": "closed",
+            "has_booking": day_iso in days_with_bookings,
         }
 
     for day_iso, slot_set in daily_unavailable_slots.items():
         if day_iso in staff_calendar_data:
+            # Already handled by leave_date but might need has_booking update
+            if day_iso in days_with_bookings:
+                staff_calendar_data[day_iso]["has_booking"] = True
             continue
 
         unavailable_count = len(slot_set)
@@ -954,6 +970,7 @@ def _render_staff_dashboard(request, view_mode="home"):
         staff_calendar_data[day_iso] = {
             "count": unavailable_count,
             "status": "booked-out" if unavailable_count >= total_slots_per_day else "partial",
+            "has_booking": day_iso in days_with_bookings,
         }
 
     available_slots_for_date = []

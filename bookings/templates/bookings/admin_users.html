@@ -92,7 +92,11 @@
                         <div class="d-flex gap-2 justify-content-center">
                             <button type="button"
                                 class="btn btn-sm {% if user.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-pill px-3"
-                                onclick="openConfirmModal({{ user.id }}, '{{ user.display_name|escapejs }}', {{ user.is_active|yesno:'true,false' }})">
+                                data-bs-toggle="modal"
+                                data-bs-target="#confirmToggleModal"
+                                data-bs-user-id="{{ user.id }}"
+                                data-bs-name="{{ user.display_name }}"
+                                data-bs-active="{{ user.is_active|yesno:'true,false' }}">
                                 {% if user.is_active %}
                                     <i class="bi bi-person-slash me-1"></i>Deactivate
                                 {% else %}
@@ -102,7 +106,10 @@
                             {% if user.id != request.user.id %}
                             <button type="button"
                                 class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                onclick="openDeleteModal({{ user.id }}, '{{ user.display_name|escapejs }}')"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteUserModal"
+                                data-bs-user-id="{{ user.id }}"
+                                data-bs-name="{{ user.display_name }}"
                                 title="Delete user permanently">
                                 <i class="bi bi-trash"></i>
                             </button>
@@ -155,7 +162,11 @@
             <div class="pt-2 border-top d-flex gap-2">
                 <button type="button"
                     class="btn btn-sm flex-grow-1 {% if user.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-pill"
-                    onclick="openConfirmModal({{ user.id }}, '{{ user.display_name|escapejs }}', {{ user.is_active|yesno:'true,false' }})">
+                    data-bs-toggle="modal"
+                    data-bs-target="#confirmToggleModal"
+                    data-bs-user-id="{{ user.id }}"
+                    data-bs-name="{{ user.display_name }}"
+                    data-bs-active="{{ user.is_active|yesno:'true,false' }}">
                     {% if user.is_active %}
                         <i class="bi bi-person-slash me-1"></i>Deactivate
                     {% else %}
@@ -165,7 +176,10 @@
                 {% if user.id != request.user.id %}
                 <button type="button"
                     class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                    onclick="openDeleteModal({{ user.id }}, '{{ user.display_name|escapejs }}')">
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteUserModal"
+                    data-bs-user-id="{{ user.id }}"
+                    data-bs-name="{{ user.display_name }}">
                     <i class="bi bi-trash"></i>
                 </button>
                 {% endif %}
@@ -176,12 +190,12 @@
 </div>
 
 <!-- ── Delete Confirm Modal ── -->
-<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered" style="max-width:400px;">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-body p-4 text-center">
                 <div class="mb-3" style="font-size:2.8rem;"><i class="bi bi-exclamation-triangle-fill text-danger"></i></div>
-                <h5 class="fw-800 mb-2">Delete User</h5>
+                <h5 class="fw-800 mb-2" id="deleteUserModalLabel">Delete User</h5>
                 <p class="text-muted small mb-1">You are about to permanently delete</p>
                 <p class="fw-700 mb-2" id="deleteUserName"></p>
                 <p class="text-danger small mb-0"><i class="bi bi-exclamation-circle me-1"></i>This action <strong>cannot be undone</strong>. All their bookings and data will be removed.</p>
@@ -202,12 +216,12 @@
 </div>
 
 <!-- ── Custom Confirm Modal ── -->
-<div class="modal fade" id="confirmToggleModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="confirmToggleModal" tabindex="-1" aria-labelledby="confirmToggleModalLabel" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-body p-4 text-center">
                 <div id="confirmIcon" class="mb-3" style="font-size:2.8rem;"></div>
-                <h5 class="fw-800 mb-2" id="confirmTitle"></h5>
+                <h5 class="fw-800 mb-2" id="confirmToggleModalLabel">Confirm Action</h5>
                 <p class="text-muted small mb-0" id="confirmMessage"></p>
             </div>
             <div class="modal-footer border-0 px-4 pb-4 pt-0 d-flex gap-2">
@@ -224,7 +238,7 @@
 </div>
 
 <!-- ── Add Staff Modal ── -->
-<div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
+<div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-0 pb-0 px-4 pt-4">
@@ -299,37 +313,48 @@ document.addEventListener('DOMContentLoaded', function () {
     roleFilter.addEventListener('change',  filterUsers);
 });
 
-// ── Delete User Modal ────────────────────────────────────────
-function openDeleteModal(userId, name) {
-    document.getElementById('deleteUserId').value = userId;
-    document.getElementById('deleteUserName').textContent = name;
-    new bootstrap.Modal(document.getElementById('deleteUserModal')).show();
+// ── Delete User Modal Logic ───────────────────────────────
+const deleteUserModal = document.getElementById('deleteUserModal');
+if (deleteUserModal) {
+    deleteUserModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const userId = button.getAttribute('data-bs-user-id');
+        const name = button.getAttribute('data-bs-name');
+        
+        document.getElementById('deleteUserId').value = userId;
+        document.getElementById('deleteUserName').textContent = name;
+    });
 }
 
-// ── Custom Confirm Modal ─────────────────────────────────────
-function openConfirmModal(userId, name, isActive) {
-    document.getElementById('confirmUserId').value = userId;
+// ── Custom Confirm Modal Logic ──────────────────────────────
+const confirmToggleModal = document.getElementById('confirmToggleModal');
+if (confirmToggleModal) {
+    confirmToggleModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const userId = button.getAttribute('data-bs-user-id');
+        const name = button.getAttribute('data-bs-name');
+        const isActive = button.getAttribute('data-bs-active') === 'true';
 
-    const title   = document.getElementById('confirmTitle');
-    const message = document.getElementById('confirmMessage');
-    const icon    = document.getElementById('confirmIcon');
-    const btn     = document.getElementById('confirmBtn');
+        document.getElementById('confirmUserId').value = userId;
+        const title = document.getElementById('confirmToggleModalLabel');
+        const message = document.getElementById('confirmMessage');
+        const icon = document.getElementById('confirmIcon');
+        const btn = document.getElementById('confirmBtn');
 
-    if (isActive) {
-        icon.innerHTML    = '<i class="bi bi-person-slash text-danger"></i>';
-        title.textContent = 'Deactivate User';
-        message.innerHTML = `Are you sure you want to deactivate <strong>${name}</strong>?<br>They will no longer be able to log in.`;
-        btn.className     = 'btn btn-danger rounded-pill w-100';
-        btn.innerHTML     = '<i class="bi bi-person-slash me-1"></i>Yes, Deactivate';
-    } else {
-        icon.innerHTML    = '<i class="bi bi-person-check text-success"></i>';
-        title.textContent = 'Activate User';
-        message.innerHTML = `Are you sure you want to activate <strong>${name}</strong>?<br>They will regain access to their account.`;
-        btn.className     = 'btn btn-success rounded-pill w-100';
-        btn.innerHTML     = '<i class="bi bi-person-check me-1"></i>Yes, Activate';
-    }
-
-    new bootstrap.Modal(document.getElementById('confirmToggleModal')).show();
+        if (isActive) {
+            icon.innerHTML = '<i class="bi bi-person-slash text-danger"></i>';
+            title.textContent = 'Deactivate User';
+            message.innerHTML = `Are you sure you want to deactivate <strong>${name}</strong>?<br>They will no longer be able to log in.`;
+            btn.className = 'btn btn-danger rounded-pill w-100';
+            btn.innerHTML = '<i class="bi bi-person-slash me-1"></i>Yes, Deactivate';
+        } else {
+            icon.innerHTML = '<i class="bi bi-person-check text-success"></i>';
+            title.textContent = 'Activate User';
+            message.innerHTML = `Are you sure you want to activate <strong>${name}</strong>?<br>They will regain access to their account.`;
+            btn.className = 'btn btn-success rounded-pill w-100';
+            btn.innerHTML = '<i class="bi bi-person-check me-1"></i>Yes, Activate';
+        }
+    });
 }
 </script>
 {% endblock %}

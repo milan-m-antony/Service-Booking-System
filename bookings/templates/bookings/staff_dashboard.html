@@ -121,9 +121,10 @@
 
         {% elif active_tab == 'jobs' %}
             <!-- Jobs Tab -->
-            <div class="dash-section-header">
+            <div class="dash-section-header mb-4">
+                <span class="role-chip mb-2">Staff Workspace</span>
                 <h2>Assigned Jobs</h2>
-                <p class="text-muted">Manage and update your ongoing service requests.</p>
+                <p class="text-muted">Manage and update your ongoing service requests. You can view all your upcoming, in-progress, and completed tasks here.</p>
             </div>
 
             <div class="panel-lite p-0 overflow-hidden">
@@ -286,7 +287,8 @@
 
         {% elif active_tab == 'availability' %}
             <!-- Availability Tab -->
-            <div class="dash-section-header">
+            <div class="dash-section-header mb-4">
+                <span class="role-chip mb-2">Staff Workspace</span>
                 <h2>Availability Calendar</h2>
                 <p class="text-muted">Block time or manage your working schedule.</p>
             </div>
@@ -304,6 +306,20 @@
                                 <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                             </div>
                             <div class="calendar-grid" id="staffCalendarGrid"></div>
+                            <div class="calendar-legend mt-3 pt-3 border-top d-flex flex-wrap gap-4 px-1">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="legend-box is-open"></span>
+                                    <span class="small fw-600 text-muted">Available</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="legend-box is-closed"></span>
+                                    <span class="small fw-600 text-muted">Blocked</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="legend-box has-booking-legend"></span>
+                                    <span class="small fw-600 text-muted">Has Jobs</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -434,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 const cell = document.createElement('button');
                 cell.type = 'button';
-                cell.className = `calendar-day is-${info.status}`;
+                cell.className = `calendar-day is-${info.status}${info.has_booking ? ' has-booking' : ''}`;
                 if (iso === "{{ today }}") cell.classList.add('is-today');
                 if (iso === selectedSlotIso) cell.classList.add('is-selected');
 

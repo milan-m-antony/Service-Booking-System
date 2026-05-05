@@ -263,7 +263,7 @@
         </div>
 
         <div class="row g-4">
-            <div class="col-lg-8">
+            <div class="col-lg-9">
                 <div class="panel-lite p-4">
                     <div class="booking-calendar-shell">
                         <div class="calendar-toolbar">
@@ -275,10 +275,40 @@
                             <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                         </div>
                         <div class="calendar-grid" id="userCalendarGrid"></div>
+                        <div class="calendar-legend mt-3 pt-3 border-top d-flex flex-wrap gap-4 px-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="legend-box is-open"></span>
+                                <span class="small fw-600 text-muted">Available</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="legend-box is-closed"></span>
+                                <span class="small fw-600 text-muted">Blocked</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="legend-box has-booking-legend has-booking-confirmed"></span>
+                                <span class="small fw-600 text-muted">Confirmed</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="legend-box has-booking-legend has-booking-in_progress"></span>
+                                <span class="small fw-600 text-muted">In Progress</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="legend-box has-booking-legend has-booking-pending"></span>
+                                <span class="small fw-600 text-muted">Pending</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="legend-box has-booking-legend has-booking-completed"></span>
+                                <span class="small fw-600 text-muted">Completed</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="legend-box has-booking-legend has-booking-cancelled"></span>
+                                <span class="small fw-600 text-muted">Cancelled</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <div class="panel-lite p-4 border-primary-light h-100">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="fw-800 mb-0">Date Details</h5>
@@ -393,10 +423,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const cell = document.createElement('button');
                 cell.type = 'button';
-                cell.className = 'calendar-day';
+                cell.className = 'calendar-day is-open';
                 
-                if (calendarData[iso]) {
-                    cell.classList.add('is-booked'); // Highlight if there's a booking
+                const info = calendarData[iso] || {};
+                
+                if (info.has_booking) {
+                    cell.classList.add('has-booking'); // base dot style
+                    if (info.status) {
+                        cell.classList.add(`has-booking-${info.status}`);
+                    }
                 }
                 
                 if (iso === "{{ today }}") cell.classList.add('is-today');
