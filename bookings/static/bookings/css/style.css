@@ -3509,3 +3509,78 @@ textarea.form-control {
     }
 }
 
+}
+
+/* Message Center Enhancements */
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.message-item {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.message-item.unread {
+    background: rgba(59, 130, 246, 0.03);
+    border-left-color: var(--primary);
+}
+
+.message-item:hover {
+    transform: translateX(5px);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.border-dashed {
+    border: 2px dashed rgba(0,0,0,0.05);
+}
+
+@media (max-width: 991.98px) {
+    .role-hero h2 {
+        font-size: 1.5rem;
+    }
+    .message-toolbar {
+        background: #fff;
+        padding: 10px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    }
+}
+
+/* Mobile Layout Fixes */
+@media (max-width: 991.98px) {
+    .message-center-wrapper {
+        padding-bottom: 100px; /* Space for bottom navigation */
+    }
+    .tab-content {
+        padding-bottom: 2rem;
+    }
+    /* Ensure form labels are visible */
+    .form-label {
+        font-size: 0.75rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+}
+
+/* Specific Fixes for Message Center Mobile Layout */
+@media (max-width: 991.98px) {
+    .message-center-wrapper {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+        width: 100% !important;
+        overflow-x: hidden;
+    }
+    .message-center-wrapper .panel-lite {
+        padding: 1.5rem !important; /* Restore padding killed by global mobile override */
+        margin-bottom: 1rem !important;
+        border-radius: 1rem !important; /* Restore rounded corners */
+        border: 1px solid var(--glass-border) !important;
+    }
+    .message-center-wrapper .tab-pane {
+        width: 100% !important;
+    }
+}

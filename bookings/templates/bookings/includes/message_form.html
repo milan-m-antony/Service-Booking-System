@@ -1,0 +1,30 @@
+<form method="post" class="d-grid gap-3" style="width: 100%; max-width: 100%; overflow: hidden;">
+  {% csrf_token %}
+  <input type="hidden" name="preset_label" class="js-preset-label" value="{{ prefill_label }}">
+  
+  <div class="mb-3">
+    <label class="form-label small fw-700 text-uppercase text-muted opacity-75 mb-2">Recipient</label>
+    <select name="recipient_id" class="form-select border-0 bg-light rounded-3 shadow-sm" style="padding: 0.8rem;" required>
+      <option value="">Select recipient...</option>
+      {% for user in recipients %}
+      <option value="{{ user.id }}" {% if prefill_recipient_id == user.id %}selected{% endif %}>
+          {{ user.display_name }} ({{ user.get_role_display }})
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label small fw-700 text-uppercase text-muted opacity-75 mb-2">Subject</label>
+    <input name="subject" class="form-control border-0 bg-light rounded-3 shadow-sm js-message-subject" maxlength="140" placeholder="What is this about?" value="{{ prefill_subject|default:'' }}" style="padding: 0.8rem;">
+  </div>
+
+  <div class="mb-4">
+    <label class="form-label small fw-700 text-uppercase text-muted opacity-75 mb-2">Message</label>
+    <textarea name="body" class="form-control border-0 bg-light rounded-3 shadow-sm js-message-body" rows="5" placeholder="Type your message here..." required style="padding: 1rem;">{{ prefill_body|default:'' }}</textarea>
+  </div>
+
+  <button class="btn btn-primary w-100 py-3 shadow-sm rounded-pill fw-800" type="submit">
+    <i class="bi bi-send-fill me-2"></i>Send Message
+  </button>
+</form>

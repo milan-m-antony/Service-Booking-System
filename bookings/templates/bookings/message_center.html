@@ -11,9 +11,11 @@
       <p class="text-muted mb-0">Send updates and track conversations with staff and users.</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
-      <span class="badge-glass"><i class="bi bi-envelope me-1"></i>{{ unread_count }} unread</span>
-      <span class="badge-glass">Inbox {{ inbox_count }}</span>
-      <span class="badge-glass">Sent {{ sent_count }}</span>
+      <button class="badge-glass border-0" onclick="switchTab('inbox-tab')">
+        <i class="bi bi-envelope me-1"></i>{{ unread_count }} unread
+      </button>
+      <button class="badge-glass border-0" onclick="switchTab('inbox-tab')">Inbox {{ inbox_count }}</button>
+      <button class="badge-glass border-0" onclick="switchTab('sent-tab')">Sent {{ sent_count }}</button>
     </div>
   </div>
 </section>
@@ -25,45 +27,18 @@
 </div>
 {% endif %}
 
+<div class="message-center-wrapper">
+<div class="container-fluid px-0">
 <div class="row g-4">
-  <div class="col-lg-4">
-    <!-- Send Message Panel -->
-    <div class="panel-lite role-panel p-4 mb-4">
+  <!-- Compose Panel: Sidebar on Desktop, Tab on Mobile -->
+  <div class="col-lg-4 d-none d-lg-block" id="compose-sidebar">
+    <div class="panel-lite role-panel p-3 p-md-4 mb-4">
       <h5 class="fw-800 mb-4"><i class="bi bi-pencil-square me-2"></i>New Message</h5>
-      <form method="post" class="d-grid gap-3">
-        {% csrf_token %}
-        <input type="hidden" name="preset_label" id="preset-label" value="{{ prefill_label }}">
-        
-        <div>
-          <label class="form-label small fw-700 text-uppercase text-muted">Recipient</label>
-          <select name="recipient_id" class="form-select border-0 bg-light" required>
-            <option value="">Select recipient...</option>
-            {% for user in recipients %}
-            <option value="{{ user.id }}" {% if prefill_recipient_id == user.id %}selected{% endif %}>
-                {{ user.display_name }} ({{ user.get_role_display }})
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div>
-          <label class="form-label small fw-700 text-uppercase text-muted">Subject</label>
-          <input name="subject" class="form-control border-0 bg-light" maxlength="140" placeholder="What is this about?" value="{{ prefill_subject|default:'' }}">
-        </div>
-
-        <div>
-          <label class="form-label small fw-700 text-uppercase text-muted">Message</label>
-          <textarea name="body" id="message-body" rows="6" class="form-control border-0 bg-light" placeholder="Type your message here..." required>{{ prefill_body|default:'' }}</textarea>
-        </div>
-
-        <button class="btn btn-primary w-100 py-3 shadow-sm" type="submit">
-          <i class="bi bi-send-fill me-2"></i>Send Message
-        </button>
-      </form>
+      {% include 'bookings/includes/message_form.html' %}
     </div>
 
     <!-- Presets Panel -->
-    <div class="panel-lite role-panel p-4">
+    <div class="panel-lite role-panel p-3 p-md-4">
       <h6 class="fw-800 mb-3 text-muted text-uppercase small">Quick Presets</h6>
       <div class="d-flex flex-wrap gap-2">
         {% for preset in presets %}
@@ -79,63 +54,74 @@
   </div>
 
   <div class="col-lg-8">
-    <!-- Tabs for Inbox/Sent -->
-    <ul class="nav nav-pills mb-4 gap-2" id="messageTabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active rounded-pill px-4 fw-700" id="inbox-tab" data-bs-toggle="pill" data-bs-target="#inbox" type="button" role="tab">
-          <i class="bi bi-inbox me-2"></i>Inbox {% if unread_count %}<span class="badge bg-danger ms-1">{{ unread_count }}</span>{% endif %}
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link rounded-pill px-4 fw-700" id="sent-tab" data-bs-toggle="pill" data-bs-target="#sent" type="button" role="tab">
-          <i class="bi bi-send me-2"></i>Sent
-        </button>
-      </li>
-    </ul>
+    <!-- Sticky Tabs for Inbox/Sent/Compose -->
+    <div class="sticky-top bg-surface-blur pt-2 mb-4" style="z-index: 1020; margin-top: -0.5rem; backdrop-filter: blur(8px);">
+      <ul class="nav nav-pills gap-2 flex-nowrap overflow-auto pb-2 no-scrollbar" id="messageTabs" role="tablist" style="-webkit-overflow-scrolling: touch;">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active rounded-pill px-3 px-md-4 fw-700 text-nowrap py-2" id="inbox-tab" data-bs-toggle="pill" data-bs-target="#inbox" type="button" role="tab">
+            <i class="bi bi-inbox-fill me-2"></i>Inbox {% if unread_count %}<span class="badge bg-danger ms-1">{{ unread_count }}</span>{% endif %}
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link rounded-pill px-3 px-md-4 fw-700 text-nowrap py-2" id="sent-tab" data-bs-toggle="pill" data-bs-target="#sent" type="button" role="tab">
+            <i class="bi bi-send-fill me-2"></i>Sent
+          </button>
+        </li>
+        <!-- Mobile Only Compose Tab -->
+        <li class="nav-item d-lg-none" role="presentation">
+          <button class="nav-link rounded-pill px-3 px-md-4 fw-700 text-nowrap py-2" id="compose-tab" data-bs-toggle="pill" data-bs-target="#compose-mobile" type="button" role="tab">
+            <i class="bi bi-pencil-square me-2"></i>Compose
+          </button>
+        </li>
+      </ul>
+    </div>
 
     <div class="tab-content" id="messageTabsContent">
       <!-- Inbox Pane -->
       <div class="tab-pane fade show active" id="inbox" role="tabpanel">
         <form method="post" class="message-list-actions">
           {% csrf_token %}
-          <div class="message-toolbar d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <div class="message-toolbar d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 px-2">
             <div class="form-check m-0">
               <input class="form-check-input js-select-all" type="checkbox" id="select-all-inbox" data-target="inbox-message-check">
               <label class="form-check-label small fw-600" for="select-all-inbox">Select All</label>
             </div>
             <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-sm btn-outline-danger px-3" name="action" value="delete_inbox_selected" {% if not inbox_count %}disabled{% endif %}>Delete Selected</button>
-              <button type="submit" class="btn btn-sm btn-danger px-3" name="action" value="delete_all_inbox" onclick="return confirm('Delete all messages?')" {% if not inbox_count %}disabled{% endif %}>Clear All</button>
+              <button type="submit" class="btn btn-sm btn-outline-danger px-3 rounded-pill" name="action" value="delete_inbox_selected" {% if not inbox_count %}disabled{% endif %}>Delete</button>
+              <button type="submit" class="btn btn-sm btn-danger px-3 rounded-pill" name="action" value="delete_all_inbox" onclick="return confirm('Delete all messages?')" {% if not inbox_count %}disabled{% endif %}>Clear All</button>
             </div>
           </div>
 
           <div class="message-list">
             {% for item in inbox_messages %}
-            <article class="message-item {% if not item.is_read %}unread{% endif %}">
+            <article class="message-item {% if not item.is_read %}unread{% endif %} p-3 mb-3 panel-lite">
               <div class="d-flex justify-content-between align-items-start mb-2">
-                <div class="message-check-wrap">
-                  <input class="form-check-input inbox-message-check" type="checkbox" name="selected_message_ids" value="{{ item.id }}">
-                  <div>
-                    <h6 class="mb-0 fw-800">{{ item.sender.display_name }}</h6>
-                    <div class="text-muted small">{{ item.sender.get_role_display }}</div>
+                <div class="message-check-wrap d-flex gap-2">
+                  <input class="form-check-input inbox-message-check mt-1" type="checkbox" name="selected_message_ids" value="{{ item.id }}">
+                  <div class="overflow-hidden">
+                    <h6 class="mb-0 fw-800 text-truncate">{{ item.sender.display_name }}</h6>
+                    <div class="text-muted small text-truncate">{{ item.sender.get_role_display }}</div>
                   </div>
                 </div>
-                <div class="text-end">
-                  <div class="small text-muted">{{ item.created_at|date:"d M, h:i A" }}</div>
+                <div class="text-end ms-2 flex-shrink-0">
+                  <div class="small text-muted" style="font-size: 0.7rem;">{{ item.created_at|date:"d M, h:i A" }}</div>
                   {% if not item.is_read %}
-                    <span class="badge bg-primary small mt-1">New</span>
+                    <span class="badge bg-primary small mt-1" style="font-size: 0.65rem;">New</span>
                   {% endif %}
                 </div>
               </div>
-              <p class="mb-2 fw-700">{{ item.subject|default:"(No Subject)" }}</p>
-              <p class="mb-3 text-secondary">{{ item.body|linebreaksbr }}</p>
-              <div class="d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-sm btn-light rounded-pill px-3 preset-btn" data-body="Replying to: {{ item.subject }} - " data-label="reply">Reply</button>
-                <button type="submit" class="btn btn-sm btn-link text-danger p-0" name="action" value="delete_inbox_message:{{ item.id }}">Delete</button>
+              <p class="mb-2 fw-700 small">{{ item.subject|default:"(No Subject)" }}</p>
+              <p class="mb-3 text-secondary small line-clamp-3">{{ item.body|linebreaksbr }}</p>
+              <div class="d-flex justify-content-end gap-3 align-items-center">
+                <button type="submit" class="btn btn-sm btn-link text-danger p-0 text-decoration-none small" name="action" value="delete_inbox_message:{{ item.id }}">Delete</button>
+                <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 preset-btn" 
+                        data-body="Replying to: {{ item.subject }} - " 
+                        data-label="reply"
+                        onclick="switchToComposeTab()">Reply</button>
               </div>
             </article>
             {% empty %}
-            <div class="text-center py-5 bg-light rounded-4">
+            <div class="text-center py-5 bg-light rounded-4 border-dashed">
               <i class="bi bi-chat-left-dots text-muted" style="font-size: 3rem;"></i>
               <p class="text-muted mt-3">Your inbox is empty.</p>
             </div>
@@ -148,37 +134,37 @@
       <div class="tab-pane fade" id="sent" role="tabpanel">
         <form method="post" class="message-list-actions">
           {% csrf_token %}
-          <div class="message-toolbar d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <div class="message-toolbar d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 px-2">
             <div class="form-check m-0">
               <input class="form-check-input js-select-all" type="checkbox" id="select-all-sent" data-target="sent-message-check">
               <label class="form-check-label small fw-600" for="select-all-sent">Select All</label>
             </div>
             <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-sm btn-outline-danger px-3" name="action" value="delete_sent_selected" {% if not sent_count %}disabled{% endif %}>Delete Selected</button>
+              <button type="submit" class="btn btn-sm btn-outline-danger px-3 rounded-pill" name="action" value="delete_sent_selected" {% if not sent_count %}disabled{% endif %}>Delete</button>
             </div>
           </div>
 
           <div class="message-list">
             {% for item in sent_messages %}
-            <article class="message-item">
+            <article class="message-item p-3 mb-3 panel-lite">
               <div class="d-flex justify-content-between align-items-start mb-2">
-                <div class="message-check-wrap">
-                  <input class="form-check-input sent-message-check" type="checkbox" name="selected_message_ids" value="{{ item.id }}">
-                  <div>
-                    <h6 class="mb-0 fw-800">To: {{ item.recipient.display_name }}</h6>
-                    <div class="text-muted small">{{ item.recipient.get_role_display }}</div>
+                <div class="message-check-wrap d-flex gap-2">
+                  <input class="form-check-input sent-message-check mt-1" type="checkbox" name="selected_message_ids" value="{{ item.id }}">
+                  <div class="overflow-hidden">
+                    <h6 class="mb-0 fw-800 text-truncate">To: {{ item.recipient.display_name }}</h6>
+                    <div class="text-muted small text-truncate">{{ item.recipient.get_role_display }}</div>
                   </div>
                 </div>
-                <div class="small text-muted">{{ item.created_at|date:"d M, h:i A" }}</div>
+                <div class="small text-muted flex-shrink-0 ms-2" style="font-size: 0.7rem;">{{ item.created_at|date:"d M, h:i A" }}</div>
               </div>
-              <p class="mb-2 fw-700">{{ item.subject|default:"(No Subject)" }}</p>
-              <p class="mb-3 text-secondary">{{ item.body|linebreaksbr }}</p>
+              <p class="mb-2 fw-700 small">{{ item.subject|default:"(No Subject)" }}</p>
+              <p class="mb-3 text-secondary small line-clamp-3">{{ item.body|linebreaksbr }}</p>
               <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-sm btn-link text-danger p-0" name="action" value="delete_sent_message:{{ item.id }}">Delete</button>
+                <button type="submit" class="btn btn-sm btn-link text-danger p-0 text-decoration-none small" name="action" value="delete_sent_message:{{ item.id }}">Delete</button>
               </div>
             </article>
             {% empty %}
-            <div class="text-center py-5 bg-light rounded-4">
+            <div class="text-center py-5 bg-light rounded-4 border-dashed">
               <i class="bi bi-send-x text-muted" style="font-size: 3rem;"></i>
               <p class="text-muted mt-3">You haven't sent any messages yet.</p>
             </div>
@@ -186,31 +172,89 @@
           </div>
         </form>
       </div>
+
+      <!-- Mobile Compose Pane -->
+      <div class="tab-pane fade d-lg-none" id="compose-mobile" role="tabpanel">
+        <div class="panel-lite role-panel p-3 p-md-4">
+          <h5 class="fw-800 mb-4"><i class="bi bi-pencil-square me-2"></i>New Message</h5>
+          {% include 'bookings/includes/message_form.html' %}
+          
+          <hr class="my-4 opacity-10">
+          
+          <h6 class="fw-800 mb-3 text-muted text-uppercase small">Quick Presets</h6>
+          <div class="d-flex flex-wrap gap-2">
+            {% for preset in presets %}
+            <button type="button" class="btn btn-sm btn-outline-primary preset-btn rounded-pill px-3" 
+                    data-label="{{ preset.key }}" 
+                    data-subject="{{ preset.subject|escape }}" 
+                    data-body="{{ preset.body|escape }}">
+              {{ preset.label }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
   </div>
 </div>
+</div>
+</div>
 
 <script>
-document.addEventListener('click', function(e){
-  if(e.target.matches('.preset-btn')){
-    var body = e.target.getAttribute('data-body');
-    var subject = e.target.getAttribute('data-subject');
-    var label = e.target.getAttribute('data-label') || '';
-    var ta = document.getElementById('message-body');
-    var presetInput = document.getElementById('preset-label');
-    var subjectInput = document.querySelector('input[name="subject"]');
-    if(ta) ta.value = body;
-    if(presetInput) presetInput.value = label;
-    if(subjectInput) subjectInput.value = subject || '';
+function switchTab(tabId) {
+  const tabEl = document.getElementById(tabId);
+  if (tabEl) {
+    const tab = new bootstrap.Tab(tabEl);
+    tab.show();
+    tabEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-});
+}
 
-document.querySelectorAll('.js-select-all').forEach(function(toggle){
-  toggle.addEventListener('change', function(){
-    var targetClass = this.getAttribute('data-target');
-    if(!targetClass) return;
-    document.querySelectorAll('.' + targetClass).forEach(function(checkbox){
-      checkbox.checked = toggle.checked;
+function switchToComposeTab() {
+  const isMobile = window.innerWidth < 992;
+  const composeTab = document.getElementById('compose-tab');
+  const composeSidebar = document.getElementById('compose-sidebar');
+
+  if (isMobile && composeTab) {
+    const tab = new bootstrap.Tab(composeTab);
+    tab.show();
+    setTimeout(() => {
+      document.getElementById('compose-mobile').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 150);
+  } else if (composeSidebar) {
+    composeSidebar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const select = composeSidebar.querySelector('select');
+    if(select) select.focus();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  if ("{{ prefill_recipient_id|default:'' }}") {
+    switchToComposeTab();
+  }
+
+  document.addEventListener('click', function(e) {
+    const presetBtn = e.target.closest('.preset-btn');
+    if (presetBtn) {
+      const subject = presetBtn.getAttribute('data-subject') || '';
+      const body = presetBtn.getAttribute('data-body') || '';
+      const label = presetBtn.getAttribute('data-label') || '';
+
+      document.querySelectorAll('.js-message-subject').forEach(el => el.value = subject);
+      document.querySelectorAll('.js-message-body').forEach(el => el.value = body);
+      document.querySelectorAll('.js-preset-label').forEach(el => el.value = label);
+      
+      switchToComposeTab();
+    }
+  });
+
+  document.querySelectorAll('.js-select-all').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      const targetClass = this.getAttribute('data-target');
+      document.querySelectorAll('.' + targetClass).forEach(child => {
+        child.checked = this.checked;
+      });
     });
   });
 });
