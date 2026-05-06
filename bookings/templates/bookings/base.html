@@ -37,9 +37,9 @@
             <span class="brand-dot"></span> Home Service
         </a>
         <div class="d-flex gap-2 align-items-center">
-            <a href="{% url 'global_search' %}" class="mobile-search-trigger">
-                <i class="bi bi-search"></i>
-            </a>
+            <span class="badge rounded-pill bg-light text-dark border fw-bold small py-1 px-2" style="font-size: 0.75rem; letter-spacing: 0.02em;">
+                {{ user.role|capfirst }} User
+            </span>
         </div>
     </header>
     {% endblock %}
@@ -126,14 +126,7 @@
         <!-- Main Content Area -->
         <main class="main-content">
             {% if not is_guest_home %}
-            <!-- Dashboard Top Navigation -->
-            <header class="dashboard-top-nav d-none d-lg-flex">
-                <div class="search-bar-wrapper">
-                    <form action="{% url 'global_search' %}" method="get" class="d-flex align-items-center">
-                        <i class="bi bi-search search-icon"></i>
-                        <input type="text" name="q" class="search-input" placeholder="Search for staff, services, or bookings..." value="{{ query|default:'' }}">
-                    </form>
-                </div>
+            <header class="dashboard-top-nav d-none d-lg-flex justify-content-end">
                 <div class="top-nav-actions">
                     <div class="user-profile-lite">
                         <span class="user-name">{{ user.display_name }}</span>
