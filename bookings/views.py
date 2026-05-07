@@ -999,7 +999,7 @@ def _render_staff_dashboard(request, view_mode="home"):
         "blocked_slots": blocked_slots,
         "today": timezone.localdate().isoformat(),
         "staff_view_mode": view_mode,
-        "selected_slot_date": selected_slot_date.isoformat(),
+
         "time_slot_options": time_slot_options,
         "marked_slots_for_date": marked_slots_for_date,
         "marked_slot_times": sorted(marked_slot_times),

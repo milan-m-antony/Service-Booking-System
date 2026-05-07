@@ -219,7 +219,7 @@
                             <select name="status" class="form-select form-select-sm rounded-pill"
                                 style="min-width: 120px;">
                                 {% for key, label in booking.Status.choices %}
-                                <option value="{{ key }}" {% if booking.status==key %}selected{% endif %}>{{ label }}
+                                <option value="{{ key }}" {% if booking.status == key %}selected{% endif %}>{{ label }}
                                 </option>
                                 {% endfor %}
                             </select>
@@ -295,7 +295,7 @@
                         <label class="small text-muted mb-1 fw-600">Change Status</label>
                         <select name="status" class="form-select form-select-sm rounded-pill bg-light border-0 px-3">
                             {% for key, label in booking.Status.choices %}
-                            <option value="{{ key }}" {% if booking.status==key %}selected{% endif %}>{{ label }}
+                            <option value="{{ key }}" {% if booking.status == key %}selected{% endif %}>{{ label }}
                             </option>
                             {% endfor %}
                         </select>

@@ -124,8 +124,8 @@
                         data-description="{{ service.description|lower }}" data-price="{{ service.price }}"
                         data-duration="{{ service.duration }}" data-staff-count="{{ service.staff|length }}">
                         <input type="radio" name="service_pick" value="{{ service.id }}" {% if
-                            form.service.value|stringformat:'s'==service.id|stringformat:'s' %}checked{% endif %} {% if
-                            service.staff|length==0 %}disabled{% endif %}>
+                            form.service.value|stringformat:'s' == service.id|stringformat:'s' %}checked{% endif %} {% if
+                            service.staff|length == 0 %}disabled{% endif %}>
                         <span class="booking-service-card-inner">
                             <span class="booking-service-topline">
                                 <span class="booking-service-name">{{ service.name }}</span>
