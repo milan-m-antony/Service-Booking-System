@@ -179,6 +179,9 @@
 
     {% block content %}{% endblock %}
     </main>
+    {% if user.is_authenticated %}
+    </div> <!-- Close app-layout -->
+    {% endif %}
 
     {% if not user.is_authenticated %}
     <!-- Guest Mobile Bottom Navigation Dock -->

@@ -243,34 +243,39 @@
                     .filter(p => p.getAttribute('data-assigned') === 'true')
                     .map(p => p.getAttribute('data-staff-id'));
 
-                const formData = new FormData();
-                formData.append('action', 'assign_staff');
-                formData.append('service_id', serviceId);
-                assignedIds.forEach(id => formData.append('staff_ids', id));
+                (async () => {
+                    try {
+                        const params = new URLSearchParams();
+                        params.append("action", "assign_staff");
+                        params.append("service_id", serviceId);
+                        assignedIds.forEach(id => params.append("staff_ids", id));
 
-                fetch(window.location.href, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-                })
-                .then(response => {
-                    if (response.ok) {
+                        const response = await fetch(window.location.href, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded",
+                                "X-CSRFToken": "{{ csrf_token }}"
+                            },
+                            body: params
+                        });
+
+                        if (response.ok) {
+                            this.classList.remove('saving');
+                            this.classList.add('saved');
+                            icon.className = newAssigned ? 'bi bi-check-circle-fill' : 'bi bi-plus-circle';
+                            setTimeout(() => this.classList.remove('saved'), 1500);
+                        } else {
+                            throw new Error('Failed to save');
+                        }
+                    } catch (err) {
+                        console.error(err);
                         this.classList.remove('saving');
-                        this.classList.add('saved');
-                        icon.className = newAssigned ? 'bi bi-check-circle-fill' : 'bi bi-plus-circle';
-                        setTimeout(() => this.classList.remove('saved'), 1500);
-                    } else {
-                        throw new Error('Failed to save');
+                        this.classList.add('error');
+                        this.setAttribute('data-assigned', isCurrentlyAssigned ? 'true' : 'false'); // Revert
+                        icon.className = isCurrentlyAssigned ? 'bi bi-check-circle-fill' : 'bi bi-plus-circle';
+                        setTimeout(() => this.classList.remove('error'), 2000);
                     }
-                })
-                .catch(err => {
-                    console.error(err);
-                    this.classList.remove('saving');
-                    this.classList.add('error');
-                    this.setAttribute('data-assigned', isCurrentlyAssigned ? 'true' : 'false'); // Revert
-                    icon.className = isCurrentlyAssigned ? 'bi bi-check-circle-fill' : 'bi bi-plus-circle';
-                    setTimeout(() => this.classList.remove('error'), 2000);
-                });
+                })();
             });
         });
     });
