@@ -134,6 +134,9 @@ STORAGES = {
     },
 }
 
+# Prevent Whitenoise from crashing during collectstatic on Render
+WHITENOISE_MANIFEST_STRICT = False
+
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME", ""),
     "API_KEY": os.getenv("CLOUDINARY_API_KEY", ""),
