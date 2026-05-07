@@ -86,7 +86,8 @@ class Booking(models.Model):
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_paid = models.BooleanField(default=False)
-    location_coords = models.TextField(blank=True)
+    address = models.TextField(blank=True, help_text="Detailed address with landmarks")
+    location_coords = models.TextField(blank=True, help_text="GPS coordinates (lat,lng)")
 
     class Meta:
         ordering = ["-scheduled_at"]

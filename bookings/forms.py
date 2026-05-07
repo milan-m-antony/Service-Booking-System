@@ -113,10 +113,12 @@ class BookingForm(forms.ModelForm):
 
     class Meta:
         model = Booking
-        fields = ("customer", "service", "staff", "scheduled_at", "notes")
+        fields = ("customer", "service", "staff", "scheduled_at", "address", "location_coords", "notes")
         widgets = {
             "scheduled_at": forms.DateTimeInput(attrs={"type": "datetime-local"}),
-            "notes": forms.Textarea(attrs={"rows": 3, "placeholder": "Any specific request?"}),
+            "address": forms.Textarea(attrs={"rows": 2, "placeholder": "Flat/House No, Building, Landmark..."}),
+            "location_coords": forms.HiddenInput(),
+            "notes": forms.Textarea(attrs={"rows": 3, "placeholder": "Any specific request or extra details?"}),
         }
 
     def __init__(self, *args, **kwargs):

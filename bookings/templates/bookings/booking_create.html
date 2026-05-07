@@ -94,8 +94,8 @@
                 <div class="section-head">
                     <div>
                         <span class="section-kicker">Step 3</span>
-                        <h4 class="mb-1">Add a specific note</h4>
-                        <p class="text-muted mb-0">Tell the professional anything important before confirmation.</p>
+                        <h4 class="mb-1">Address & Notes</h4>
+                        <p class="text-muted mb-0">Provide your service location and any specific instructions.</p>
                     </div>
                 </div>
             </section>
@@ -179,10 +179,24 @@
             <!-- Step 3 Content -->
             <section class="booking-flow-card glass-panel wizard-step" data-step="3">
                 <div class="mt-3">
-                    <label class="form-label" for="id_notes">Note for the booking</label>
-                    {{ form.notes }}
-                    {% if form.notes.errors %}<div class="text-danger mt-2 small">{{ form.notes.errors }}</div>{% endif
-                    %}
+                    <div class="mb-4">
+                        <label class="form-label d-flex justify-content-between align-items-center" for="id_address">
+                            Service Location
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="detectLocationBtn">
+                                <i class="bi bi-geo-alt me-1"></i>Detect My Location
+                            </button>
+                        </label>
+                        {{ form.address }}
+                        {% if form.address.errors %}<div class="text-danger mt-2 small">{{ form.address.errors }}</div>{% endif %}
+                        <div id="locationStatus" class="small text-muted mt-1"></div>
+                        {{ form.location_coords }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="id_notes">Additional Notes (Optional)</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}<div class="text-danger mt-2 small">{{ form.notes.errors }}</div>{% endif %}
+                    </div>
                 </div>
             </section>
 
@@ -485,6 +499,8 @@
                 <div><strong>Price:</strong> ${selectedService ? `INR ${selectedService.price}` : '-'}</div>
                 <div><strong>Professional:</strong> ${staffText}</div>
                 <div><strong>Date & Time:</strong> ${selectedDate && selectedTime ? `${selectedDate} ${formatTime12(selectedTime)}` : 'Not selected'}</div>
+                <div><strong>Location:</strong> ${addressInput && addressInput.value ? addressInput.value : 'Not provided'}</div>
+                <div><strong>Coordinates:</strong> ${coordsInput && coordsInput.value ? '<span class="text-success">Captured</span>' : '<span class="text-muted">Not detected</span>'}</div>
                 <div><strong>Notes:</strong> ${notesInput && notesInput.value ? notesInput.value : 'No extra notes'}</div>
             `;
             }
@@ -795,6 +811,45 @@
 
         if (notesInput) {
             notesInput.addEventListener('input', renderSummary);
+        }
+
+        const detectLocationBtn = document.getElementById('detectLocationBtn');
+        const addressInput = document.getElementById('id_address');
+        const coordsInput = document.getElementById('id_location_coords');
+        const locationStatus = document.getElementById('locationStatus');
+
+        if (detectLocationBtn) {
+            detectLocationBtn.addEventListener('click', function() {
+                if (!navigator.geolocation) {
+                    locationStatus.textContent = "Geolocation is not supported by your browser.";
+                    return;
+                }
+
+                locationStatus.textContent = "Detecting location...";
+                detectLocationBtn.disabled = true;
+
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        coordsInput.value = `${lat},${lng}`;
+                        locationStatus.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Location detected successfully.</span>`;
+                        detectLocationBtn.disabled = false;
+                        renderSummary();
+                    },
+                    function(error) {
+                        let msg = "Unable to retrieve location.";
+                        if (error.code === 1) msg = "Location permission denied.";
+                        locationStatus.textContent = msg;
+                        detectLocationBtn.disabled = false;
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            });
+        }
+
+        if (addressInput) {
+            addressInput.addEventListener('input', renderSummary);
         }
 
         if (prevBtn) {

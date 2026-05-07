@@ -303,6 +303,12 @@
                     <td class="ps-4 py-3">
                         <div class="fw-bold">{{ booking.service.name }}</div>
                         <div class="small text-muted">{{ booking.service.category.name }}</div>
+                        {% if booking.location_coords %}
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ booking.location_coords }}" 
+                           target="_blank" class="badge bg-success-soft text-success text-decoration-none mt-1" style="font-size: 0.65rem;">
+                            <i class="bi bi-map me-1"></i>Map
+                        </a>
+                        {% endif %}
                     </td>
                     <td class="py-3">
                         <div class="d-flex align-items-center gap-2">
@@ -310,7 +316,14 @@
                                 style="width:30px;height:30px;font-size:0.75rem;flex-shrink:0;">
                                 {{ booking.customer.first_name|first }}{{ booking.customer.last_name|first }}
                             </div>
-                            {{ booking.customer.display_name }}
+                            <div>
+                                <div class="fw-600">{{ booking.customer.display_name }}</div>
+                                {% if booking.address %}
+                                <div class="small text-muted" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ booking.address }}">
+                                    <i class="bi bi-geo-alt me-1"></i>{{ booking.address }}
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </td>
                     <td class="py-3">{{ booking.staff.display_name }}</td>
@@ -375,6 +388,18 @@
                     <div class="small fw-700"><i class="bi bi-clock me-1 text-primary"></i>{{
                         booking.scheduled_at|date:"d M Y, h:i A" }}</div>
                 </div>
+                {% if booking.address %}
+                <div class="col-12 mt-2">
+                    <div class="small text-muted mb-1">Address</div>
+                    <div class="small fw-600 mb-1">{{ booking.address }}</div>
+                    {% if booking.location_coords %}
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ booking.location_coords }}" 
+                       target="_blank" class="badge bg-success-soft text-success text-decoration-none">
+                        <i class="bi bi-map me-1"></i>View on Map
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
             <form method="post" action="{% url 'update_booking_status' booking.id %}" class="pt-2 border-top">
                 {% csrf_token %}

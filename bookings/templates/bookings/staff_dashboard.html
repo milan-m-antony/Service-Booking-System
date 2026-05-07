@@ -181,9 +181,22 @@
                     data-scheduled="{{ booking.scheduled_at|date:'U' }}">
                     <td class="ps-4">
                         <div class="fw-bold">{{ booking.customer.display_name }}</div>
-                        <div class="small text-muted">{{ booking.customer.phone|default:'No phone' }}</div>
+                        <div class="small text-muted mb-1">{{ booking.customer.phone|default:'No phone' }}</div>
+                        {% if booking.address %}
+                        <div class="small text-primary-dark">
+                            <i class="bi bi-geo-alt-fill me-1"></i>{{ booking.address }}
+                        </div>
+                        {% endif %}
                     </td>
-                    <td>{{ booking.service.name }}</td>
+                    <td>
+                        <div class="fw-600">{{ booking.service.name }}</div>
+                        {% if booking.location_coords %}
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ booking.location_coords }}" 
+                           target="_blank" class="badge bg-success-soft text-success text-decoration-none mt-1">
+                            <i class="bi bi-map me-1"></i>Navigate
+                        </a>
+                        {% endif %}
+                    </td>
                     <td>{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
                     <td>
                         <span
@@ -286,6 +299,19 @@
                     <div class="small text-muted mb-1">Scheduled</div>
                     <div class="small fw-800">{{ booking.scheduled_at|date:"d M, h:i A" }}</div>
                 </div>
+                {% if booking.address %}
+                <div class="col-12 mt-2">
+                    <div class="small text-muted mb-1">Location</div>
+                    <div class="small fw-600">{{ booking.address }}</div>
+                    {% if booking.location_coords %}
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ booking.location_coords }}" 
+                       target="_blank" class="btn btn-xs btn-outline-success rounded-pill mt-2 d-inline-flex align-items-center gap-1"
+                       style="font-size: 0.7rem; padding: 0.2rem 0.6rem;">
+                        <i class="bi bi-map"></i> Navigate
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
 
             <form method="post" action="{% url 'update_booking_status' booking.id %}" class="pt-3 border-top">
