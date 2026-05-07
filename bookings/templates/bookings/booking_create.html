@@ -4,6 +4,22 @@
 {% block mobile_header %}{% endblock %}
 
 {% block content %}
+<!-- Leaflet Map CSS/JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<style>
+    #map-picker-container {
+        display: none;
+        height: 300px;
+        width: 100%;
+        border-radius: 12px;
+        margin-top: 1rem;
+        border: 1px solid rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    #map { height: 100%; width: 100%; }
+</style>
+
 {{ services_payload|json_script:"services-data" }}
 {{ staff_blocked_dates|json_script:"staff-blocked-dates-data" }}
 {{ staff_blocked_slots|json_script:"staff-blocked-slots-data" }}
@@ -84,8 +100,7 @@
                 <div class="panel-lite mb-4">
                     <label class="form-label fw-bold mb-2" for="id_staff">Select Professional</label>
                     {{ form.staff }}
-                    {% if form.staff.errors %}<div class="text-danger mt-2 small">{{ form.staff.errors }}</div>{% endif
-                    %}
+                    {% if form.staff.errors %}<div class="text-danger mt-2 small">{{ form.staff.errors }}</div>{% endif %}
                 </div>
             </section>
 
@@ -123,9 +138,9 @@
                         data-category-name="{{ service.category_name|lower }}"
                         data-description="{{ service.description|lower }}" data-price="{{ service.price }}"
                         data-duration="{{ service.duration }}" data-staff-count="{{ service.staff|length }}">
-                        <input type="radio" name="service_pick" value="{{ service.id }}" {% if
-                            form.service.value|stringformat:'s' == service.id|stringformat:'s' %}checked{% endif %} {% if
-                            service.staff|length == 0 %}disabled{% endif %}>
+                        <input type="radio" name="service_pick" value="{{ service.id }}" 
+                            {% if form.service.value|stringformat:'s' == service.id|stringformat:'s' %}checked{% endif %} 
+                            {% if service.staff|length == 0 %}disabled{% endif %}>
                         <span class="booking-service-card-inner">
                             <span class="booking-service-topline">
                                 <span class="booking-service-name">{{ service.name }}</span>
@@ -155,8 +170,7 @@
                 </div>
                 <div class="booking-service-hint text-muted small mt-3">Tip: choose a service card to unlock the next
                     step.</div>
-                {% if form.service.errors %}<div class="text-danger mt-2 small">{{ form.service.errors }}</div>{% endif
-                %}
+                {% if form.service.errors %}<div class="text-danger mt-2 small">{{ form.service.errors }}</div>{% endif %}
             </section>
 
             <!-- Step 2 Content -->
@@ -182,13 +196,23 @@
                     <div class="mb-4">
                         <label class="form-label d-flex justify-content-between align-items-center" for="id_address">
                             Service Location
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="detectLocationBtn">
-                                <i class="bi bi-geo-alt me-1"></i>Detect My Location
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="toggleMapBtn">
+                                    <i class="bi bi-map me-1"></i>Pick on Map
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="detectLocationBtn">
+                                    <i class="bi bi-geo-alt me-1"></i>Detect My Location
+                                </button>
+                            </div>
                         </label>
                         {{ form.address }}
                         {% if form.address.errors %}<div class="text-danger mt-2 small">{{ form.address.errors }}</div>{% endif %}
                         <div id="locationStatus" class="small text-muted mt-1"></div>
+                        
+                        <div id="map-picker-container">
+                            <div id="map"></div>
+                        </div>
+
                         {{ form.location_coords }}
                     </div>
 
@@ -833,9 +857,32 @@
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
                         coordsInput.value = `${lat},${lng}`;
-                        locationStatus.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Location detected successfully.</span>`;
-                        detectLocationBtn.disabled = false;
-                        renderSummary();
+                        
+                        // Sync with map if initialized
+                        if (map) {
+                            map.setView([lat, lng], 16);
+                            marker.setLatLng([lat, lng]);
+                        }
+
+                        // Reverse Geocoding via Nominatim (OpenStreetMap)
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data && data.display_name) {
+                                    addressInput.value = data.display_name;
+                                    locationStatus.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Location & address detected!</span>`;
+                                } else {
+                                    locationStatus.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Location detected (address unavailable).</span>`;
+                                }
+                                renderSummary();
+                            })
+                            .catch(err => {
+                                locationStatus.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Location detected.</span>`;
+                                renderSummary();
+                            })
+                            .finally(() => {
+                                detectLocationBtn.disabled = false;
+                            });
                     },
                     function(error) {
                         let msg = "Unable to retrieve location.";
@@ -843,7 +890,7 @@
                         locationStatus.textContent = msg;
                         detectLocationBtn.disabled = false;
                     },
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
             });
         }
@@ -852,6 +899,74 @@
             addressInput.addEventListener('input', renderSummary);
         }
 
+        // --- Leaflet Map Logic ---
+        let map, marker;
+        const toggleMapBtn = document.getElementById('toggleMapBtn');
+        const mapContainer = document.getElementById('map-picker-container');
+
+        function initMap(lat = 20.5937, lng = 78.9629) { // Default to India center
+            if (!map) {
+                map = L.map('map').setView([lat, lng], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+
+                marker.on('dragend', function(e) {
+                    const pos = marker.getLatLng();
+                    updateLocationFromMap(pos.lat, pos.lng);
+                });
+
+                map.on('click', function(e) {
+                    marker.setLatLng(e.latlng);
+                    updateLocationFromMap(e.latlng.lat, e.latlng.lng);
+                });
+            } else {
+                map.setView([lat, lng], 13);
+                marker.setLatLng([lat, lng]);
+            }
+        }
+
+        function updateLocationFromMap(lat, lng) {
+            coordsInput.value = `${lat},${lng}`;
+            locationStatus.textContent = "Fetching address...";
+            
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        addressInput.value = data.display_name;
+                        locationStatus.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Map location saved.</span>`;
+                    }
+                    renderSummary();
+                })
+                .catch(() => {
+                    locationStatus.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Coordinates saved.</span>`;
+                    renderSummary();
+                });
+        }
+
+        if (toggleMapBtn) {
+            toggleMapBtn.addEventListener('click', function() {
+                const isHidden = mapContainer.style.display === 'none' || mapContainer.style.display === '';
+                mapContainer.style.display = isHidden ? 'block' : 'none';
+                
+                if (isHidden) {
+                    // If coords already exist, use them
+                    if (coordsInput.value) {
+                        const [lat, lng] = coordsInput.value.split(',').map(Number);
+                        initMap(lat, lng);
+                    } else {
+                        initMap();
+                    }
+                    // Fix Leaflet container size issues when showing hidden div
+                    setTimeout(() => map.invalidateSize(), 200);
+                }
+            });
+        }
+
+        // Final Cleanup
         if (prevBtn) {
             prevBtn.addEventListener('click', function () {
                 if (currentStep > 1) {

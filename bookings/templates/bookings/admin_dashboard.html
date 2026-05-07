@@ -61,15 +61,46 @@
         <tbody>
             {% for booking in all_bookings %}
             <tr class="booking-row"
-                data-search="{{ booking.customer.display_name|lower }} {{ booking.service.name|lower }}"
+                data-search="{{ booking.customer.display_name|lower }} {{ booking.customer.email|lower }} {{ booking.customer.phone }} {{ booking.service.name|lower }} {{ booking.staff.display_name|lower }}"
                 data-status="{{ booking.status }}">
                 <td class="ps-4 py-3">
-                    <div class="fw-bold">{{ booking.service.name }}</div>
-                    <div class="small text-muted">{{ booking.service.category.name }}</div>
+                    <div class="fw-bold text-dark">{{ booking.service.name }}</div>
+                    <div class="text-muted small mb-2" style="font-size: 0.7rem;">{{ booking.service.category.name }}</div>
+                    
+                    {% if booking.address %}
+                    <div class="d-flex flex-column gap-1">
+                        <div class="small text-muted d-flex align-items-start gap-1" style="max-width: 450px; line-height: 1.3;">
+                            <i class="bi bi-geo-alt text-primary mt-1" style="font-size: 0.8rem;"></i>
+                            <span>{{ booking.address }}</span>
+                        </div>
+                        {% if booking.location_coords %}
+                        <div>
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ booking.location_coords }}" 
+                               target="_blank" class="badge bg-success-soft text-success text-decoration-none mt-1 d-inline-flex align-items-center gap-1" style="font-size: 0.65rem; border-radius: 4px; padding: 4px 8px;">
+                                <i class="bi bi-map-fill"></i>Navigate
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </td>
-                <td class="py-3">{{ booking.customer.display_name }}</td>
-                <td class="py-3">{{ booking.staff.display_name }}</td>
-                <td class="py-3 small">{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
+                <td class="py-3">
+                    <div class="fw-bold text-dark">{{ booking.customer.display_name }}</div>
+                    <div class="d-flex flex-column gap-1 mt-1">
+                        <div class="text-muted small d-flex align-items-center gap-2" style="font-size: 0.75rem;">
+                            <i class="bi bi-envelope text-primary" style="font-size: 0.8rem;"></i>
+                            {{ booking.customer.email }}
+                        </div>
+                        {% if booking.customer.phone %}
+                        <div class="text-muted small d-flex align-items-center gap-2" style="font-size: 0.75rem;">
+                            <i class="bi bi-telephone text-primary" style="font-size: 0.8rem;"></i>
+                            {{ booking.customer.phone }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="py-3" style="min-width: 150px;">{{ booking.staff.display_name }}</td>
+                <td class="py-3 small" style="min-width: 160px;">{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
                 <td class="py-3">
                     <span class="badge-glass
                                 {% if booking.status == 'completed' %}badge-status-completed
@@ -119,7 +150,7 @@
                 {% elif booking.status == 'cancelled' %}border-danger
                 {% elif booking.status == 'confirmed' %}border-primary
                 {% else %}border-info{% endif %}"
-        data-search="{{ booking.customer.display_name|lower }} {{ booking.service.name|lower }}"
+        data-search="{{ booking.customer.display_name|lower }} {{ booking.customer.email|lower }} {{ booking.customer.phone }} {{ booking.service.name|lower }}"
         data-status="{{ booking.status }}">
         <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
@@ -136,18 +167,35 @@
             </span>
         </div>
         <div class="row g-2 mb-3">
-            <div class="col-6">
+            <div class="col-12">
                 <div class="small text-muted mb-1">Customer</div>
                 <div class="small fw-700">{{ booking.customer.display_name }}</div>
+                <div class="small text-muted mt-1" style="font-size: 0.75rem;">
+                    <i class="bi bi-envelope me-1"></i>{{ booking.customer.email }}
+                    {% if booking.customer.phone %}
+                    <br><i class="bi bi-telephone me-1"></i>{{ booking.customer.phone }}
+                    {% endif %}
+                </div>
             </div>
             <div class="col-6">
                 <div class="small text-muted mb-1">Staff</div>
                 <div class="small fw-700">{{ booking.staff.display_name }}</div>
             </div>
             <div class="col-12">
+                <div class="small text-muted mb-1">Location</div>
+                <div class="small fw-700 text-primary-emphasis">
+                    <i class="bi bi-geo-alt me-1"></i>{{ booking.address|default:"No address" }}
+                </div>
+                {% if booking.location_coords %}
+                <a href="https://www.google.com/maps/search/?api=1&query={{ booking.location_coords }}" 
+                   target="_blank" class="badge bg-success-soft text-success text-decoration-none mt-1">
+                    <i class="bi bi-map me-1"></i>Navigate on Maps
+                </a>
+                {% endif %}
+            </div>
+            <div class="col-12">
                 <div class="small text-muted mb-1">Scheduled</div>
-                <div class="small fw-700"><i class="bi bi-clock me-1 text-primary"></i>{{ booking.scheduled_at|date:"d M
-                    Y, h:i A" }}</div>
+                <div class="small fw-700"><i class="bi bi-clock me-1 text-primary"></i>{{ booking.scheduled_at|date:"d M Y, h:i A" }}</div>
             </div>
         </div>
         <form method="post" action="{% url 'update_booking_status' booking.id %}" class="pt-2 border-top">
@@ -311,18 +359,31 @@
                         {% endif %}
                     </td>
                     <td class="py-3">
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-3">
                             <div class="stat-icon bg-primary-soft text-primary"
-                                style="width:30px;height:30px;font-size:0.75rem;flex-shrink:0;">
+                                style="width:40px;height:40px;font-size:0.9rem;flex-shrink:0;border-radius:10px;">
                                 {{ booking.customer.first_name|first }}{{ booking.customer.last_name|first }}
                             </div>
                             <div>
-                                <div class="fw-600">{{ booking.customer.display_name }}</div>
-                                {% if booking.address %}
-                                <div class="small text-muted" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ booking.address }}">
-                                    <i class="bi bi-geo-alt me-1"></i>{{ booking.address }}
+                                <div class="fw-bold" style="color: var(--text-main); font-size: 0.95rem;">{{ booking.customer.display_name }}</div>
+                                <div class="d-flex flex-column gap-1 mt-1">
+                                    <div class="small text-muted d-flex align-items-center gap-1">
+                                        <i class="bi bi-envelope" style="font-size: 0.75rem;"></i>
+                                        {{ booking.customer.email }}
+                                    </div>
+                                    {% if booking.customer.phone %}
+                                    <div class="small text-muted d-flex align-items-center gap-1">
+                                        <i class="bi bi-telephone" style="font-size: 0.75rem;"></i>
+                                        {{ booking.customer.phone }}
+                                    </div>
+                                    {% endif %}
+                                    {% if booking.address %}
+                                    <div class="small text-primary-emphasis d-flex align-items-start gap-1 mt-1" style="max-width: 280px; line-height: 1.3;">
+                                        <i class="bi bi-geo-alt-fill" style="font-size: 0.75rem; margin-top: 2px;"></i>
+                                        {{ booking.address }}
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
                             </div>
                         </div>
                     </td>
@@ -375,9 +436,17 @@
                 <span class="badge-glass badge-status-pending">Pending</span>
             </div>
             <div class="row g-2 mb-3">
-                <div class="col-6">
+                <div class="col-12">
                     <div class="small text-muted mb-1">Customer</div>
                     <div class="small fw-700">{{ booking.customer.display_name }}</div>
+                    <div class="small text-muted mt-1">
+                        <i class="bi bi-envelope me-1"></i>{{ booking.customer.email }}
+                    </div>
+                    {% if booking.customer.phone %}
+                    <div class="small text-muted">
+                        <i class="bi bi-telephone me-1"></i>{{ booking.customer.phone }}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="col-6">
                     <div class="small text-muted mb-1">Staff</div>
@@ -452,11 +521,37 @@
                 {% for booking in recent_bookings %}
                 <tr>
                     <td class="ps-4 py-3">
-                        <div class="fw-bold">{{ booking.customer.display_name }}</div>
-                        <div class="small text-muted">{{ booking.service.name }}</div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon bg-light text-primary"
+                                style="width:35px;height:35px;font-size:0.8rem;flex-shrink:0;border-radius:8px;">
+                                {{ booking.customer.first_name|first }}{{ booking.customer.last_name|first }}
+                            </div>
+                            <div>
+                                <div class="fw-bold" style="color: var(--text-main);">{{ booking.customer.display_name }}</div>
+                                <div class="small text-muted" style="font-size: 0.75rem;">
+                                    <i class="bi bi-envelope me-1"></i>{{ booking.customer.email }}
+                                    {% if booking.customer.phone %}
+                                    <span class="mx-1">|</span><i class="bi bi-telephone me-1"></i>{{ booking.customer.phone }}
+                                    {% endif %}
+                                </div>
+                                <div class="fw-bold text-dark mt-1">{{ booking.service.name }}</div>
+                                <div class="text-muted small mb-1" style="font-size: 0.7rem;">{{ booking.service.category.name }}</div>
+                                {% if booking.address %}
+                                <div class="small text-muted" style="font-size: 0.75rem; max-width: 450px; line-height: 1.3;">
+                                    <i class="bi bi-geo-alt me-1 text-primary"></i>{{ booking.address }}
+                                </div>
+                                {% endif %}
+                                {% if booking.location_coords %}
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ booking.location_coords }}" 
+                                   target="_blank" class="text-decoration-none mt-1 d-inline-block fw-600" style="font-size: 0.65rem; color: var(--primary);">
+                                    <i class="bi bi-map-fill me-1"></i>View on Map
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
                     </td>
-                    <td class="py-3">{{ booking.staff.display_name }}</td>
-                    <td class="py-3">{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
+                    <td class="py-3" style="min-width: 140px;">{{ booking.staff.display_name }}</td>
+                    <td class="py-3" style="min-width: 150px;">{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
                     <td class="text-end pe-4 py-3">
                         <span
                             class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% elif booking.status == 'cancelled' %}badge-status-cancelled{% endif %}">
@@ -481,7 +576,13 @@
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                     <div class="fw-bold">{{ booking.customer.display_name }}</div>
-                    <div class="small text-muted">{{ booking.service.name }}</div>
+                    <div class="small text-muted" style="font-size: 0.7rem;">
+                        <i class="bi bi-envelope me-1"></i>{{ booking.customer.email }}
+                        {% if booking.customer.phone %}
+                        <span class="mx-1">|</span><i class="bi bi-telephone me-1"></i>{{ booking.customer.phone }}
+                        {% endif %}
+                    </div>
+                    <div class="small text-primary mt-1">{{ booking.service.name }}</div>
                 </div>
                 <span
                     class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% elif booking.status == 'cancelled' %}badge-status-cancelled{% endif %}">
@@ -490,13 +591,27 @@
             </div>
             <div class="row g-2">
                 <div class="col-6">
-                    <div class="small text-muted mb-1">Staff</div>
-                    <div class="small fw-700">{{ booking.staff.display_name }}</div>
-                </div>
-                <div class="col-6">
                     <div class="small text-muted mb-1">Scheduled</div>
                     <div class="small fw-700">{{ booking.scheduled_at|date:"d M, h:i A" }}</div>
                 </div>
+                <div class="col-6">
+                    <div class="small text-muted mb-1">Staff</div>
+                    <div class="small fw-700">{{ booking.staff.display_name }}</div>
+                </div>
+                {% if booking.address %}
+                <div class="col-12 border-top pt-2 mt-2">
+                    <div class="small text-muted mb-1">Location</div>
+                    <div class="small fw-700 text-primary-emphasis">
+                        <i class="bi bi-geo-alt me-1"></i>{{ booking.address }}
+                    </div>
+                    {% if booking.location_coords %}
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ booking.location_coords }}" 
+                       target="_blank" class="badge bg-success-soft text-success text-decoration-none mt-1">
+                        <i class="bi bi-map me-1"></i>Navigate
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
         </div>
         {% empty %}
