@@ -88,7 +88,7 @@
                             style="min-width:130px;border-radius:8px;">
                             <option value="" disabled style="color:#aaa;font-size:0.75rem;">── Change Status ──</option>
                             {% for key, label in booking.Status.choices %}
-                            <option value="{{ key }}" {% if booking.status==key %}selected{% endif %}>{{ label }}
+                            <option value="{{ key }}" {% if booking.status == key %}selected{% endif %}>{{ label }}
                             </option>
                             {% endfor %}
                         </select>
@@ -158,7 +158,7 @@
                     <select name="status" class="form-select form-select-sm" style="border-radius:8px;">
                         <option value="" disabled style="color:#aaa;font-size:0.75rem;">── Change Status ──</option>
                         {% for key, label in booking.Status.choices %}
-                        <option value="{{ key }}" {% if booking.status==key %}selected{% endif %}>{{ label }}</option>
+                        <option value="{{ key }}" {% if booking.status == key %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -329,7 +329,7 @@
                                 <option value="" disabled style="color:#aaa;font-size:0.75rem;">── Change Status ──
                                 </option>
                                 {% for key, label in booking.Status.choices %}
-                                <option value="{{ key }}" {% if booking.status==key %}selected{% endif %}>{{ label }}
+                                <option value="{{ key }}" {% if booking.status == key %}selected{% endif %}>{{ label }}
                                 </option>
                                 {% endfor %}
                             </select>
@@ -384,7 +384,7 @@
                         <select name="status" class="form-select form-select-sm rounded-pill bg-light border-0">
                             <option value="" disabled style="color:#aaa;font-size:0.75rem;">── Change Status ──</option>
                             {% for key, label in booking.Status.choices %}
-                            <option value="{{ key }}" {% if booking.status==key %}selected{% endif %}>{{ label }}
+                            <option value="{{ key }}" {% if booking.status == key %}selected{% endif %}>{{ label }}
                             </option>
                             {% endfor %}
                         </select>
