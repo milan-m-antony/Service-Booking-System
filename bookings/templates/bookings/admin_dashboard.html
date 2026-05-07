@@ -2,485 +2,515 @@
 {% block title %}Admin Dashboard | {{ active_tab|capfirst }}{% endblock %}
 
 {% block dashboard_content %}
-    {% if active_tab == 'bookings' %}
-        <!-- Bookings Tab -->
-        <div class="dash-section-header">
-            <span class="role-chip mb-2">Platform Administration</span>
-            <h2 class="mb-1">All Bookings</h2>
-            <p class="text-muted">View, filter, and update the status of all platform bookings.</p>
-        </div>
+{% if active_tab == 'bookings' %}
+<!-- Bookings Tab -->
+<div class="dash-section-header">
+    <span class="role-chip mb-2">Platform Administration</span>
+    <h2 class="mb-1">All Bookings</h2>
+    <p class="text-muted">View, filter, and update the status of all platform bookings.</p>
+</div>
 
-        <!-- Filter Bar -->
-        <div class="panel-lite p-4 mb-4">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-5">
-                    <label class="small fw-700 text-muted text-uppercase mb-1 d-block">
-                        <i class="bi bi-search me-1"></i>Search Bookings
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" id="booking-search" class="form-control border-start-0" placeholder="Customer name or service...">
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <label class="small fw-700 text-muted text-uppercase mb-1 d-block">
-                        <i class="bi bi-funnel me-1"></i>Filter by Status
-                    </label>
-                    <select id="status-filter" class="form-select">
-                        <option value="">All Statuses</option>
-                        <option value="pending">⏳ Pending</option>
-                        <option value="confirmed">✅ Confirmed</option>
-                        <option value="in_progress">🔄 In Progress</option>
-                        <option value="completed">🏁 Completed</option>
-                        <option value="cancelled">❌ Cancelled</option>
-                    </select>
-                </div>
-                <div class="col-md-4 text-md-end">
-                    <label class="small fw-700 text-muted text-uppercase mb-1 d-block">Total</label>
-                    <span class="fw-800" style="font-size:1.4rem;color:var(--primary);">{{ all_bookings|length }}</span>
-                    <span class="small text-muted ms-1">booking{{ all_bookings|length|pluralize }}</span>
-                </div>
+<!-- Filter Bar -->
+<div class="panel-lite p-4 mb-4">
+    <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label class="small fw-700 text-muted text-uppercase mb-1 d-block">
+                <i class="bi bi-search me-1"></i>Search Bookings
+            </label>
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="booking-search" class="form-control border-start-0"
+                    placeholder="Customer name or service...">
             </div>
         </div>
+        <div class="col-md-3">
+            <label class="small fw-700 text-muted text-uppercase mb-1 d-block">
+                <i class="bi bi-funnel me-1"></i>Filter by Status
+            </label>
+            <select id="status-filter" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="pending">⏳ Pending</option>
+                <option value="confirmed">✅ Confirmed</option>
+                <option value="in_progress">🔄 In Progress</option>
+                <option value="completed">🏁 Completed</option>
+                <option value="cancelled">❌ Cancelled</option>
+            </select>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <label class="small fw-700 text-muted text-uppercase mb-1 d-block">Total</label>
+            <span class="fw-800" style="font-size:1.4rem;color:var(--primary);">{{ all_bookings|length }}</span>
+            <span class="small text-muted ms-1">booking{{ all_bookings|length|pluralize }}</span>
+        </div>
+    </div>
+</div>
 
-        <!-- Desktop Table -->
-        <div class="panel-lite p-0 overflow-hidden d-none d-md-block mb-4">
-            <table class="table table-hover align-middle mb-0" id="bookings-table">
-                <thead>
-                    <tr class="bg-light">
-                        <th class="ps-4 py-3 border-0 small text-uppercase fw-700 text-muted">Service</th>
-                        <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Customer</th>
-                        <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Staff</th>
-                        <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Scheduled</th>
-                        <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Status</th>
-                        <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Change To</th>
-                        <th class="text-center pe-4 py-3 border-0 small text-uppercase fw-700 text-muted">Update</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for booking in all_bookings %}
-                    <tr class="booking-row"
-                        data-search="{{ booking.customer.display_name|lower }} {{ booking.service.name|lower }}"
-                        data-status="{{ booking.status }}">
-                        <td class="ps-4 py-3">
-                            <div class="fw-bold">{{ booking.service.name }}</div>
-                            <div class="small text-muted">{{ booking.service.category.name }}</div>
-                        </td>
-                        <td class="py-3">{{ booking.customer.display_name }}</td>
-                        <td class="py-3">{{ booking.staff.display_name }}</td>
-                        <td class="py-3 small">{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
-                        <td class="py-3">
-                            <span class="badge-glass
+<!-- Desktop Table -->
+<div class="panel-lite p-0 overflow-hidden d-none d-md-block mb-4">
+    <table class="table table-hover align-middle mb-0" id="bookings-table">
+        <thead>
+            <tr class="bg-light">
+                <th class="ps-4 py-3 border-0 small text-uppercase fw-700 text-muted">Service</th>
+                <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Customer</th>
+                <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Staff</th>
+                <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Scheduled</th>
+                <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Status</th>
+                <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Change To</th>
+                <th class="text-center pe-4 py-3 border-0 small text-uppercase fw-700 text-muted">Update</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in all_bookings %}
+            <tr class="booking-row"
+                data-search="{{ booking.customer.display_name|lower }} {{ booking.service.name|lower }}"
+                data-status="{{ booking.status }}">
+                <td class="ps-4 py-3">
+                    <div class="fw-bold">{{ booking.service.name }}</div>
+                    <div class="small text-muted">{{ booking.service.category.name }}</div>
+                </td>
+                <td class="py-3">{{ booking.customer.display_name }}</td>
+                <td class="py-3">{{ booking.staff.display_name }}</td>
+                <td class="py-3 small">{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
+                <td class="py-3">
+                    <span class="badge-glass
                                 {% if booking.status == 'completed' %}badge-status-completed
                                 {% elif booking.status == 'pending' %}badge-status-pending
                                 {% elif booking.status == 'cancelled' %}badge-status-cancelled
                                 {% elif booking.status == 'confirmed' %}badge-status-confirmed
                                 {% else %}badge-status-inprogress{% endif %}">
-                                {{ booking.get_status_display }}
-                            </span>
-                        </td>
-                        <td class="py-3">
-                            <form id="bform-{{ booking.id }}" method="post" action="{% url 'update_booking_status' booking.id %}" class="m-0">
-                                {% csrf_token %}
-                                <select name="status" class="form-select form-select-sm" style="min-width:130px;border-radius:8px;">
-                                    <option value="" disabled style="color:#aaa;font-size:0.75rem;">── Change Status ──</option>
-                                    {% for key, label in booking.Status.choices %}
-                                    <option value="{{ key }}" {% if booking.status == key %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </form>
-                        </td>
-                        <td class="py-3 text-center pe-4">
-                            <button type="submit" form="bform-{{ booking.id }}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">Save</button>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="7" class="text-center py-5 text-muted">
-                        <i class="bi bi-journal-x d-block mb-2" style="font-size:2rem;"></i>No bookings found.
-                    </td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                        {{ booking.get_status_display }}
+                    </span>
+                </td>
+                <td class="py-3">
+                    <form id="bform-{{ booking.id }}" method="post"
+                        action="{% url 'update_booking_status' booking.id %}" class="m-0">
+                        {% csrf_token %}
+                        <select name="status" class="form-select form-select-sm"
+                            style="min-width:130px;border-radius:8px;">
+                            <option value="" disabled style="color:#aaa;font-size:0.75rem;">── Change Status ──</option>
+                            {% for key, label in booking.Status.choices %}
+                            <option value="{{ key }}" {% if booking.status==key %}selected{% endif %}>{{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </td>
+                <td class="py-3 text-center pe-4">
+                    <button type="submit" form="bform-{{ booking.id }}"
+                        class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">Save</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center py-5 text-muted">
+                    <i class="bi bi-journal-x d-block mb-2" style="font-size:2rem;"></i>No bookings found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-        <!-- Mobile Card View -->
-        <div class="d-md-none mb-5" id="bookings-mobile">
-            {% for booking in all_bookings %}
-            <div class="glass-card mb-3 p-3 booking-row border-start border-4
+<!-- Mobile Card View -->
+<div class="d-md-none mb-5" id="bookings-mobile">
+    {% for booking in all_bookings %}
+    <div class="glass-card mb-3 p-3 booking-row border-start border-4
                 {% if booking.status == 'completed' %}border-success
                 {% elif booking.status == 'pending' %}border-warning
                 {% elif booking.status == 'cancelled' %}border-danger
                 {% elif booking.status == 'confirmed' %}border-primary
                 {% else %}border-info{% endif %}"
-                data-search="{{ booking.customer.display_name|lower }} {{ booking.service.name|lower }}"
-                data-status="{{ booking.status }}">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                        <div class="fw-bold">{{ booking.service.name }}</div>
-                        <div class="small text-muted">{{ booking.service.category.name }}</div>
-                    </div>
-                    <span class="badge-glass
+        data-search="{{ booking.customer.display_name|lower }} {{ booking.service.name|lower }}"
+        data-status="{{ booking.status }}">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+                <div class="fw-bold">{{ booking.service.name }}</div>
+                <div class="small text-muted">{{ booking.service.category.name }}</div>
+            </div>
+            <span class="badge-glass
                         {% if booking.status == 'completed' %}badge-status-completed
                         {% elif booking.status == 'pending' %}badge-status-pending
                         {% elif booking.status == 'cancelled' %}badge-status-cancelled
                         {% elif booking.status == 'confirmed' %}badge-status-confirmed
                         {% else %}badge-status-inprogress{% endif %}">
-                        {{ booking.get_status_display }}
-                    </span>
+                {{ booking.get_status_display }}
+            </span>
+        </div>
+        <div class="row g-2 mb-3">
+            <div class="col-6">
+                <div class="small text-muted mb-1">Customer</div>
+                <div class="small fw-700">{{ booking.customer.display_name }}</div>
+            </div>
+            <div class="col-6">
+                <div class="small text-muted mb-1">Staff</div>
+                <div class="small fw-700">{{ booking.staff.display_name }}</div>
+            </div>
+            <div class="col-12">
+                <div class="small text-muted mb-1">Scheduled</div>
+                <div class="small fw-700"><i class="bi bi-clock me-1 text-primary"></i>{{ booking.scheduled_at|date:"d M
+                    Y, h:i A" }}</div>
+            </div>
+        </div>
+        <form method="post" action="{% url 'update_booking_status' booking.id %}" class="pt-2 border-top">
+            {% csrf_token %}
+            <div class="d-flex gap-2 align-items-end">
+                <div class="flex-grow-1">
+                    <label class="small text-muted mb-1 fw-600">Change Status</label>
+                    <select name="status" class="form-select form-select-sm" style="border-radius:8px;">
+                        <option value="" disabled style="color:#aaa;font-size:0.75rem;">── Change Status ──</option>
+                        {% for key, label in booking.Status.choices %}
+                        <option value="{{ key }}" {% if booking.status==key %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <div class="small text-muted mb-1">Customer</div>
-                        <div class="small fw-700">{{ booking.customer.display_name }}</div>
-                    </div>
-                    <div class="col-6">
-                        <div class="small text-muted mb-1">Staff</div>
-                        <div class="small fw-700">{{ booking.staff.display_name }}</div>
-                    </div>
-                    <div class="col-12">
-                        <div class="small text-muted mb-1">Scheduled</div>
-                        <div class="small fw-700"><i class="bi bi-clock me-1 text-primary"></i>{{ booking.scheduled_at|date:"d M Y, h:i A" }}</div>
-                    </div>
-                </div>
-                <form method="post" action="{% url 'update_booking_status' booking.id %}" class="pt-2 border-top">
-                    {% csrf_token %}
-                    <div class="d-flex gap-2 align-items-end">
-                        <div class="flex-grow-1">
-                            <label class="small text-muted mb-1 fw-600">Change Status</label>
-                            <select name="status" class="form-select form-select-sm" style="border-radius:8px;">
-                                <option value="" disabled style="color:#aaa;font-size:0.75rem;">── Change Status ──</option>
+                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm">Save</button>
+            </div>
+        </form>
+    </div>
+    {% empty %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-journal-x d-block mb-2" style="font-size:2rem;"></i>No bookings found.
+    </div>
+    {% endfor %}
+</div>
+
+{% elif active_tab == 'overview' %}
+<!-- Overview Tab -->
+<div class="dash-section-header">
+    <span class="role-chip mb-2">Platform Administration</span>
+    <h2 class="mb-1">Admin Dashboard</h2>
+    <p class="text-muted">Oversee system performance and pending administrative tasks.</p>
+</div>
+
+<!-- KPI Stats Grid -->
+<div class="dash-stats-grid mb-5">
+    <div class="dash-stat-card">
+        <div class="stat-icon bg-primary-soft text-primary"><i class="bi bi-receipt"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">{{ total_bookings }}</div>
+            <div class="stat-label">Total Bookings</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="stat-icon bg-warning-soft text-warning"><i class="bi bi-clock-history"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">{{ pending_count }}</div>
+            <div class="stat-label">Pending</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="stat-icon bg-success-soft text-success"><i class="bi bi-check2-circle"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">{{ completed_count }}</div>
+            <div class="stat-label">Completed</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="stat-icon bg-info-soft text-info"><i class="bi bi-calendar-day"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">{{ today_bookings }}</div>
+            <div class="stat-label">Today</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="stat-icon bg-danger-soft text-danger"><i class="bi bi-x-circle"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">{{ cancelled_count }}</div>
+            <div class="stat-label">Cancelled</div>
+        </div>
+    </div>
+    <div class="dash-stat-card" style="background: linear-gradient(135deg, var(--primary), #1d4ed8); color: #fff;">
+        <div class="stat-icon" style="background: rgba(255,255,255,0.15); color: #fff;"><i class="bi bi-cash-stack"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value" style="color: #fff;">₹{{ completed_revenue }}</div>
+            <div class="stat-label" style="color: rgba(255,255,255,0.75);">Revenue</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Links -->
+<div class="row g-3 mb-5">
+    <div class="col-6 col-md-3">
+        <a href="{% url 'admin_users' %}"
+            class="panel-lite p-3 d-flex align-items-center gap-3 text-decoration-none h-100">
+            <div class="stat-icon bg-primary-soft text-primary" style="flex-shrink:0;"><i class="bi bi-people"></i>
+            </div>
+            <div>
+                <div class="fw-700" style="color: var(--text-main);">Users</div>
+                <div class="small text-muted">Manage accounts</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="{% url 'admin_services' %}"
+            class="panel-lite p-3 d-flex align-items-center gap-3 text-decoration-none h-100">
+            <div class="stat-icon bg-success-soft text-success" style="flex-shrink:0;"><i class="bi bi-tools"></i></div>
+            <div>
+                <div class="fw-700" style="color: var(--text-main);">Services</div>
+                <div class="small text-muted">View all services</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="{% url 'admin_categories' %}"
+            class="panel-lite p-3 d-flex align-items-center gap-3 text-decoration-none h-100">
+            <div class="stat-icon bg-warning-soft text-warning" style="flex-shrink:0;"><i class="bi bi-tags"></i></div>
+            <div>
+                <div class="fw-700" style="color: var(--text-main);">Categories</div>
+                <div class="small text-muted">Manage categories</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="{% url 'analytics' %}"
+            class="panel-lite p-3 d-flex align-items-center gap-3 text-decoration-none h-100">
+            <div class="stat-icon bg-info-soft text-info" style="flex-shrink:0;"><i class="bi bi-graph-up"></i></div>
+            <div>
+                <div class="fw-700" style="color: var(--text-main);">Analytics</div>
+                <div class="small text-muted">View reports</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Pending Actions -->
+<div class="panel-lite p-0 overflow-hidden mb-4">
+    <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="fw-800 mb-1">Pending Actions</h5>
+            <p class="small text-muted mb-0">Bookings awaiting status updates.</p>
+        </div>
+        <span class="badge-glass bg-warning-soft text-warning">{{ pending_count }} Required</span>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr class="bg-light">
+                    <th class="ps-4 py-3 border-0 small text-uppercase fw-700 text-muted">Service</th>
+                    <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Customer</th>
+                    <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Staff</th>
+                    <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Scheduled</th>
+                    <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Status</th>
+                    <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Change To</th>
+                    <th class="text-center pe-4 py-3 border-0 small text-uppercase fw-700 text-muted">Update</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in pending_bookings %}
+                <tr>
+                    <td class="ps-4 py-3">
+                        <div class="fw-bold">{{ booking.service.name }}</div>
+                        <div class="small text-muted">{{ booking.service.category.name }}</div>
+                    </td>
+                    <td class="py-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="stat-icon bg-primary-soft text-primary"
+                                style="width:30px;height:30px;font-size:0.75rem;flex-shrink:0;">
+                                {{ booking.customer.first_name|first }}{{ booking.customer.last_name|first }}
+                            </div>
+                            {{ booking.customer.display_name }}
+                        </div>
+                    </td>
+                    <td class="py-3">{{ booking.staff.display_name }}</td>
+                    <td class="py-3 small">{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
+                    <td class="py-3">
+                        <span class="badge-glass badge-status-pending">
+                            <i class="bi bi-clock me-1"></i>{{ booking.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="py-3">
+                        <form id="pform-{{ booking.id }}" method="post"
+                            action="{% url 'update_booking_status' booking.id %}" class="m-0">
+                            {% csrf_token %}
+                            <select name="status" class="form-select form-select-sm"
+                                style="min-width:130px;border-radius:8px;">
+                                <option value="" disabled style="color:#aaa;font-size:0.75rem;">── Change Status ──
+                                </option>
                                 {% for key, label in booking.Status.choices %}
-                                <option value="{{ key }}" {% if booking.status == key %}selected{% endif %}>{{ label }}</option>
+                                <option value="{{ key }}" {% if booking.status==key %}selected{% endif %}>{{ label }}
+                                </option>
                                 {% endfor %}
                             </select>
-                        </div>
-                        <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm">Save</button>
-                    </div>
-                </form>
-            </div>
-            {% empty %}
-            <div class="text-center py-5 text-muted">
-                <i class="bi bi-journal-x d-block mb-2" style="font-size:2rem;"></i>No bookings found.
-            </div>
-            {% endfor %}
-        </div>
-
-    {% elif active_tab == 'overview' %}
-        <!-- Overview Tab -->
-        <div class="dash-section-header">
-            <span class="role-chip mb-2">Platform Administration</span>
-            <h2 class="mb-1">Admin Dashboard</h2>
-            <p class="text-muted">Oversee system performance and pending administrative tasks.</p>
-        </div>
-
-        <!-- KPI Stats Grid -->
-        <div class="dash-stats-grid mb-5">
-            <div class="dash-stat-card">
-                <div class="stat-icon bg-primary-soft text-primary"><i class="bi bi-receipt"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value">{{ total_bookings }}</div>
-                    <div class="stat-label">Total Bookings</div>
-                </div>
-            </div>
-            <div class="dash-stat-card">
-                <div class="stat-icon bg-warning-soft text-warning"><i class="bi bi-clock-history"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value">{{ pending_count }}</div>
-                    <div class="stat-label">Pending</div>
-                </div>
-            </div>
-            <div class="dash-stat-card">
-                <div class="stat-icon bg-success-soft text-success"><i class="bi bi-check2-circle"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value">{{ completed_count }}</div>
-                    <div class="stat-label">Completed</div>
-                </div>
-            </div>
-            <div class="dash-stat-card">
-                <div class="stat-icon bg-info-soft text-info"><i class="bi bi-calendar-day"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value">{{ today_bookings }}</div>
-                    <div class="stat-label">Today</div>
-                </div>
-            </div>
-            <div class="dash-stat-card">
-                <div class="stat-icon bg-danger-soft text-danger"><i class="bi bi-x-circle"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value">{{ cancelled_count }}</div>
-                    <div class="stat-label">Cancelled</div>
-                </div>
-            </div>
-            <div class="dash-stat-card" style="background: linear-gradient(135deg, var(--primary), #1d4ed8); color: #fff;">
-                <div class="stat-icon" style="background: rgba(255,255,255,0.15); color: #fff;"><i class="bi bi-cash-stack"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value" style="color: #fff;">₹{{ completed_revenue }}</div>
-                    <div class="stat-label" style="color: rgba(255,255,255,0.75);">Revenue</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Links -->
-        <div class="row g-3 mb-5">
-            <div class="col-6 col-md-3">
-                <a href="{% url 'admin_users' %}" class="panel-lite p-3 d-flex align-items-center gap-3 text-decoration-none h-100">
-                    <div class="stat-icon bg-primary-soft text-primary" style="flex-shrink:0;"><i class="bi bi-people"></i></div>
-                    <div>
-                        <div class="fw-700" style="color: var(--text-main);">Users</div>
-                        <div class="small text-muted">Manage accounts</div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-6 col-md-3">
-                <a href="{% url 'admin_services' %}" class="panel-lite p-3 d-flex align-items-center gap-3 text-decoration-none h-100">
-                    <div class="stat-icon bg-success-soft text-success" style="flex-shrink:0;"><i class="bi bi-tools"></i></div>
-                    <div>
-                        <div class="fw-700" style="color: var(--text-main);">Services</div>
-                        <div class="small text-muted">View all services</div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-6 col-md-3">
-                <a href="{% url 'admin_categories' %}" class="panel-lite p-3 d-flex align-items-center gap-3 text-decoration-none h-100">
-                    <div class="stat-icon bg-warning-soft text-warning" style="flex-shrink:0;"><i class="bi bi-tags"></i></div>
-                    <div>
-                        <div class="fw-700" style="color: var(--text-main);">Categories</div>
-                        <div class="small text-muted">Manage categories</div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-6 col-md-3">
-                <a href="{% url 'analytics' %}" class="panel-lite p-3 d-flex align-items-center gap-3 text-decoration-none h-100">
-                    <div class="stat-icon bg-info-soft text-info" style="flex-shrink:0;"><i class="bi bi-graph-up"></i></div>
-                    <div>
-                        <div class="fw-700" style="color: var(--text-main);">Analytics</div>
-                        <div class="small text-muted">View reports</div>
-                    </div>
-                </a>
-            </div>
-        </div>
-
-        <!-- Pending Actions -->
-        <div class="panel-lite p-0 overflow-hidden mb-4">
-            <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="fw-800 mb-1">Pending Actions</h5>
-                    <p class="small text-muted mb-0">Bookings awaiting status updates.</p>
-                </div>
-                <span class="badge-glass bg-warning-soft text-warning">{{ pending_count }} Required</span>
-            </div>
-
-            <!-- Desktop Table -->
-            <div class="table-responsive d-none d-md-block">
-                <table class="table table-hover align-middle mb-0">
-                    <thead>
-                        <tr class="bg-light">
-                            <th class="ps-4 py-3 border-0 small text-uppercase fw-700 text-muted">Service</th>
-                            <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Customer</th>
-                            <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Staff</th>
-                            <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Scheduled</th>
-                            <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Status</th>
-                            <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Change To</th>
-                            <th class="text-center pe-4 py-3 border-0 small text-uppercase fw-700 text-muted">Update</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for booking in pending_bookings %}
-                        <tr>
-                            <td class="ps-4 py-3">
-                                <div class="fw-bold">{{ booking.service.name }}</div>
-                                <div class="small text-muted">{{ booking.service.category.name }}</div>
-                            </td>
-                            <td class="py-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="stat-icon bg-primary-soft text-primary" style="width:30px;height:30px;font-size:0.75rem;flex-shrink:0;">
-                                        {{ booking.customer.first_name|first }}{{ booking.customer.last_name|first }}
-                                    </div>
-                                    {{ booking.customer.display_name }}
-                                </div>
-                            </td>
-                            <td class="py-3">{{ booking.staff.display_name }}</td>
-                            <td class="py-3 small">{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
-                            <td class="py-3">
-                                <span class="badge-glass badge-status-pending">
-                                    <i class="bi bi-clock me-1"></i>{{ booking.get_status_display }}
-                                </span>
-                            </td>
-                            <td class="py-3">
-                                <form id="pform-{{ booking.id }}" method="post" action="{% url 'update_booking_status' booking.id %}" class="m-0">
-                                    {% csrf_token %}
-                                    <select name="status" class="form-select form-select-sm" style="min-width:130px;border-radius:8px;">
-                                        <option value="" disabled style="color:#aaa;font-size:0.75rem;">── Change Status ──</option>
-                                        {% for key, label in booking.Status.choices %}
-                                        <option value="{{ key }}" {% if booking.status == key %}selected{% endif %}>{{ label }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </form>
-                            </td>
-                            <td class="py-3 text-center pe-4">
-                                <button type="submit" form="pform-{{ booking.id }}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">Save</button>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-check2-all d-block mb-2" style="font-size:2rem;"></i>No pending actions.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Mobile Card View -->
-            <div class="d-md-none p-3">
-                {% for booking in pending_bookings %}
-                <div class="glass-card mb-3 p-3 border-start border-4 border-warning">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                            <div class="fw-bold">{{ booking.service.name }}</div>
-                            <div class="small text-muted">{{ booking.service.category.name }}</div>
-                        </div>
-                        <span class="badge-glass badge-status-pending">Pending</span>
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <div class="small text-muted mb-1">Customer</div>
-                            <div class="small fw-700">{{ booking.customer.display_name }}</div>
-                        </div>
-                        <div class="col-6">
-                            <div class="small text-muted mb-1">Staff</div>
-                            <div class="small fw-700">{{ booking.staff.display_name }}</div>
-                        </div>
-                        <div class="col-12">
-                            <div class="small text-muted mb-1">Scheduled</div>
-                            <div class="small fw-700"><i class="bi bi-clock me-1 text-primary"></i>{{ booking.scheduled_at|date:"d M Y, h:i A" }}</div>
-                        </div>
-                    </div>
-                    <form method="post" action="{% url 'update_booking_status' booking.id %}" class="pt-2 border-top">
-                        {% csrf_token %}
-                        <div class="d-flex gap-2 align-items-end">
-                            <div class="flex-grow-1">
-                                <label class="small text-muted mb-1 fw-600">Change Status</label>
-                                <select name="status" class="form-select form-select-sm rounded-pill bg-light border-0">
-                                    <option value="" disabled style="color:#aaa;font-size:0.75rem;">── Change Status ──</option>
-                                    {% for key, label in booking.Status.choices %}
-                                    <option value="{{ key }}" {% if booking.status == key %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm">Save</button>
-                        </div>
-                    </form>
-                </div>
+                        </form>
+                    </td>
+                    <td class="py-3 text-center pe-4">
+                        <button type="submit" form="pform-{{ booking.id }}"
+                            class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">Save</button>
+                    </td>
+                </tr>
                 {% empty %}
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-check2-all d-block mb-2" style="font-size:2rem;"></i>
-                    No pending actions.
-                </div>
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-check2-all d-block mb-2"
+                            style="font-size:2rem;"></i>No pending actions.</td>
+                </tr>
                 {% endfor %}
-            </div>
-        </div>
+            </tbody>
+        </table>
+    </div>
 
-        <!-- Recent Activity -->
-        <div class="panel-lite p-0 overflow-hidden mb-5">
-            <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+    <!-- Mobile Card View -->
+    <div class="d-md-none p-3">
+        {% for booking in pending_bookings %}
+        <div class="glass-card mb-3 p-3 border-start border-4 border-warning">
+            <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
-                    <h5 class="fw-800 mb-1">Recent Activity</h5>
-                    <p class="small text-muted mb-0">Latest booking events across the platform.</p>
+                    <div class="fw-bold">{{ booking.service.name }}</div>
+                    <div class="small text-muted">{{ booking.service.category.name }}</div>
                 </div>
-                <a href="{% url 'analytics' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View Analytics</a>
+                <span class="badge-glass badge-status-pending">Pending</span>
             </div>
-
-            <!-- Desktop Table -->
-            <div class="table-responsive d-none d-md-block">
-                <table class="table table-hover align-middle mb-0">
-                    <thead>
-                        <tr class="bg-light">
-                            <th class="ps-4 py-3 border-0 small text-uppercase fw-700 text-muted">Customer</th>
-                            <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Staff</th>
-                            <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Scheduled</th>
-                            <th class="text-end pe-4 py-3 border-0 small text-uppercase fw-700 text-muted">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for booking in recent_bookings %}
-                        <tr>
-                            <td class="ps-4 py-3">
-                                <div class="fw-bold">{{ booking.customer.display_name }}</div>
-                                <div class="small text-muted">{{ booking.service.name }}</div>
-                            </td>
-                            <td class="py-3">{{ booking.staff.display_name }}</td>
-                            <td class="py-3">{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
-                            <td class="text-end pe-4 py-3">
-                                <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% elif booking.status == 'cancelled' %}badge-status-cancelled{% endif %}">
-                                    {{ booking.get_status_display }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="4" class="text-center py-5 text-muted">No recent activity.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <div class="small text-muted mb-1">Customer</div>
+                    <div class="small fw-700">{{ booking.customer.display_name }}</div>
+                </div>
+                <div class="col-6">
+                    <div class="small text-muted mb-1">Staff</div>
+                    <div class="small fw-700">{{ booking.staff.display_name }}</div>
+                </div>
+                <div class="col-12">
+                    <div class="small text-muted mb-1">Scheduled</div>
+                    <div class="small fw-700"><i class="bi bi-clock me-1 text-primary"></i>{{
+                        booking.scheduled_at|date:"d M Y, h:i A" }}</div>
+                </div>
             </div>
+            <form method="post" action="{% url 'update_booking_status' booking.id %}" class="pt-2 border-top">
+                {% csrf_token %}
+                <div class="d-flex gap-2 align-items-end">
+                    <div class="flex-grow-1">
+                        <label class="small text-muted mb-1 fw-600">Change Status</label>
+                        <select name="status" class="form-select form-select-sm rounded-pill bg-light border-0">
+                            <option value="" disabled style="color:#aaa;font-size:0.75rem;">── Change Status ──</option>
+                            {% for key, label in booking.Status.choices %}
+                            <option value="{{ key }}" {% if booking.status==key %}selected{% endif %}>{{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm">Save</button>
+                </div>
+            </form>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-check2-all d-block mb-2" style="font-size:2rem;"></i>
+            No pending actions.
+        </div>
+        {% endfor %}
+    </div>
+</div>
 
-            <!-- Mobile Card View -->
-            <div class="d-md-none p-3">
+<!-- Recent Activity -->
+<div class="panel-lite p-0 overflow-hidden mb-5">
+    <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="fw-800 mb-1">Recent Activity</h5>
+            <p class="small text-muted mb-0">Latest booking events across the platform.</p>
+        </div>
+        <a href="{% url 'analytics' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View Analytics</a>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr class="bg-light">
+                    <th class="ps-4 py-3 border-0 small text-uppercase fw-700 text-muted">Customer</th>
+                    <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Staff</th>
+                    <th class="py-3 border-0 small text-uppercase fw-700 text-muted">Scheduled</th>
+                    <th class="text-end pe-4 py-3 border-0 small text-uppercase fw-700 text-muted">Status</th>
+                </tr>
+            </thead>
+            <tbody>
                 {% for booking in recent_bookings %}
-                <div class="glass-card mb-3 p-3 border-start border-4 {% if booking.status == 'completed' %}border-success{% elif booking.status == 'pending' %}border-warning{% elif booking.status == 'cancelled' %}border-danger{% else %}border-primary{% endif %}">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                            <div class="fw-bold">{{ booking.customer.display_name }}</div>
-                            <div class="small text-muted">{{ booking.service.name }}</div>
-                        </div>
-                        <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% elif booking.status == 'cancelled' %}badge-status-cancelled{% endif %}">
+                <tr>
+                    <td class="ps-4 py-3">
+                        <div class="fw-bold">{{ booking.customer.display_name }}</div>
+                        <div class="small text-muted">{{ booking.service.name }}</div>
+                    </td>
+                    <td class="py-3">{{ booking.staff.display_name }}</td>
+                    <td class="py-3">{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
+                    <td class="text-end pe-4 py-3">
+                        <span
+                            class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% elif booking.status == 'cancelled' %}badge-status-cancelled{% endif %}">
                             {{ booking.get_status_display }}
                         </span>
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <div class="small text-muted mb-1">Staff</div>
-                            <div class="small fw-700">{{ booking.staff.display_name }}</div>
-                        </div>
-                        <div class="col-6">
-                            <div class="small text-muted mb-1">Scheduled</div>
-                            <div class="small fw-700">{{ booking.scheduled_at|date:"d M, h:i A" }}</div>
-                        </div>
-                    </div>
-                </div>
+                    </td>
+                </tr>
                 {% empty %}
-                <div class="text-center py-5 text-muted">No recent activity.</div>
+                <tr>
+                    <td colspan="4" class="text-center py-5 text-muted">No recent activity.</td>
+                </tr>
                 {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="d-md-none p-3">
+        {% for booking in recent_bookings %}
+        <div
+            class="glass-card mb-3 p-3 border-start border-4 {% if booking.status == 'completed' %}border-success{% elif booking.status == 'pending' %}border-warning{% elif booking.status == 'cancelled' %}border-danger{% else %}border-primary{% endif %}">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <div class="fw-bold">{{ booking.customer.display_name }}</div>
+                    <div class="small text-muted">{{ booking.service.name }}</div>
+                </div>
+                <span
+                    class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% elif booking.status == 'cancelled' %}badge-status-cancelled{% endif %}">
+                    {{ booking.get_status_display }}
+                </span>
+            </div>
+            <div class="row g-2">
+                <div class="col-6">
+                    <div class="small text-muted mb-1">Staff</div>
+                    <div class="small fw-700">{{ booking.staff.display_name }}</div>
+                </div>
+                <div class="col-6">
+                    <div class="small text-muted mb-1">Scheduled</div>
+                    <div class="small fw-700">{{ booking.scheduled_at|date:"d M, h:i A" }}</div>
+                </div>
             </div>
         </div>
+        {% empty %}
+        <div class="text-center py-5 text-muted">No recent activity.</div>
+        {% endfor %}
+    </div>
+</div>
 
-    {% elif active_tab == 'messages' %}
-        <!-- Messages Tab -->
-        <div class="dash-section-header">
-            <span class="role-chip mb-2">Platform Administration</span>
-            <h2 class="mb-1">Admin Communication</h2>
-            <p class="text-muted">Broadcast notices or respond to user inquiries.</p>
-        </div>
-        <div class="panel-lite p-0 overflow-hidden" style="height: 600px;">
-            {% include 'bookings/partials/dashboard_messages_panel.html' %}
-        </div>
-    {% endif %}
+{% elif active_tab == 'messages' %}
+<!-- Messages Tab -->
+<div class="dash-section-header">
+    <span class="role-chip mb-2">Platform Administration</span>
+    <h2 class="mb-1">Admin Communication</h2>
+    <p class="text-muted">Broadcast notices or respond to user inquiries.</p>
+</div>
+<div class="panel-lite p-0 overflow-hidden" style="height: 600px;">
+    {% include 'bookings/partials/dashboard_messages_panel.html' %}
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const search = document.getElementById('booking-search');
-    const statusFilter = document.getElementById('status-filter');
-    if (!search) return;
+    document.addEventListener('DOMContentLoaded', function () {
+        const search = document.getElementById('booking-search');
+        const statusFilter = document.getElementById('status-filter');
+        if (!search) return;
 
-    function filterBookings() {
-        const term   = search.value.toLowerCase();
-        const status = statusFilter.value;
-        document.querySelectorAll('.booking-row').forEach(row => {
-            const matchSearch = (row.getAttribute('data-search') || '').includes(term);
-            const matchStatus = !status || row.getAttribute('data-status') === status;
-            row.style.display = (matchSearch && matchStatus) ? '' : 'none';
-        });
-    }
-    search.addEventListener('input', filterBookings);
-    statusFilter.addEventListener('change', filterBookings);
-});
+        function filterBookings() {
+            const term = search.value.toLowerCase();
+            const status = statusFilter.value;
+            document.querySelectorAll('.booking-row').forEach(row => {
+                const matchSearch = (row.getAttribute('data-search') || '').includes(term);
+                const matchStatus = !status || row.getAttribute('data-status') === status;
+                row.style.display = (matchSearch && matchStatus) ? '' : 'none';
+            });
+        }
+        search.addEventListener('input', filterBookings);
+        statusFilter.addEventListener('change', filterBookings);
+    });
 </script>
 {% endblock %}

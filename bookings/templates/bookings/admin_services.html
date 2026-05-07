@@ -27,15 +27,18 @@
         </div>
         <div class="col-md-2">
             <label class="form-label small fw-700 text-muted text-uppercase">Price (₹)</label>
-            <input type="number" step="0.01" min="0" name="price" class="form-control rounded-pill" placeholder="0.00" required>
+            <input type="number" step="0.01" min="0" name="price" class="form-control rounded-pill" placeholder="0.00"
+                required>
         </div>
         <div class="col-md-3">
             <label class="form-label small fw-700 text-muted text-uppercase">Duration (min)</label>
-            <input type="number" min="15" step="15" name="duration" class="form-control rounded-pill" value="60" required>
+            <input type="number" min="15" step="15" name="duration" class="form-control rounded-pill" value="60"
+                required>
         </div>
         <div class="col-12">
             <label class="form-label small fw-700 text-muted text-uppercase">Description</label>
-            <textarea name="description" class="form-control" rows="2" placeholder="Describe the service offerings..."></textarea>
+            <textarea name="description" class="form-control" rows="2"
+                placeholder="Describe the service offerings..."></textarea>
         </div>
         <div class="col-12 text-end">
             <button type="submit" class="btn btn-primary rounded-pill px-4">Create Service</button>
@@ -49,7 +52,8 @@
             <div class="col-md-6">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                    <input type="text" id="search-input" class="form-control border-start-0" placeholder="Search services...">
+                    <input type="text" id="search-input" class="form-control border-start-0"
+                        placeholder="Search services...">
                 </div>
             </div>
             <div class="col-md-3">
@@ -84,9 +88,8 @@
             </thead>
             <tbody>
                 {% for service in services %}
-                <tr class="service-row" 
-                    data-service-name="{{ service.name|lower }}" 
-                    data-category="{{ service.category.name }}" 
+                <tr class="service-row" data-service-name="{{ service.name|lower }}"
+                    data-category="{{ service.category.name }}"
                     data-status="{% if service.is_active %}Active{% else %}Inactive{% endif %}">
                     <td class="ps-4">
                         <div class="fw-bold">{{ service.name }}</div>
@@ -97,9 +100,9 @@
                     <td>
                         <div class="staff-pills-container d-flex flex-wrap gap-1" data-service-id="{{ service.id }}">
                             {% for staff in staff_users %}
-                            <button type="button" class="staff-pill-toggle {% if staff in service.staff.all %}assigned{% endif %}" 
-                                data-staff-id="{{ staff.id }}" 
-                                data-staff-name="{{ staff.display_name }}">
+                            <button type="button"
+                                class="staff-pill-toggle {% if staff in service.staff.all %}assigned{% endif %}"
+                                data-staff-id="{{ staff.id }}" data-staff-name="{{ staff.display_name }}">
                                 {{ staff.display_name|first }}
                             </button>
                             {% endfor %}
@@ -128,61 +131,61 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Filter logic
-    const searchInput = document.getElementById('search-input');
-    const categoryFilter = document.getElementById('category-filter');
-    const statusFilter = document.getElementById('status-filter');
-    const serviceRows = document.querySelectorAll('.service-row');
+    document.addEventListener('DOMContentLoaded', function () {
+        // 1. Filter logic
+        const searchInput = document.getElementById('search-input');
+        const categoryFilter = document.getElementById('category-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const serviceRows = document.querySelectorAll('.service-row');
 
-    function applyFilters() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const cat = categoryFilter.value;
-        const stat = statusFilter.value;
+        function applyFilters() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const cat = categoryFilter.value;
+            const stat = statusFilter.value;
 
-        serviceRows.forEach(row => {
-            const name = row.getAttribute('data-service-name');
-            const category = row.getAttribute('data-category');
-            const status = row.getAttribute('data-status');
+            serviceRows.forEach(row => {
+                const name = row.getAttribute('data-service-name');
+                const category = row.getAttribute('data-category');
+                const status = row.getAttribute('data-status');
 
-            const matchSearch = name.includes(searchTerm);
-            const matchCat = !cat || category === cat;
-            const matchStat = !stat || status === stat;
+                const matchSearch = name.includes(searchTerm);
+                const matchCat = !cat || category === cat;
+                const matchStat = !stat || status === stat;
 
-            row.style.display = (matchSearch && matchCat && matchStat) ? '' : 'none';
-        });
-    }
+                row.style.display = (matchSearch && matchCat && matchStat) ? '' : 'none';
+            });
+        }
 
-    searchInput.addEventListener('input', applyFilters);
-    categoryFilter.addEventListener('change', applyFilters);
-    statusFilter.addEventListener('change', applyFilters);
+        searchInput.addEventListener('input', applyFilters);
+        categoryFilter.addEventListener('change', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
 
-    // 2. Staff Pills Logic (simplified)
-    const staffPills = document.querySelectorAll('.staff-pill-toggle');
-    staffPills.forEach(pill => {
-        pill.addEventListener('click', function() {
-            const container = this.closest('.staff-pills-container');
-            const serviceId = container.getAttribute('data-service-id');
-            const staffId = this.getAttribute('data-staff-id');
-            const isAssigned = this.classList.contains('assigned');
+        // 2. Staff Pills Logic (simplified)
+        const staffPills = document.querySelectorAll('.staff-pill-toggle');
+        staffPills.forEach(pill => {
+            pill.addEventListener('click', function () {
+                const container = this.closest('.staff-pills-container');
+                const serviceId = container.getAttribute('data-service-id');
+                const staffId = this.getAttribute('data-staff-id');
+                const isAssigned = this.classList.contains('assigned');
 
-            this.classList.toggle('assigned');
-            
-            const assignedIds = Array.from(container.querySelectorAll('.staff-pill-toggle.assigned'))
-                                     .map(p => p.getAttribute('data-staff-id'));
+                this.classList.toggle('assigned');
 
-            const formData = new FormData();
-            formData.append('action', 'assign_staff');
-            formData.append('service_id', serviceId);
-            assignedIds.forEach(id => formData.append('staff_ids', id));
+                const assignedIds = Array.from(container.querySelectorAll('.staff-pill-toggle.assigned'))
+                    .map(p => p.getAttribute('data-staff-id'));
 
-            fetch(window.location.href, {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                const formData = new FormData();
+                formData.append('action', 'assign_staff');
+                formData.append('service_id', serviceId);
+                assignedIds.forEach(id => formData.append('staff_ids', id));
+
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                });
             });
         });
     });
-});
 </script>
 {% endblock %}

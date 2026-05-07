@@ -15,12 +15,13 @@
             <div>
                 <span class="role-chip mb-2">Customer booking</span>
                 <h2 class="mb-2">Book a service in a few clear steps</h2>
-                <p class="role-hero-copy mb-0">Pick a service, choose a professional, review the calendar availability, add a note, and confirm the booking.</p>
+                <p class="role-hero-copy mb-0">Pick a service, choose a professional, review the calendar availability,
+                    add a note, and confirm the booking.</p>
             </div>
         </div>
 
         {% if form.non_field_errors %}
-            <div class="alert alert-danger mt-3 mb-0">{{ form.non_field_errors }}</div>
+        <div class="alert alert-danger mt-3 mb-0">{{ form.non_field_errors }}</div>
         {% endif %}
 
         <div class="booking-stepper mt-4">
@@ -51,8 +52,10 @@
                 <div class="booking-controls mt-3">
                     <div class="search-filter-controls booking-service-controls">
                         <div class="position-relative">
-                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                            <input type="search" class="form-control ps-5" id="serviceSearchInput" placeholder="Search services, categories, or descriptions">
+                            <i
+                                class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                            <input type="search" class="form-control ps-5" id="serviceSearchInput"
+                                placeholder="Search services, categories, or descriptions">
                         </div>
                         <select class="form-select" id="serviceCategoryFilter" aria-label="Filter by category">
                             <option value="all">All Categories</option>
@@ -81,7 +84,8 @@
                 <div class="panel-lite mb-4">
                     <label class="form-label fw-bold mb-2" for="id_staff">Select Professional</label>
                     {{ form.staff }}
-                    {% if form.staff.errors %}<div class="text-danger mt-2 small">{{ form.staff.errors }}</div>{% endif %}
+                    {% if form.staff.errors %}<div class="text-danger mt-2 small">{{ form.staff.errors }}</div>{% endif
+                    %}
                 </div>
             </section>
 
@@ -113,45 +117,57 @@
             <section class="booking-flow-card glass-panel wizard-step active" data-step="1">
                 <div class="booking-service-grid mt-3" id="serviceGrid">
                     {% for service in services_payload %}
-                        <label class="booking-service-card {% if service.staff|length == 0 %}is-disabled{% endif %}" data-service-card data-service-id="{{ service.id }}" data-service-name="{{ service.name|lower }}" data-category-name="{{ service.category_name|lower }}" data-description="{{ service.description|lower }}" data-price="{{ service.price }}" data-duration="{{ service.duration }}" data-staff-count="{{ service.staff|length }}">
-                            <input type="radio" name="service_pick" value="{{ service.id }}" {% if form.service.value|stringformat:'s' == service.id|stringformat:'s' %}checked{% endif %} {% if service.staff|length == 0 %}disabled{% endif %}>
-                            <span class="booking-service-card-inner">
-                                <span class="booking-service-topline">
-                                    <span class="booking-service-name">{{ service.name }}</span>
-                                    <span class="service-availability-badge" data-service-availability>
-                                        {% if service.staff|length == 0 %}Unavailable{% else %}Available{% endif %}
-                                    </span>
-                                </span>
-                                <span class="booking-service-meta">{{ service.category_name }}</span>
-                                <span class="booking-service-description">{{ service.description }}</span>
-                                <span class="booking-service-bottomline">
-                                    <span>INR {{ service.price }}</span>
-                                    <span>{{ service.duration }} min</span>
-                                </span>
-                                <span class="booking-service-footer-note">
-                                    {% if service.staff|length == 0 %}
-                                        <span class="text-danger">No professionals assigned</span>
-                                    {% else %}
-                                        {{ service.staff|length }} professional{% if service.staff|length != 1 %}s{% endif %} assigned
-                                    {% endif %}
+                    <label class="booking-service-card {% if service.staff|length == 0 %}is-disabled{% endif %}"
+                        data-service-card data-service-id="{{ service.id }}"
+                        data-service-name="{{ service.name|lower }}"
+                        data-category-name="{{ service.category_name|lower }}"
+                        data-description="{{ service.description|lower }}" data-price="{{ service.price }}"
+                        data-duration="{{ service.duration }}" data-staff-count="{{ service.staff|length }}">
+                        <input type="radio" name="service_pick" value="{{ service.id }}" {% if
+                            form.service.value|stringformat:'s'==service.id|stringformat:'s' %}checked{% endif %} {% if
+                            service.staff|length==0 %}disabled{% endif %}>
+                        <span class="booking-service-card-inner">
+                            <span class="booking-service-topline">
+                                <span class="booking-service-name">{{ service.name }}</span>
+                                <span class="service-availability-badge" data-service-availability>
+                                    {% if service.staff|length == 0 %}Unavailable{% else %}Available{% endif %}
                                 </span>
                             </span>
-                        </label>
+                            <span class="booking-service-meta">{{ service.category_name }}</span>
+                            <span class="booking-service-description">{{ service.description }}</span>
+                            <span class="booking-service-bottomline">
+                                <span>INR {{ service.price }}</span>
+                                <span>{{ service.duration }} min</span>
+                            </span>
+                            <span class="booking-service-footer-note">
+                                {% if service.staff|length == 0 %}
+                                <span class="text-danger">No professionals assigned</span>
+                                {% else %}
+                                {{ service.staff|length }} professional{% if service.staff|length != 1 %}s{% endif %}
+                                assigned
+                                {% endif %}
+                            </span>
+                        </span>
+                    </label>
                     {% empty %}
-                        <div class="alert alert-warning mb-0">No services are currently available.</div>
+                    <div class="alert alert-warning mb-0">No services are currently available.</div>
                     {% endfor %}
                 </div>
-                <div class="booking-service-hint text-muted small mt-3">Tip: choose a service card to unlock the next step.</div>
-                {% if form.service.errors %}<div class="text-danger mt-2 small">{{ form.service.errors }}</div>{% endif %}
+                <div class="booking-service-hint text-muted small mt-3">Tip: choose a service card to unlock the next
+                    step.</div>
+                {% if form.service.errors %}<div class="text-danger mt-2 small">{{ form.service.errors }}</div>{% endif
+                %}
             </section>
 
             <!-- Step 2 Content -->
             <section class="booking-flow-card glass-panel wizard-step" data-step="2">
                 <div class="booking-calendar-shell">
                     <div class="calendar-toolbar">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" id="calendarPrevBtn"><i class="bi bi-chevron-left"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="calendarPrevBtn"><i
+                                class="bi bi-chevron-left"></i></button>
                         <div class="calendar-toolbar-title" id="calendarTitle"></div>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" id="calendarNextBtn"><i class="bi bi-chevron-right"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="calendarNextBtn"><i
+                                class="bi bi-chevron-right"></i></button>
                     </div>
                     <div class="calendar-weekdays">
                         <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
@@ -165,7 +181,8 @@
                 <div class="mt-3">
                     <label class="form-label" for="id_notes">Note for the booking</label>
                     {{ form.notes }}
-                    {% if form.notes.errors %}<div class="text-danger mt-2 small">{{ form.notes.errors }}</div>{% endif %}
+                    {% if form.notes.errors %}<div class="text-danger mt-2 small">{{ form.notes.errors }}</div>{% endif
+                    %}
                 </div>
             </section>
 
@@ -178,7 +195,8 @@
                     </div>
                     <div class="detail-panel-card">
                         <div class="section-kicker">Confirmation</div>
-                        <div class="confirmation-copy mb-3">Please confirm that the details and time selected above are correct.</div>
+                        <div class="confirmation-copy mb-3">Please confirm that the details and time selected above are
+                            correct.</div>
                         <label class="confirmation-check">
                             <input type="checkbox" id="confirmBookingCheck" required>
                             <span>I confirm this booking request.</span>
@@ -224,243 +242,243 @@
 </section>
 
 <script>
-(function () {
-    const servicesData = JSON.parse(document.getElementById('services-data').textContent || '[]');
-    const serviceCategoryFilter = document.getElementById('serviceCategoryFilter');
-    if (serviceCategoryFilter) {
-        const categories = [...new Set(servicesData.map(s => s.category_name))].sort();
-        categories.forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat.toLowerCase();
-            opt.textContent = cat;
-            serviceCategoryFilter.appendChild(opt);
-        });
-    }
-    const staffBlockedDates = JSON.parse(document.getElementById('staff-blocked-dates-data').textContent || '{}');
-    const staffBlockedSlots = JSON.parse(document.getElementById('staff-blocked-slots-data').textContent || '{}');
-    const staffBookedSlots = JSON.parse(document.getElementById('staff-booked-slots-data').textContent || '{}');
-
-    const form = document.getElementById('bookingWizardForm');
-    const serviceInput = document.getElementById('id_service');
-    const staffSelect = document.getElementById('id_staff');
-    const notesInput = document.getElementById('id_notes');
-    const dateInput = document.getElementById('id_scheduled_at');
-    const serviceSearchInput = document.getElementById('serviceSearchInput');
-    const serviceSortSelect = document.getElementById('serviceSortSelect');
-    const serviceCards = Array.from(document.querySelectorAll('[data-service-card]'));
-    const steps = Array.from(document.querySelectorAll('.wizard-step'));
-    const dots = Array.from(document.querySelectorAll('[data-step-dot]'));
-    const prevBtn = document.getElementById('wizardPrevBtn');
-    const nextBtn = document.getElementById('wizardNextBtn');
-    const submitBtn = document.getElementById('wizardSubmitBtn');
-    const wizardNotice = document.getElementById('wizardNotice');
-    const selectedDateInfo = document.getElementById('selectedDateInfo');
-    const selectedDateTimeHint = document.getElementById('selectedDateTimeHint');
-    const calendarGrid = document.getElementById('wizardCalendarGrid');
-    const calendarTitle = document.getElementById('calendarTitle');
-    const calendarPrevBtn = document.getElementById('calendarPrevBtn');
-    const calendarNextBtn = document.getElementById('calendarNextBtn');
-    const timeSlotsWrap = document.getElementById('wizardTimeSlots');
-    const selectedServiceTitle = document.getElementById('selectedServiceTitle');
-    const selectedDetailsList = document.getElementById('selectedDetailsList');
-    const bookingSummaryText = document.getElementById('bookingSummaryText');
-    const reviewPanel = document.getElementById('wizardReview');
-    const confirmBookingCheck = document.getElementById('confirmBookingCheck');
-
-    const timeSlots = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
-    const now = new Date();
-    // Threshold (number of booked slots) after which a day is marked 'partial'
-    const PARTIAL_THRESHOLD = 1; // change this value as needed (1 = any booked/blocked slot => partial)
-
-    let currentStep = 1;
-    let selectedDate = null;
-    let selectedTime = null;
-    let activeMonth = now.getMonth();
-    let activeYear = now.getFullYear();
-
-    function pad2(value) {
-        return String(value).padStart(2, '0');
-    }
-
-    function toIsoDate(dateObj) {
-        return `${dateObj.getFullYear()}-${pad2(dateObj.getMonth() + 1)}-${pad2(dateObj.getDate())}`;
-    }
-
-    function formatTime12(value) {
-        if (!value || !value.includes(':')) return value || '';
-        const [hourRaw, minute] = value.split(':');
-        const hour = Number(hourRaw);
-        if (Number.isNaN(hour)) return value;
-        const suffix = hour >= 12 ? 'PM' : 'AM';
-        const hour12 = hour % 12 || 12;
-        return `${hour12}:${minute} ${suffix}`;
-    }
-
-    function getSelectedService() {
-        if (!serviceInput || !serviceInput.value) return null;
-        return servicesData.find((item) => String(item.id) === String(serviceInput.value)) || null;
-    }
-
-    function selectedStaffId() {
-        if (!staffSelect) return '';
-        const value = String(staffSelect.value || '').trim();
-        if (!value || value === '--------' || value === '---------') {
-            return '';
+    (function () {
+        const servicesData = JSON.parse(document.getElementById('services-data').textContent || '[]');
+        const serviceCategoryFilter = document.getElementById('serviceCategoryFilter');
+        if (serviceCategoryFilter) {
+            const categories = [...new Set(servicesData.map(s => s.category_name))].sort();
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.toLowerCase();
+                opt.textContent = cat;
+                serviceCategoryFilter.appendChild(opt);
+            });
         }
-        return value;
-    }
+        const staffBlockedDates = JSON.parse(document.getElementById('staff-blocked-dates-data').textContent || '{}');
+        const staffBlockedSlots = JSON.parse(document.getElementById('staff-blocked-slots-data').textContent || '{}');
+        const staffBookedSlots = JSON.parse(document.getElementById('staff-booked-slots-data').textContent || '{}');
 
-    function showWizardNotice(message, level) {
-        if (!wizardNotice) return;
-        if (!message) {
-            wizardNotice.innerHTML = '';
-            return;
-        }
-        const alertLevel = level || 'warning';
-        wizardNotice.innerHTML = `<div class="alert alert-${alertLevel} py-2 mb-0">${message}</div>`;
-    }
+        const form = document.getElementById('bookingWizardForm');
+        const serviceInput = document.getElementById('id_service');
+        const staffSelect = document.getElementById('id_staff');
+        const notesInput = document.getElementById('id_notes');
+        const dateInput = document.getElementById('id_scheduled_at');
+        const serviceSearchInput = document.getElementById('serviceSearchInput');
+        const serviceSortSelect = document.getElementById('serviceSortSelect');
+        const serviceCards = Array.from(document.querySelectorAll('[data-service-card]'));
+        const steps = Array.from(document.querySelectorAll('.wizard-step'));
+        const dots = Array.from(document.querySelectorAll('[data-step-dot]'));
+        const prevBtn = document.getElementById('wizardPrevBtn');
+        const nextBtn = document.getElementById('wizardNextBtn');
+        const submitBtn = document.getElementById('wizardSubmitBtn');
+        const wizardNotice = document.getElementById('wizardNotice');
+        const selectedDateInfo = document.getElementById('selectedDateInfo');
+        const selectedDateTimeHint = document.getElementById('selectedDateTimeHint');
+        const calendarGrid = document.getElementById('wizardCalendarGrid');
+        const calendarTitle = document.getElementById('calendarTitle');
+        const calendarPrevBtn = document.getElementById('calendarPrevBtn');
+        const calendarNextBtn = document.getElementById('calendarNextBtn');
+        const timeSlotsWrap = document.getElementById('wizardTimeSlots');
+        const selectedServiceTitle = document.getElementById('selectedServiceTitle');
+        const selectedDetailsList = document.getElementById('selectedDetailsList');
+        const bookingSummaryText = document.getElementById('bookingSummaryText');
+        const reviewPanel = document.getElementById('wizardReview');
+        const confirmBookingCheck = document.getElementById('confirmBookingCheck');
 
-    function isPastDate(isoDate) {
-        return isoDate < toIsoDate(new Date());
-    }
+        const timeSlots = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+        const now = new Date();
+        // Threshold (number of booked slots) after which a day is marked 'partial'
+        const PARTIAL_THRESHOLD = 1; // change this value as needed (1 = any booked/blocked slot => partial)
 
-    function selectedServiceStaffIds() {
-        const service = getSelectedService();
-        if (!service || !Array.isArray(service.staff)) return [];
-        return service.staff.map((item) => String(item.id));
-    }
+        let currentStep = 1;
+        let selectedDate = null;
+        let selectedTime = null;
+        let activeMonth = now.getMonth();
+        let activeYear = now.getFullYear();
 
-    function isBlockedDate(isoDate) {
-        const staffId = selectedStaffId();
-        const blockedByStaff = staffId ? (staffBlockedDates[staffId] || []) : [];
-        return isPastDate(isoDate) || blockedByStaff.includes(isoDate);
-    }
-
-    function getDateStatus(isoDate) {
-        const staffId = selectedStaffId();
-        if (!staffId) {
-            return { status: 'neutral', label: 'Select staff', disabled: true };
-        }
-        const blockedByStaff = staffId ? (staffBlockedDates[staffId] || []) : [];
-        const manualBlockedSlots = staffId ? ((staffBlockedSlots[staffId] || {})[isoDate]) || [] : [];
-        const bookedSlots = staffId ? ((staffBookedSlots[staffId] || {})[isoDate]) || [] : [];
-        const bookedSet = new Set(bookedSlots);
-        const blockedSet = new Set(manualBlockedSlots);
-
-        if (isPastDate(isoDate)) {
-            return { status: 'past', label: 'Past', disabled: true };
+        function pad2(value) {
+            return String(value).padStart(2, '0');
         }
 
-        if (blockedByStaff.includes(isoDate)) {
-            return { status: 'closed', label: 'Absent', disabled: true };
+        function toIsoDate(dateObj) {
+            return `${dateObj.getFullYear()}-${pad2(dateObj.getMonth() + 1)}-${pad2(dateObj.getDate())}`;
         }
 
-        const totalBlockedCount = (bookedSlots || []).length + (manualBlockedSlots || []).length;
-        const hasBookedSlot = totalBlockedCount >= PARTIAL_THRESHOLD;
-        
-        const futureSlots = timeSlots.filter(slot => !isPastTimeForDate(isoDate, slot));
-        const openSlots = futureSlots.filter(slot => !bookedSet.has(slot) && !blockedSet.has(slot));
+        function formatTime12(value) {
+            if (!value || !value.includes(':')) return value || '';
+            const [hourRaw, minute] = value.split(':');
+            const hour = Number(hourRaw);
+            if (Number.isNaN(hour)) return value;
+            const suffix = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            return `${hour12}:${minute} ${suffix}`;
+        }
 
-        if (!openSlots.length) {
-            const isToday = isoDate === toIsoDate(new Date());
-            if (isToday && futureSlots.length === 0) {
-                return { status: 'past', label: 'Over', disabled: true };
+        function getSelectedService() {
+            if (!serviceInput || !serviceInput.value) return null;
+            return servicesData.find((item) => String(item.id) === String(serviceInput.value)) || null;
+        }
+
+        function selectedStaffId() {
+            if (!staffSelect) return '';
+            const value = String(staffSelect.value || '').trim();
+            if (!value || value === '--------' || value === '---------') {
+                return '';
             }
-            return { status: 'booked-out', label: 'Full', disabled: true };
+            return value;
         }
 
-        if (hasBookedSlot) {
-            return { status: 'partial', label: 'Partial', disabled: false };
+        function showWizardNotice(message, level) {
+            if (!wizardNotice) return;
+            if (!message) {
+                wizardNotice.innerHTML = '';
+                return;
+            }
+            const alertLevel = level || 'warning';
+            wizardNotice.innerHTML = `<div class="alert alert-${alertLevel} py-2 mb-0">${message}</div>`;
         }
 
-        return { status: 'open', label: 'Open', disabled: false };
-    }
-
-    function isBlockedSlot(isoDate, timeValue) {
-        const staffId = selectedStaffId();
-        if (!staffId) return false;
-        const manualBlocked = ((staffBlockedSlots[staffId] || {})[isoDate]) || [];
-        const booked = ((staffBookedSlots[staffId] || {})[isoDate]) || [];
-        return manualBlocked.includes(timeValue) || booked.includes(timeValue);
-    }
-
-    function isPastTimeForDate(isoDate, timeValue) {
-        const nowLocal = new Date();
-        const todayIso = toIsoDate(nowLocal);
-        if (isoDate !== todayIso) return false;
-        const [hour, minute] = timeValue.split(':').map(Number);
-        if (hour > nowLocal.getHours()) return false;
-        if (hour < nowLocal.getHours()) return true;
-        return minute <= nowLocal.getMinutes();
-    }
-
-    function isPastTimeForSelected(timeValue) {
-        if (!selectedDate) return false;
-        const nowLocal = new Date();
-        const todayIso = toIsoDate(nowLocal);
-        if (selectedDate !== todayIso) return false;
-        const [hour, minute] = timeValue.split(':').map(Number);
-        if (hour > nowLocal.getHours()) return false;
-        if (hour < nowLocal.getHours()) return true;
-        return minute <= nowLocal.getMinutes();
-    }
-
-    function availabilityScoreForService(service) {
-        const staffIds = Array.isArray(service.staff) ? service.staff.map((item) => String(item.id)) : [];
-        if (!staffIds.length) return 0;
-        if (!selectedDate) return staffIds.length;
-        return staffIds.reduce((count, staffId) => {
-            const blockedDates = staffBlockedDates[staffId] || [];
-            return count + (blockedDates.includes(selectedDate) ? 0 : 1);
-        }, 0);
-    }
-
-    function updateServiceAvailabilityBadges() {
-        serviceCards.forEach((card) => {
-            const badge = card.querySelector('[data-service-availability]');
-            const service = servicesData.find((item) => String(item.id) === String(card.dataset.serviceId));
-            if (!badge || !service) return;
-            const score = availabilityScoreForService(service);
-            badge.textContent = selectedDate ? `${score} available` : `${service.staff.length} professionals`;
-            badge.classList.toggle('is-empty', score === 0);
-        });
-    }
-
-    function syncDateTimeInput() {
-        if (dateInput) {
-            dateInput.value = selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : '';
+        function isPastDate(isoDate) {
+            return isoDate < toIsoDate(new Date());
         }
-        if (selectedDateTimeHint) {
-            selectedDateTimeHint.textContent = selectedDate && selectedTime
-                ? `Selected: ${selectedDate} ${formatTime12(selectedTime)}`
-                : 'No date/time selected';
-        }
-    }
 
-    function renderSummary() {
-        const selectedService = getSelectedService();
-        const staffText = staffSelect && staffSelect.selectedIndex >= 0 && staffSelect.value ? staffSelect.options[staffSelect.selectedIndex].textContent : 'Select professional';
-        if (bookingSummaryText) {
-            bookingSummaryText.innerHTML = `
+        function selectedServiceStaffIds() {
+            const service = getSelectedService();
+            if (!service || !Array.isArray(service.staff)) return [];
+            return service.staff.map((item) => String(item.id));
+        }
+
+        function isBlockedDate(isoDate) {
+            const staffId = selectedStaffId();
+            const blockedByStaff = staffId ? (staffBlockedDates[staffId] || []) : [];
+            return isPastDate(isoDate) || blockedByStaff.includes(isoDate);
+        }
+
+        function getDateStatus(isoDate) {
+            const staffId = selectedStaffId();
+            if (!staffId) {
+                return { status: 'neutral', label: 'Select staff', disabled: true };
+            }
+            const blockedByStaff = staffId ? (staffBlockedDates[staffId] || []) : [];
+            const manualBlockedSlots = staffId ? ((staffBlockedSlots[staffId] || {})[isoDate]) || [] : [];
+            const bookedSlots = staffId ? ((staffBookedSlots[staffId] || {})[isoDate]) || [] : [];
+            const bookedSet = new Set(bookedSlots);
+            const blockedSet = new Set(manualBlockedSlots);
+
+            if (isPastDate(isoDate)) {
+                return { status: 'past', label: 'Past', disabled: true };
+            }
+
+            if (blockedByStaff.includes(isoDate)) {
+                return { status: 'closed', label: 'Absent', disabled: true };
+            }
+
+            const totalBlockedCount = (bookedSlots || []).length + (manualBlockedSlots || []).length;
+            const hasBookedSlot = totalBlockedCount >= PARTIAL_THRESHOLD;
+
+            const futureSlots = timeSlots.filter(slot => !isPastTimeForDate(isoDate, slot));
+            const openSlots = futureSlots.filter(slot => !bookedSet.has(slot) && !blockedSet.has(slot));
+
+            if (!openSlots.length) {
+                const isToday = isoDate === toIsoDate(new Date());
+                if (isToday && futureSlots.length === 0) {
+                    return { status: 'past', label: 'Over', disabled: true };
+                }
+                return { status: 'booked-out', label: 'Full', disabled: true };
+            }
+
+            if (hasBookedSlot) {
+                return { status: 'partial', label: 'Partial', disabled: false };
+            }
+
+            return { status: 'open', label: 'Open', disabled: false };
+        }
+
+        function isBlockedSlot(isoDate, timeValue) {
+            const staffId = selectedStaffId();
+            if (!staffId) return false;
+            const manualBlocked = ((staffBlockedSlots[staffId] || {})[isoDate]) || [];
+            const booked = ((staffBookedSlots[staffId] || {})[isoDate]) || [];
+            return manualBlocked.includes(timeValue) || booked.includes(timeValue);
+        }
+
+        function isPastTimeForDate(isoDate, timeValue) {
+            const nowLocal = new Date();
+            const todayIso = toIsoDate(nowLocal);
+            if (isoDate !== todayIso) return false;
+            const [hour, minute] = timeValue.split(':').map(Number);
+            if (hour > nowLocal.getHours()) return false;
+            if (hour < nowLocal.getHours()) return true;
+            return minute <= nowLocal.getMinutes();
+        }
+
+        function isPastTimeForSelected(timeValue) {
+            if (!selectedDate) return false;
+            const nowLocal = new Date();
+            const todayIso = toIsoDate(nowLocal);
+            if (selectedDate !== todayIso) return false;
+            const [hour, minute] = timeValue.split(':').map(Number);
+            if (hour > nowLocal.getHours()) return false;
+            if (hour < nowLocal.getHours()) return true;
+            return minute <= nowLocal.getMinutes();
+        }
+
+        function availabilityScoreForService(service) {
+            const staffIds = Array.isArray(service.staff) ? service.staff.map((item) => String(item.id)) : [];
+            if (!staffIds.length) return 0;
+            if (!selectedDate) return staffIds.length;
+            return staffIds.reduce((count, staffId) => {
+                const blockedDates = staffBlockedDates[staffId] || [];
+                return count + (blockedDates.includes(selectedDate) ? 0 : 1);
+            }, 0);
+        }
+
+        function updateServiceAvailabilityBadges() {
+            serviceCards.forEach((card) => {
+                const badge = card.querySelector('[data-service-availability]');
+                const service = servicesData.find((item) => String(item.id) === String(card.dataset.serviceId));
+                if (!badge || !service) return;
+                const score = availabilityScoreForService(service);
+                badge.textContent = selectedDate ? `${score} available` : `${service.staff.length} professionals`;
+                badge.classList.toggle('is-empty', score === 0);
+            });
+        }
+
+        function syncDateTimeInput() {
+            if (dateInput) {
+                dateInput.value = selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : '';
+            }
+            if (selectedDateTimeHint) {
+                selectedDateTimeHint.textContent = selectedDate && selectedTime
+                    ? `Selected: ${selectedDate} ${formatTime12(selectedTime)}`
+                    : 'No date/time selected';
+            }
+        }
+
+        function renderSummary() {
+            const selectedService = getSelectedService();
+            const staffText = staffSelect && staffSelect.selectedIndex >= 0 && staffSelect.value ? staffSelect.options[staffSelect.selectedIndex].textContent : 'Select professional';
+            if (bookingSummaryText) {
+                bookingSummaryText.innerHTML = `
                 <div><span>Service</span><strong>${selectedService ? selectedService.name : 'Choose a service'}</strong></div>
                 <div><span>Professional</span><strong>${staffText}</strong></div>
                 <div><span>Date</span><strong>${selectedDate || 'Choose a date'}</strong></div>
                 <div><span>Time</span><strong>${selectedTime ? formatTime12(selectedTime) : 'Choose a time'}</strong></div>
             `;
-        }
-        if (selectedServiceTitle) {
-            selectedServiceTitle.textContent = selectedService ? selectedService.name : 'Nothing selected yet';
-        }
-        if (selectedDetailsList) {
-            selectedDetailsList.innerHTML = `
+            }
+            if (selectedServiceTitle) {
+                selectedServiceTitle.textContent = selectedService ? selectedService.name : 'Nothing selected yet';
+            }
+            if (selectedDetailsList) {
+                selectedDetailsList.innerHTML = `
                 <div><span>Service</span><strong>${selectedService ? selectedService.name : 'Not selected'}</strong></div>
                 <div><span>Professional</span><strong>${staffText}</strong></div>
                 <div><span>Date</span><strong>${selectedDate || 'Not selected'}</strong></div>
                 <div><span>Time</span><strong>${selectedTime ? formatTime12(selectedTime) : 'Not selected'}</strong></div>
             `;
-        }
-        if (reviewPanel) {
-            reviewPanel.innerHTML = `
+            }
+            if (reviewPanel) {
+                reviewPanel.innerHTML = `
                 <div><strong>Service:</strong> ${selectedService ? selectedService.name : 'Not selected'}</div>
                 <div><strong>Category:</strong> ${selectedService ? selectedService.category_name : '-'}</div>
                 <div><strong>Duration:</strong> ${selectedService ? `${selectedService.duration} min` : '-'}</div>
@@ -469,418 +487,418 @@
                 <div><strong>Date & Time:</strong> ${selectedDate && selectedTime ? `${selectedDate} ${formatTime12(selectedTime)}` : 'Not selected'}</div>
                 <div><strong>Notes:</strong> ${notesInput && notesInput.value ? notesInput.value : 'No extra notes'}</div>
             `;
+            }
         }
-    }
 
-    function syncStaffOptions() {
-        const allowedIds = selectedServiceStaffIds();
-        if (!staffSelect) return;
+        function syncStaffOptions() {
+            const allowedIds = selectedServiceStaffIds();
+            if (!staffSelect) return;
 
-        Array.from(staffSelect.options).forEach((option) => {
-            if (!option.value) return;
-            option.hidden = allowedIds.length ? !allowedIds.includes(String(option.value)) : false;
-        });
-
-        if (staffSelect.value && allowedIds.length && !allowedIds.includes(String(staffSelect.value))) {
-            staffSelect.value = '';
-        }
-        // No auto-selection: "remove any default value"
-        // if (!staffSelect.value && allowedIds.length === 1) {
-        //     staffSelect.value = allowedIds[0];
-        // }
-    }
-
-    function renderServiceCards() {
-        const searchValue = serviceSearchInput ? serviceSearchInput.value.trim().toLowerCase() : '';
-        const categoryValue = serviceCategoryFilter ? serviceCategoryFilter.value : 'all';
-        const sortValue = serviceSortSelect ? serviceSortSelect.value : 'availability';
-
-        const visibleCards = serviceCards.filter((card) => {
-            const haystack = `${card.dataset.serviceName} ${card.dataset.categoryName} ${card.dataset.description}`;
-            const matchesSearch = !searchValue || haystack.includes(searchValue);
-            const matchesCategory = categoryValue === 'all' || card.dataset.categoryName === categoryValue;
-            return matchesSearch && matchesCategory;
-        });
-
-        visibleCards.sort((left, right) => {
-            const leftService = servicesData.find((item) => String(item.id) === String(left.dataset.serviceId));
-            const rightService = servicesData.find((item) => String(item.id) === String(right.dataset.serviceId));
-            if (!leftService || !rightService) return 0;
-
-            const leftScore = availabilityScoreForService(leftService);
-            const rightScore = availabilityScoreForService(rightService);
-
-            if (sortValue === 'name') return leftService.name.localeCompare(rightService.name);
-            if (sortValue === 'price-low') return Number(leftService.price) - Number(rightService.price);
-            if (sortValue === 'price-high') return Number(rightService.price) - Number(leftService.price);
-            if (sortValue === 'duration') return Number(leftService.duration) - Number(rightService.duration);
-            if (rightScore !== leftScore) return rightScore - leftScore;
-            return leftService.name.localeCompare(rightService.name);
-        });
-
-        const grid = document.getElementById('serviceGrid');
-        if (grid) {
-            visibleCards.forEach((card) => {
-                card.hidden = false;
-                grid.appendChild(card);
+            Array.from(staffSelect.options).forEach((option) => {
+                if (!option.value) return;
+                option.hidden = allowedIds.length ? !allowedIds.includes(String(option.value)) : false;
             });
-            serviceCards.forEach((card) => {
-                if (!visibleCards.includes(card)) {
-                    card.hidden = true;
+
+            if (staffSelect.value && allowedIds.length && !allowedIds.includes(String(staffSelect.value))) {
+                staffSelect.value = '';
+            }
+            // No auto-selection: "remove any default value"
+            // if (!staffSelect.value && allowedIds.length === 1) {
+            //     staffSelect.value = allowedIds[0];
+            // }
+        }
+
+        function renderServiceCards() {
+            const searchValue = serviceSearchInput ? serviceSearchInput.value.trim().toLowerCase() : '';
+            const categoryValue = serviceCategoryFilter ? serviceCategoryFilter.value : 'all';
+            const sortValue = serviceSortSelect ? serviceSortSelect.value : 'availability';
+
+            const visibleCards = serviceCards.filter((card) => {
+                const haystack = `${card.dataset.serviceName} ${card.dataset.categoryName} ${card.dataset.description}`;
+                const matchesSearch = !searchValue || haystack.includes(searchValue);
+                const matchesCategory = categoryValue === 'all' || card.dataset.categoryName === categoryValue;
+                return matchesSearch && matchesCategory;
+            });
+
+            visibleCards.sort((left, right) => {
+                const leftService = servicesData.find((item) => String(item.id) === String(left.dataset.serviceId));
+                const rightService = servicesData.find((item) => String(item.id) === String(right.dataset.serviceId));
+                if (!leftService || !rightService) return 0;
+
+                const leftScore = availabilityScoreForService(leftService);
+                const rightScore = availabilityScoreForService(rightService);
+
+                if (sortValue === 'name') return leftService.name.localeCompare(rightService.name);
+                if (sortValue === 'price-low') return Number(leftService.price) - Number(rightService.price);
+                if (sortValue === 'price-high') return Number(rightService.price) - Number(leftService.price);
+                if (sortValue === 'duration') return Number(leftService.duration) - Number(rightService.duration);
+                if (rightScore !== leftScore) return rightScore - leftScore;
+                return leftService.name.localeCompare(rightService.name);
+            });
+
+            const grid = document.getElementById('serviceGrid');
+            if (grid) {
+                visibleCards.forEach((card) => {
+                    card.hidden = false;
                     grid.appendChild(card);
+                });
+                serviceCards.forEach((card) => {
+                    if (!visibleCards.includes(card)) {
+                        card.hidden = true;
+                        grid.appendChild(card);
+                    }
+                });
+            }
+            updateServiceAvailabilityBadges();
+        }
+
+        function selectService(serviceId) {
+            if (serviceInput) {
+                serviceInput.value = serviceId;
+            }
+            serviceCards.forEach((card) => {
+                card.classList.toggle('selected', String(card.dataset.serviceId) === String(serviceId));
+                const radio = card.querySelector("input[type='radio']");
+                if (radio) {
+                    radio.checked = String(radio.value) === String(serviceId);
                 }
             });
-        }
-        updateServiceAvailabilityBadges();
-    }
 
-    function selectService(serviceId) {
-        if (serviceInput) {
-            serviceInput.value = serviceId;
+            syncStaffOptions();
+            selectedDate = null;
+            selectedTime = null;
+            syncDateTimeInput();
+            renderCalendar();
+            renderTimeSlots();
+            renderSummary();
+            showWizardNotice('');
         }
+
+        function renderCalendar() {
+            if (!calendarGrid || !calendarTitle) return;
+            calendarGrid.innerHTML = '';
+
+            const monthStart = new Date(activeYear, activeMonth, 1);
+            const monthEnd = new Date(activeYear, activeMonth + 1, 0);
+            const firstDay = (monthStart.getDay() + 6) % 7;
+            const totalDays = monthEnd.getDate();
+
+            calendarTitle.textContent = monthStart.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+            for (let i = 0; i < firstDay; i += 1) {
+                const spacer = document.createElement('span');
+                spacer.className = 'calendar-empty';
+                calendarGrid.appendChild(spacer);
+            }
+
+            for (let day = 1; day <= totalDays; day += 1) {
+                const dateObj = new Date(activeYear, activeMonth, day);
+                const isoDate = toIsoDate(dateObj);
+                const staffId = selectedStaffId();
+                const dateStatus = getDateStatus(isoDate);
+
+                const cell = document.createElement('button');
+                cell.type = 'button';
+                cell.className = 'calendar-day';
+
+                if (isoDate === toIsoDate(new Date())) {
+                    cell.classList.add('is-today');
+                }
+
+                cell.innerHTML = `<span class="calendar-day-number">${day}</span><span class="calendar-day-label"></span>`;
+
+                cell.dataset.status = dateStatus.status;
+                if (dateStatus.status && dateStatus.status !== 'neutral') {
+                    cell.classList.add(`is-${dateStatus.status}`);
+                    cell.querySelector('.calendar-day-label').textContent = dateStatus.label;
+                } else {
+                    // neutral state: no colored class, minimal label
+                    cell.querySelector('.calendar-day-label').textContent = '';
+                }
+
+                cell.disabled = !!dateStatus.disabled;
+
+                if (selectedDate === isoDate) {
+                    cell.classList.add('is-selected');
+                }
+
+                cell.addEventListener('click', function () {
+                    selectedDate = isoDate;
+                    selectedTime = null;
+                    if (selectedDateInfo) {
+                        selectedDateInfo.textContent = `${selectedDate} - Select a time below`;
+                    }
+                    syncDateTimeInput();
+                    renderCalendar();
+                    renderTimeSlots();
+                    renderSummary();
+                    showWizardNotice('');
+                });
+
+                calendarGrid.appendChild(cell);
+            }
+
+            updateServiceAvailabilityBadges();
+        }
+
+        function renderTimeSlots() {
+            if (!timeSlotsWrap) return;
+            timeSlotsWrap.innerHTML = '';
+
+            if (!selectedDate) {
+                const message = document.createElement('div');
+                message.className = 'text-muted small';
+                message.textContent = 'Select a date to see available times';
+                timeSlotsWrap.appendChild(message);
+                return;
+            }
+
+            timeSlots.forEach((slot) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'time-slot-btn';
+                btn.textContent = formatTime12(slot);
+
+                const disabled = isPastTimeForSelected(slot) || isBlockedSlot(selectedDate, slot);
+                if (disabled) {
+                    btn.disabled = true;
+                    btn.classList.add('is-unavailable');
+                } else {
+                    btn.classList.add('is-available');
+                }
+
+                if (slot === selectedTime) {
+                    btn.classList.add('is-selected');
+                }
+
+                btn.addEventListener('click', function () {
+                    selectedTime = slot;
+                    syncDateTimeInput();
+                    renderTimeSlots();
+                    renderSummary();
+                    showWizardNotice('');
+                });
+
+                timeSlotsWrap.appendChild(btn);
+            });
+        }
+
+        function getStepValidationMessage(step) {
+            if (step === 1) {
+                if (!serviceInput || !serviceInput.value) {
+                    return 'Please select a service.';
+                }
+                return '';
+            }
+            if (step === 2) {
+                if (!staffSelect || !staffSelect.value) {
+                    return 'Please select a professional.';
+                }
+                if (!selectedDate) {
+                    return 'Please select a date.';
+                }
+                if (isBlockedDate(selectedDate)) {
+                    return 'The selected date is not available.';
+                }
+                if (!selectedTime) {
+                    return 'Please select a time slot.';
+                }
+                if (isPastTimeForSelected(selectedTime)) {
+                    return 'The selected time is no longer available.';
+                }
+                return '';
+            }
+            if (step === 3) {
+                return '';
+            }
+            if (step === 4 && confirmBookingCheck && !confirmBookingCheck.checked) {
+                return 'Please confirm the booking request before submitting.';
+            }
+            return '';
+        }
+
+        function validateStep(step) {
+            return !getStepValidationMessage(step);
+        }
+
+        function syncStepUI() {
+            steps.forEach((stepEl) => {
+                const stepNum = parseInt(stepEl.dataset.step);
+                const isActive = stepNum === currentStep;
+                stepEl.classList.toggle('active', isActive);
+                stepEl.hidden = !isActive;
+            });
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index + 1 <= currentStep);
+            });
+
+            if (prevBtn) {
+                prevBtn.classList.toggle('d-none', currentStep === 1);
+            }
+            if (nextBtn) {
+                nextBtn.classList.toggle('d-none', currentStep === 4);
+                nextBtn.classList.toggle('w-100', currentStep === 1);
+            }
+            if (submitBtn) submitBtn.classList.toggle('d-none', currentStep !== 4);
+
+            const sidebarSlots = document.getElementById('sidebarTimeSlotsCard');
+            if (sidebarSlots) {
+                sidebarSlots.style.display = (currentStep === 2) ? 'block' : 'none';
+            }
+        }
+
         serviceCards.forEach((card) => {
-            card.classList.toggle('selected', String(card.dataset.serviceId) === String(serviceId));
             const radio = card.querySelector("input[type='radio']");
-            if (radio) {
-                radio.checked = String(radio.value) === String(serviceId);
+            if (!radio) return;
+
+            radio.addEventListener('change', function () {
+                if (radio.checked) {
+                    selectService(radio.value);
+                    showWizardNotice('');
+                }
+            });
+
+            if (radio.checked) {
+                card.classList.add('selected');
+                if (serviceInput) {
+                    serviceInput.value = radio.value;
+                }
             }
         });
 
-        syncStaffOptions();
-        selectedDate = null;
-        selectedTime = null;
-        syncDateTimeInput();
-        renderCalendar();
-        renderTimeSlots();
-        renderSummary();
-        showWizardNotice('');
-    }
-
-    function renderCalendar() {
-        if (!calendarGrid || !calendarTitle) return;
-        calendarGrid.innerHTML = '';
-
-        const monthStart = new Date(activeYear, activeMonth, 1);
-        const monthEnd = new Date(activeYear, activeMonth + 1, 0);
-        const firstDay = (monthStart.getDay() + 6) % 7;
-        const totalDays = monthEnd.getDate();
-
-        calendarTitle.textContent = monthStart.toLocaleString('default', { month: 'long', year: 'numeric' });
-
-        for (let i = 0; i < firstDay; i += 1) {
-            const spacer = document.createElement('span');
-            spacer.className = 'calendar-empty';
-            calendarGrid.appendChild(spacer);
+        if (serviceCategoryFilter) {
+            serviceCategoryFilter.addEventListener('change', renderServiceCards);
+        }
+        if (serviceSearchInput) {
+            serviceSearchInput.addEventListener('input', renderServiceCards);
         }
 
-        for (let day = 1; day <= totalDays; day += 1) {
-            const dateObj = new Date(activeYear, activeMonth, day);
-            const isoDate = toIsoDate(dateObj);
-            const staffId = selectedStaffId();
-            const dateStatus = getDateStatus(isoDate);
+        if (serviceSortSelect) {
+            serviceSortSelect.addEventListener('change', renderServiceCards);
+        }
 
-            const cell = document.createElement('button');
-            cell.type = 'button';
-            cell.className = 'calendar-day';
-            
-            if (isoDate === toIsoDate(new Date())) {
-                cell.classList.add('is-today');
-            }
-
-            cell.innerHTML = `<span class="calendar-day-number">${day}</span><span class="calendar-day-label"></span>`;
-
-            cell.dataset.status = dateStatus.status;
-            if (dateStatus.status && dateStatus.status !== 'neutral') {
-                cell.classList.add(`is-${dateStatus.status}`);
-                cell.querySelector('.calendar-day-label').textContent = dateStatus.label;
-            } else {
-                // neutral state: no colored class, minimal label
-                cell.querySelector('.calendar-day-label').textContent = '';
-            }
-
-            cell.disabled = !!dateStatus.disabled;
-
-            if (selectedDate === isoDate) {
-                cell.classList.add('is-selected');
-            }
-
-            cell.addEventListener('click', function () {
-                selectedDate = isoDate;
+        if (staffSelect) {
+            staffSelect.addEventListener('change', function () {
+                selectedDate = null;
                 selectedTime = null;
-                if (selectedDateInfo) {
-                    selectedDateInfo.textContent = `${selectedDate} - Select a time below`;
-                }
                 syncDateTimeInput();
+                if (selectedDateInfo) {
+                    selectedDateInfo.textContent = 'Select a date to see available times';
+                }
+                syncStaffOptions();
                 renderCalendar();
                 renderTimeSlots();
                 renderSummary();
                 showWizardNotice('');
             });
-
-            calendarGrid.appendChild(cell);
         }
 
-        updateServiceAvailabilityBadges();
-    }
-
-    function renderTimeSlots() {
-        if (!timeSlotsWrap) return;
-        timeSlotsWrap.innerHTML = '';
-
-        if (!selectedDate) {
-            const message = document.createElement('div');
-            message.className = 'text-muted small';
-            message.textContent = 'Select a date to see available times';
-            timeSlotsWrap.appendChild(message);
-            return;
+        if (notesInput) {
+            notesInput.addEventListener('input', renderSummary);
         }
-
-        timeSlots.forEach((slot) => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'time-slot-btn';
-            btn.textContent = formatTime12(slot);
-
-            const disabled = isPastTimeForSelected(slot) || isBlockedSlot(selectedDate, slot);
-            if (disabled) {
-                btn.disabled = true;
-                btn.classList.add('is-unavailable');
-            } else {
-                btn.classList.add('is-available');
-            }
-
-            if (slot === selectedTime) {
-                btn.classList.add('is-selected');
-            }
-
-            btn.addEventListener('click', function () {
-                selectedTime = slot;
-                syncDateTimeInput();
-                renderTimeSlots();
-                renderSummary();
-                showWizardNotice('');
-            });
-
-            timeSlotsWrap.appendChild(btn);
-        });
-    }
-
-    function getStepValidationMessage(step) {
-        if (step === 1) {
-            if (!serviceInput || !serviceInput.value) {
-                return 'Please select a service.';
-            }
-            return '';
-        }
-        if (step === 2) {
-            if (!staffSelect || !staffSelect.value) {
-                return 'Please select a professional.';
-            }
-            if (!selectedDate) {
-                return 'Please select a date.';
-            }
-            if (isBlockedDate(selectedDate)) {
-                return 'The selected date is not available.';
-            }
-            if (!selectedTime) {
-                return 'Please select a time slot.';
-            }
-            if (isPastTimeForSelected(selectedTime)) {
-                return 'The selected time is no longer available.';
-            }
-            return '';
-        }
-        if (step === 3) {
-            return '';
-        }
-        if (step === 4 && confirmBookingCheck && !confirmBookingCheck.checked) {
-            return 'Please confirm the booking request before submitting.';
-        }
-        return '';
-    }
-
-    function validateStep(step) {
-        return !getStepValidationMessage(step);
-    }
-
-    function syncStepUI() {
-        steps.forEach((stepEl) => {
-            const stepNum = parseInt(stepEl.dataset.step);
-            const isActive = stepNum === currentStep;
-            stepEl.classList.toggle('active', isActive);
-            stepEl.hidden = !isActive;
-        });
-        dots.forEach((dot, index) => {
-            dot.classList.toggle('active', index + 1 <= currentStep);
-        });
 
         if (prevBtn) {
-            prevBtn.classList.toggle('d-none', currentStep === 1);
-        }
-        if (nextBtn) {
-            nextBtn.classList.toggle('d-none', currentStep === 4);
-            nextBtn.classList.toggle('w-100', currentStep === 1);
-        }
-        if (submitBtn) submitBtn.classList.toggle('d-none', currentStep !== 4);
-
-        const sidebarSlots = document.getElementById('sidebarTimeSlotsCard');
-        if (sidebarSlots) {
-            sidebarSlots.style.display = (currentStep === 2) ? 'block' : 'none';
-        }
-    }
-
-    serviceCards.forEach((card) => {
-        const radio = card.querySelector("input[type='radio']");
-        if (!radio) return;
-
-        radio.addEventListener('change', function () {
-            if (radio.checked) {
-                selectService(radio.value);
-                showWizardNotice('');
-            }
-        });
-
-        if (radio.checked) {
-            card.classList.add('selected');
-            if (serviceInput) {
-                serviceInput.value = radio.value;
-            }
-        }
-    });
-
-    if (serviceCategoryFilter) {
-        serviceCategoryFilter.addEventListener('change', renderServiceCards);
-    }
-    if (serviceSearchInput) {
-        serviceSearchInput.addEventListener('input', renderServiceCards);
-    }
-
-    if (serviceSortSelect) {
-        serviceSortSelect.addEventListener('change', renderServiceCards);
-    }
-
-    if (staffSelect) {
-        staffSelect.addEventListener('change', function () {
-            selectedDate = null;
-            selectedTime = null;
-            syncDateTimeInput();
-            if (selectedDateInfo) {
-                selectedDateInfo.textContent = 'Select a date to see available times';
-            }
-            syncStaffOptions();
-            renderCalendar();
-            renderTimeSlots();
-            renderSummary();
-            showWizardNotice('');
-        });
-    }
-
-    if (notesInput) {
-        notesInput.addEventListener('input', renderSummary);
-    }
-
-    if (prevBtn) {
-        prevBtn.addEventListener('click', function () {
-            if (currentStep > 1) {
-                currentStep -= 1;
-                syncStepUI();
-                showWizardNotice('');
-            }
-        });
-    }
-
-    if (nextBtn) {
-        nextBtn.addEventListener('click', function () {
-            const validationMessage = getStepValidationMessage(currentStep);
-            if (validationMessage) {
-                showWizardNotice(validationMessage, 'warning');
-                return;
-            }
-            showWizardNotice('');
-            if (currentStep < 4) {
-                currentStep += 1;
-                syncStepUI();
-                try {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                } catch (e) {
-                    window.scrollTo(0, 0);
-                }
-                if (currentStep === 4) {
-                    renderSummary();
-                }
-            }
-        });
-    }
-
-    if (calendarPrevBtn) {
-        calendarPrevBtn.addEventListener('click', function () {
-            activeMonth -= 1;
-            if (activeMonth < 0) {
-                activeMonth = 11;
-                activeYear -= 1;
-            }
-            renderCalendar();
-        });
-    }
-
-    if (calendarNextBtn) {
-        calendarNextBtn.addEventListener('click', function () {
-            activeMonth += 1;
-            if (activeMonth > 11) {
-                activeMonth = 0;
-                activeYear += 1;
-            }
-            renderCalendar();
-        });
-    }
-
-    if (form) {
-        form.addEventListener('submit', function (event) {
-            const confirmationMessage = getStepValidationMessage(4);
-            if (!validateStep(2) || confirmationMessage) {
-                event.preventDefault();
-                currentStep = 4;
-                syncStepUI();
-                showWizardNotice(confirmationMessage || getStepValidationMessage(2), 'warning');
-                return;
-            }
-        });
-    }
-
-    syncStaffOptions();
-    renderServiceCards();
-    renderCalendar();
-    renderTimeSlots();
-    renderSummary();
-    syncDateTimeInput();
-    syncStepUI();
-
-    // Watch for staff select value changes (covers cases where a custom UI
-    // updates a visible control but doesn't dispatch a native change event).
-    try {
-        let lastStaffValue = staffSelect ? String(staffSelect.value) : null;
-        setInterval(function () {
-            try {
-                if (!staffSelect) return;
-                const current = String(staffSelect.value || '');
-                if (current !== lastStaffValue) {
-                    lastStaffValue = current;
-                    // reuse change-handler behaviour
-                    selectedDate = null;
-                    selectedTime = null;
-                    syncDateTimeInput();
-                    if (selectedDateInfo) selectedDateInfo.textContent = 'Select a date to see available times';
-                    syncStaffOptions();
-                    renderCalendar();
-                    renderTimeSlots();
-                    renderSummary();
+            prevBtn.addEventListener('click', function () {
+                if (currentStep > 1) {
+                    currentStep -= 1;
+                    syncStepUI();
                     showWizardNotice('');
                 }
-            } catch (err) {
-                // swallow
-            }
-        }, 300);
-    } catch (e) {}
-})();
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function () {
+                const validationMessage = getStepValidationMessage(currentStep);
+                if (validationMessage) {
+                    showWizardNotice(validationMessage, 'warning');
+                    return;
+                }
+                showWizardNotice('');
+                if (currentStep < 4) {
+                    currentStep += 1;
+                    syncStepUI();
+                    try {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } catch (e) {
+                        window.scrollTo(0, 0);
+                    }
+                    if (currentStep === 4) {
+                        renderSummary();
+                    }
+                }
+            });
+        }
+
+        if (calendarPrevBtn) {
+            calendarPrevBtn.addEventListener('click', function () {
+                activeMonth -= 1;
+                if (activeMonth < 0) {
+                    activeMonth = 11;
+                    activeYear -= 1;
+                }
+                renderCalendar();
+            });
+        }
+
+        if (calendarNextBtn) {
+            calendarNextBtn.addEventListener('click', function () {
+                activeMonth += 1;
+                if (activeMonth > 11) {
+                    activeMonth = 0;
+                    activeYear += 1;
+                }
+                renderCalendar();
+            });
+        }
+
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                const confirmationMessage = getStepValidationMessage(4);
+                if (!validateStep(2) || confirmationMessage) {
+                    event.preventDefault();
+                    currentStep = 4;
+                    syncStepUI();
+                    showWizardNotice(confirmationMessage || getStepValidationMessage(2), 'warning');
+                    return;
+                }
+            });
+        }
+
+        syncStaffOptions();
+        renderServiceCards();
+        renderCalendar();
+        renderTimeSlots();
+        renderSummary();
+        syncDateTimeInput();
+        syncStepUI();
+
+        // Watch for staff select value changes (covers cases where a custom UI
+        // updates a visible control but doesn't dispatch a native change event).
+        try {
+            let lastStaffValue = staffSelect ? String(staffSelect.value) : null;
+            setInterval(function () {
+                try {
+                    if (!staffSelect) return;
+                    const current = String(staffSelect.value || '');
+                    if (current !== lastStaffValue) {
+                        lastStaffValue = current;
+                        // reuse change-handler behaviour
+                        selectedDate = null;
+                        selectedTime = null;
+                        syncDateTimeInput();
+                        if (selectedDateInfo) selectedDateInfo.textContent = 'Select a date to see available times';
+                        syncStaffOptions();
+                        renderCalendar();
+                        renderTimeSlots();
+                        renderSummary();
+                        showWizardNotice('');
+                    }
+                } catch (err) {
+                    // swallow
+                }
+            }, 300);
+        } catch (e) { }
+    })();
 </script>
 {% endblock %}

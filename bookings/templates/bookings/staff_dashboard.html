@@ -2,389 +2,423 @@
 {% block title %}Staff Dashboard | {{ active_tab|capfirst }}{% endblock %}
 
 {% block dashboard_content %}
-        {% if active_tab == 'overview' %}
-            <!-- Overview Tab -->
-            <div class="dash-section-header">
-                <span class="role-chip mb-2">Staff Workspace</span>
-                <h2>Welcome, {{ request.user.first_name }}</h2>
-                <p class="text-muted">Track your performance and upcoming tasks.</p>
-            </div>
+{% if active_tab == 'overview' %}
+<!-- Overview Tab -->
+<div class="dash-section-header">
+    <span class="role-chip mb-2">Staff Workspace</span>
+    <h2>Welcome, {{ request.user.first_name }}</h2>
+    <p class="text-muted">Track your performance and upcoming tasks.</p>
+</div>
 
-            <!-- Stats Overview -->
-            <div class="dash-stats-grid mb-5">
-                <div class="dash-stat-card">
-                    <div class="stat-icon bg-primary-soft text-primary"><i class="bi bi-briefcase"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-value">{{ total_jobs }}</div>
-                        <div class="stat-label">Total Jobs</div>
-                    </div>
-                </div>
-                <div class="dash-stat-card">
-                    <div class="stat-icon bg-warning-soft text-warning"><i class="bi bi-clock-history"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-value">{{ pending_count }}</div>
-                        <div class="stat-label">Pending Tasks</div>
-                    </div>
-                </div>
-                <div class="dash-stat-card">
-                    <div class="stat-icon bg-success-soft text-success"><i class="bi bi-cash-stack"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-value">₹{{ total_earnings|floatformat:0 }}</div>
-                        <div class="stat-label">Earnings</div>
-                    </div>
-                </div>
-            </div>
+<!-- Stats Overview -->
+<div class="dash-stats-grid mb-5">
+    <div class="dash-stat-card">
+        <div class="stat-icon bg-primary-soft text-primary"><i class="bi bi-briefcase"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">{{ total_jobs }}</div>
+            <div class="stat-label">Total Jobs</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="stat-icon bg-warning-soft text-warning"><i class="bi bi-clock-history"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">{{ pending_count }}</div>
+            <div class="stat-label">Pending Tasks</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="stat-icon bg-success-soft text-success"><i class="bi bi-cash-stack"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">₹{{ total_earnings|floatformat:0 }}</div>
+            <div class="stat-label">Earnings</div>
+        </div>
+    </div>
+</div>
 
-            <!-- Recent Jobs Snippet -->
-            <div class="panel-lite p-4">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-800 mb-0">Upcoming Jobs</h5>
-                    <a href="?tab=jobs" class="btn btn-link btn-sm p-0">View All</a>
-                </div>
-                
-                <!-- Desktop View -->
-                <div class="table-responsive d-none d-md-block">
-                    <table class="table table-hover align-middle">
-                        <tbody>
-                            {% for booking in bookings|slice:":5" %}
-                            <tr>
-                                <td>
-                                    <div class="fw-bold">{{ booking.customer.display_name }}</div>
-                                    <div class="small text-muted">{{ booking.service.name }}</div>
-                                </td>
-                                <td>{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
-                                <td>
-                                    <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
-                                        {{ booking.get_status_display }}
-                                    </span>
-                                </td>
-                                <td class="text-end">
-                                    <div class="d-flex gap-1 justify-content-end">
-                                        <a href="{% url 'messages' %}?recipient_id={{ booking.customer.id }}" class="text-primary mx-1" title="Message">
-                                            <i class="bi bi-chat-text"></i>
-                                        </a>
-                                        {% if booking.customer.phone %}
-                                        <a href="https://wa.me/{{ booking.customer.phone|cut:' ' }}" target="_blank" class="text-success mx-1" title="WhatsApp">
-                                            <i class="bi bi-whatsapp"></i>
-                                        </a>
-                                        <a href="tel:{{ booking.customer.phone }}" class="text-info mx-1" title="Call">
-                                            <i class="bi bi-telephone"></i>
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr><td colspan="4" class="text-center py-4 text-muted">No jobs assigned.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+<!-- Recent Jobs Snippet -->
+<div class="panel-lite p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-800 mb-0">Upcoming Jobs</h5>
+        <a href="?tab=jobs" class="btn btn-link btn-sm p-0">View All</a>
+    </div>
 
-                <!-- Mobile View -->
-                <div class="d-md-none">
-                    {% for booking in bookings|slice:":5" %}
-                    <div class="p-3 mb-2 border rounded-4 bg-white shadow-sm">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <div class="fw-bold">{{ booking.customer.display_name }}</div>
-                                <div class="small text-primary fw-600">{{ booking.service.name }}</div>
-                            </div>
-                            <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
-                                {{ booking.get_status_display }}
-                            </span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                            <div class="small text-muted">
-                                <i class="bi bi-clock me-1"></i> {{ booking.scheduled_at|date:"d M, h:i A" }}
-                            </div>
-                            <div class="d-flex gap-2">
-                                {% if booking.customer.phone %}
-                                <a href="https://wa.me/{{ booking.customer.phone|cut:' ' }}" target="_blank" class="text-success" title="WhatsApp">
-                                    <i class="bi bi-whatsapp"></i>
-                                </a>
-                                <a href="tel:{{ booking.customer.phone }}" class="text-info" title="Call">
-                                    <i class="bi bi-telephone"></i>
-                                </a>
-                                {% endif %}
-                                <a href="{% url 'messages' %}?recipient_id={{ booking.customer.id }}" class="text-primary" title="Internal Message">
-                                    <i class="bi bi-chat-text"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="text-center py-4 text-muted small">No jobs assigned.</div>
-                    {% endfor %}
-                </div>
-            </div>
-
-        {% elif active_tab == 'jobs' %}
-            <!-- Jobs Tab -->
-            <div class="dash-section-header mb-4">
-                <span class="role-chip mb-2">Staff Workspace</span>
-                <h2>Assigned Jobs</h2>
-                <p class="text-muted">Manage and update your ongoing service requests. You can view all your upcoming, in-progress, and completed tasks here.</p>
-            </div>
-
-            <div class="panel-lite p-0 overflow-hidden">
-                <div class="p-4 border-bottom bg-light">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-800 mb-0">Job List</h5>
-                        <div class="badge bg-primary-soft text-primary rounded-pill px-3">{{ bookings|length }} Total</div>
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-12 col-md-8">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-white border-end-0 rounded-start-pill"><i class="bi bi-search text-muted"></i></span>
-                                <input type="text" id="staff-job-search" class="form-control border-start-0 rounded-end-pill px-3" placeholder="Search customer or service...">
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <select id="staff-job-status-filter" class="form-select form-select-sm rounded-pill">
-                                <option value="">All Statuses</option>
-                                <option value="pending">Pending</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="completed">Completed</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            <div class="table-responsive d-none d-md-block">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-4">Customer</th>
-                            <th>Service</th>
-                            <th>Scheduled</th>
-                            <th>Status</th>
-                            <th class="text-center">Action</th>
-                            <th class="text-center">Set Status</th>
-                            <th class="text-end pe-4">Update</th>
-                        </tr>
-                    </thead>
-                    <tbody id="staff-jobs-tbody">
-                        {% for booking in bookings %}
-                        <tr class="staff-job-row"
-                            data-customer="{{ booking.customer.display_name|lower }}"
-                            data-service="{{ booking.service.name|lower }}"
-                            data-status="{{ booking.status }}"
-                            data-scheduled="{{ booking.scheduled_at|date:'U' }}">
-                            <td class="ps-4">
-                                <div class="fw-bold">{{ booking.customer.display_name }}</div>
-                                <div class="small text-muted">{{ booking.customer.phone|default:'No phone' }}</div>
-                            </td>
-                            <td>{{ booking.service.name }}</td>
-                            <td>{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
-                            <td>
-                                <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
-                                    {{ booking.get_status_display }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex gap-1 justify-content-center">
-                                    <a href="{% url 'messages' %}?recipient_id={{ booking.customer.id }}" class="btn btn-sm btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Message">
-                                        <i class="bi bi-chat-text"></i>
-                                    </a>
-                                    {% if booking.customer.phone %}
-                                    <a href="https://wa.me/{{ booking.customer.phone|cut:' ' }}" target="_blank" class="btn btn-sm btn-outline-success rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="WhatsApp">
-                                        <i class="bi bi-whatsapp"></i>
-                                    </a>
-                                    <a href="tel:{{ booking.customer.phone }}" class="btn btn-sm btn-outline-info rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Call">
-                                        <i class="bi bi-telephone"></i>
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </td>
-                            <td>
-                                <form method="post" action="{% url 'update_booking_status' booking.id %}" id="status-form-{{ booking.id }}" class="m-0">
-                                    {% csrf_token %}
-                                    <select name="status" class="form-select form-select-sm rounded-pill" style="min-width: 120px;">
-                                        {% for key, label in booking.Status.choices %}
-                                        <option value="{{ key }}" {% if booking.status == key %}selected{% endif %}>{{ label }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </form>
-                            </td>
-                            <td class="text-end pe-4">
-                                <button type="submit" form="status-form-{{ booking.id }}" class="btn btn-sm btn-primary rounded-pill px-3">Save</button>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="7" class="text-center py-5">No jobs found.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Mobile Card View -->
-            <div class="d-md-none">
-                {% for booking in bookings %}
-                <div class="glass-card mb-3 p-3 border-start border-4 {% if booking.status == 'completed' %}border-success{% elif booking.status == 'pending' %}border-warning{% else %}border-primary{% endif %} staff-job-row"
-                     data-customer="{{ booking.customer.display_name|lower }}"
-                     data-service="{{ booking.service.name|lower }}"
-                     data-status="{{ booking.status }}"
-                     data-scheduled="{{ booking.scheduled_at|date:'U' }}">
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <div class="fw-bold fs-5">{{ booking.customer.display_name }}</div>
-                                <div class="small text-muted mb-2">{{ booking.customer.phone|default:'No phone' }}</div>
-                            </div>
-                            <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
-                                {{ booking.get_status_display }}
-                            </span>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <a href="{% url 'messages' %}?recipient_id={{ booking.customer.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 d-flex align-items-center gap-2" style="font-size: 0.75rem;">
-                                <i class="bi bi-chat-text"></i> Message
+    <!-- Desktop View -->
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover align-middle">
+            <tbody>
+                {% for booking in bookings|slice:":5" %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ booking.customer.display_name }}</div>
+                        <div class="small text-muted">{{ booking.service.name }}</div>
+                    </td>
+                    <td>{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
+                    <td>
+                        <span
+                            class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                            {{ booking.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex gap-1 justify-content-end">
+                            <a href="{% url 'messages' %}?recipient_id={{ booking.customer.id }}"
+                                class="text-primary mx-1" title="Message">
+                                <i class="bi bi-chat-text"></i>
                             </a>
                             {% if booking.customer.phone %}
-                            <a href="https://wa.me/{{ booking.customer.phone|cut:' ' }}" target="_blank" class="btn btn-sm btn-outline-success rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="WhatsApp">
+                            <a href="https://wa.me/{{ booking.customer.phone|cut:' ' }}" target="_blank"
+                                class="text-success mx-1" title="WhatsApp">
                                 <i class="bi bi-whatsapp"></i>
                             </a>
-                            <a href="tel:{{ booking.customer.phone }}" class="btn btn-sm btn-outline-info rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Call">
+                            <a href="tel:{{ booking.customer.phone }}" class="text-info mx-1" title="Call">
                                 <i class="bi bi-telephone"></i>
                             </a>
                             {% endif %}
                         </div>
-                    </div>
-
-                    <div class="row g-2 mb-4">
-                        <div class="col-6">
-                            <div class="small text-muted mb-1">Service</div>
-                            <div class="small fw-800 text-primary">{{ booking.service.name }}</div>
-                        </div>
-                        <div class="col-6 text-end">
-                            <div class="small text-muted mb-1">Scheduled</div>
-                            <div class="small fw-800">{{ booking.scheduled_at|date:"d M, h:i A" }}</div>
-                        </div>
-                    </div>
-
-                    <form method="post" action="{% url 'update_booking_status' booking.id %}" class="pt-3 border-top">
-                        {% csrf_token %}
-                        <div class="d-flex gap-2 align-items-end">
-                            <div class="flex-grow-1">
-                                <label class="small text-muted mb-1 fw-600">Change Status</label>
-                                <select name="status" class="form-select form-select-sm rounded-pill bg-light border-0 px-3">
-                                    {% for key, label in booking.Status.choices %}
-                                    <option value="{{ key }}" {% if booking.status == key %}selected{% endif %}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm">Save</button>
-                        </div>
-                    </form>
-                </div>
+                    </td>
+                </tr>
                 {% empty %}
-                <div class="text-center py-5 glass-panel">
-                    <i class="bi bi-briefcase text-muted mb-3 d-block" style="font-size: 2.5rem;"></i>
-                    <p class="text-muted">No jobs found.</p>
-                </div>
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">No jobs assigned.</td>
+                </tr>
                 {% endfor %}
-            </div>
-            </div>
+            </tbody>
+        </table>
+    </div>
 
-        {% elif active_tab == 'availability' %}
-            <!-- Availability Tab -->
-            <div class="dash-section-header mb-4">
-                <span class="role-chip mb-2">Staff Workspace</span>
-                <h2>Availability Calendar</h2>
-                <p class="text-muted">Block time or manage your working schedule.</p>
-            </div>
-
-            <div class="row g-4">
-                <div class="col-lg-7">
-                    <div class="panel-lite p-4 mb-4">
-                        <div class="booking-calendar-shell">
-                            <div class="calendar-toolbar">
-                                <button type="button" class="btn btn-sm btn-outline-secondary" id="staffCalendarPrev"><i class="bi bi-chevron-left"></i></button>
-                                <div class="calendar-toolbar-title fw-800" id="staffCalendarTitle"></div>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" id="staffCalendarNext"><i class="bi bi-chevron-right"></i></button>
-                            </div>
-                            <div class="calendar-weekdays">
-                                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-                            </div>
-                            <div class="calendar-grid" id="staffCalendarGrid"></div>
-                            <div class="calendar-legend mt-3 pt-3 border-top d-flex flex-wrap gap-4 px-1">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="legend-box is-open"></span>
-                                    <span class="small fw-600 text-muted">Available</span>
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="legend-box is-closed"></span>
-                                    <span class="small fw-600 text-muted">Blocked</span>
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="legend-box has-booking-legend"></span>
-                                    <span class="small fw-600 text-muted">Has Jobs</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Mobile View -->
+    <div class="d-md-none">
+        {% for booking in bookings|slice:":5" %}
+        <div class="p-3 mb-2 border rounded-4 bg-white shadow-sm">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <div class="fw-bold">{{ booking.customer.display_name }}</div>
+                    <div class="small text-primary fw-600">{{ booking.service.name }}</div>
                 </div>
-                <div class="col-lg-5">
-                    <!-- Selected Date Details -->
-                    <div class="panel-lite p-4 border-primary-light">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="fw-800 mb-0">Date Details</h5>
-                            <span class="badge-glass bg-primary-soft text-primary" id="selectedSlotDateBadge">{{ selected_slot_date|date:"d M Y" }}</span>
+                <span
+                    class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                    {{ booking.get_status_display }}
+                </span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                <div class="small text-muted">
+                    <i class="bi bi-clock me-1"></i> {{ booking.scheduled_at|date:"d M, h:i A" }}
+                </div>
+                <div class="d-flex gap-2">
+                    {% if booking.customer.phone %}
+                    <a href="https://wa.me/{{ booking.customer.phone|cut:' ' }}" target="_blank" class="text-success"
+                        title="WhatsApp">
+                        <i class="bi bi-whatsapp"></i>
+                    </a>
+                    <a href="tel:{{ booking.customer.phone }}" class="text-info" title="Call">
+                        <i class="bi bi-telephone"></i>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'messages' %}?recipient_id={{ booking.customer.id }}" class="text-primary"
+                        title="Internal Message">
+                        <i class="bi bi-chat-text"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted small">No jobs assigned.</div>
+        {% endfor %}
+    </div>
+</div>
+
+{% elif active_tab == 'jobs' %}
+<!-- Jobs Tab -->
+<div class="dash-section-header mb-4">
+    <span class="role-chip mb-2">Staff Workspace</span>
+    <h2>Assigned Jobs</h2>
+    <p class="text-muted">Manage and update your ongoing service requests. You can view all your upcoming, in-progress,
+        and completed tasks here.</p>
+</div>
+
+<div class="panel-lite p-0 overflow-hidden">
+    <div class="p-4 border-bottom bg-light">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-800 mb-0">Job List</h5>
+            <div class="badge bg-primary-soft text-primary rounded-pill px-3">{{ bookings|length }} Total</div>
+        </div>
+        <div class="row g-2">
+            <div class="col-12 col-md-8">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white border-end-0 rounded-start-pill"><i
+                            class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="staff-job-search" class="form-control border-start-0 rounded-end-pill px-3"
+                        placeholder="Search customer or service...">
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <select id="staff-job-status-filter" class="form-select form-select-sm rounded-pill">
+                    <option value="">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">Customer</th>
+                    <th>Service</th>
+                    <th>Scheduled</th>
+                    <th>Status</th>
+                    <th class="text-center">Action</th>
+                    <th class="text-center">Set Status</th>
+                    <th class="text-end pe-4">Update</th>
+                </tr>
+            </thead>
+            <tbody id="staff-jobs-tbody">
+                {% for booking in bookings %}
+                <tr class="staff-job-row" data-customer="{{ booking.customer.display_name|lower }}"
+                    data-service="{{ booking.service.name|lower }}" data-status="{{ booking.status }}"
+                    data-scheduled="{{ booking.scheduled_at|date:'U' }}">
+                    <td class="ps-4">
+                        <div class="fw-bold">{{ booking.customer.display_name }}</div>
+                        <div class="small text-muted">{{ booking.customer.phone|default:'No phone' }}</div>
+                    </td>
+                    <td>{{ booking.service.name }}</td>
+                    <td>{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
+                    <td>
+                        <span
+                            class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                            {{ booking.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex gap-1 justify-content-center">
+                            <a href="{% url 'messages' %}?recipient_id={{ booking.customer.id }}"
+                                class="btn btn-sm btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center"
+                                style="width: 32px; height: 32px;" title="Message">
+                                <i class="bi bi-chat-text"></i>
+                            </a>
+                            {% if booking.customer.phone %}
+                            <a href="https://wa.me/{{ booking.customer.phone|cut:' ' }}" target="_blank"
+                                class="btn btn-sm btn-outline-success rounded-circle p-0 d-flex align-items-center justify-content-center"
+                                style="width: 32px; height: 32px;" title="WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+                            <a href="tel:{{ booking.customer.phone }}"
+                                class="btn btn-sm btn-outline-info rounded-circle p-0 d-flex align-items-center justify-content-center"
+                                style="width: 32px; height: 32px;" title="Call">
+                                <i class="bi bi-telephone"></i>
+                            </a>
+                            {% endif %}
                         </div>
-                        
-                        <form method="post" id="staffLeaveToggleForm" class="mb-4">
+                    </td>
+                    <td>
+                        <form method="post" action="{% url 'update_booking_status' booking.id %}"
+                            id="status-form-{{ booking.id }}" class="m-0">
                             {% csrf_token %}
-                            <input type="hidden" name="action" value="toggle_leave_date">
-                            <input type="hidden" name="leave_date" value="{{ selected_slot_date }}">
-                            <button type="submit" id="staffLeaveToggleBtn" class="btn w-100 rounded-pill {% if is_leave_date_selected %}btn-danger{% else %}btn-outline-success{% endif %}">
-                                {% if is_leave_date_selected %}Blocked (Unblock Day){% else %}Available (Block Day){% endif %}
-                            </button>
+                            <select name="status" class="form-select form-select-sm rounded-pill"
+                                style="min-width: 120px;">
+                                {% for key, label in booking.Status.choices %}
+                                <option value="{{ key }}" {% if booking.status==key %}selected{% endif %}>{{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </form>
+                    </td>
+                    <td class="text-end pe-4">
+                        <button type="submit" form="status-form-{{ booking.id }}"
+                            class="btn btn-sm btn-primary rounded-pill px-3">Save</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5">No jobs found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-                        <div class="mb-4">
-                            <h6 class="small fw-700 text-uppercase text-muted mb-3">Time Slots</h6>
-                            <div class="d-flex flex-wrap gap-2" id="staffSlotsGrid">
-                                {% for slot in time_slot_options %}
-                                    <form method="post" class="m-0 staff-slot-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="toggle_blocked_slot">
-                                        <input type="hidden" name="slot_date" value="{{ selected_slot_date }}">
-                                        <input type="hidden" name="slot_time" value="{{ slot }}">
-                                        <button type="submit" class="btn btn-xs rounded-pill staff-slot-btn
-                                            {% if slot in booked_slot_times %}btn-secondary disabled{% elif is_leave_date_selected %}btn-light disabled{% elif slot in blocked_slot_times %}btn-danger{% else %}btn-outline-success{% endif %}">
-                                            {{ slot }}
-                                        </button>
-                                    </form>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <div class="border-top pt-4">
-                            <h6 class="small fw-700 text-uppercase text-muted mb-3">Jobs on this date</h6>
-                            <div id="staffSelectedBookingsList">
-                                {% for booking in selected_date_bookings %}
-                                    <div class="d-flex justify-content-between small mb-2 p-2 bg-light rounded">
-                                        <span><strong>{{ booking.scheduled_at|time:"h:i A" }}</strong> - {{ booking.customer.display_name }}</span>
-                                        <span class="text-primary">{{ booking.service.name }}</span>
-                                    </div>
-                                {% empty %}
-                                    <p class="small text-muted mb-0">No jobs scheduled.</p>
-                                {% endfor %}
-                            </div>
-                        </div>
+    <!-- Mobile Card View -->
+    <div class="d-md-none">
+        {% for booking in bookings %}
+        <div class="glass-card mb-3 p-3 border-start border-4 {% if booking.status == 'completed' %}border-success{% elif booking.status == 'pending' %}border-warning{% else %}border-primary{% endif %} staff-job-row"
+            data-customer="{{ booking.customer.display_name|lower }}" data-service="{{ booking.service.name|lower }}"
+            data-status="{{ booking.status }}" data-scheduled="{{ booking.scheduled_at|date:'U' }}">
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <div class="fw-bold fs-5">{{ booking.customer.display_name }}</div>
+                        <div class="small text-muted mb-2">{{ booking.customer.phone|default:'No phone' }}</div>
                     </div>
+                    <span
+                        class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{% url 'messages' %}?recipient_id={{ booking.customer.id }}"
+                        class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 d-flex align-items-center gap-2"
+                        style="font-size: 0.75rem;">
+                        <i class="bi bi-chat-text"></i> Message
+                    </a>
+                    {% if booking.customer.phone %}
+                    <a href="https://wa.me/{{ booking.customer.phone|cut:' ' }}" target="_blank"
+                        class="btn btn-sm btn-outline-success rounded-circle p-0 d-flex align-items-center justify-content-center"
+                        style="width: 32px; height: 32px;" title="WhatsApp">
+                        <i class="bi bi-whatsapp"></i>
+                    </a>
+                    <a href="tel:{{ booking.customer.phone }}"
+                        class="btn btn-sm btn-outline-info rounded-circle p-0 d-flex align-items-center justify-content-center"
+                        style="width: 32px; height: 32px;" title="Call">
+                        <i class="bi bi-telephone"></i>
+                    </a>
+                    {% endif %}
                 </div>
             </div>
 
-        {% elif active_tab == 'messages' %}
-            <!-- Messages Tab -->
-            <div class="dash-section-header">
-                <h2>Communications</h2>
-                <p class="text-muted">Stay in touch with your clients.</p>
+            <div class="row g-2 mb-4">
+                <div class="col-6">
+                    <div class="small text-muted mb-1">Service</div>
+                    <div class="small fw-800 text-primary">{{ booking.service.name }}</div>
+                </div>
+                <div class="col-6 text-end">
+                    <div class="small text-muted mb-1">Scheduled</div>
+                    <div class="small fw-800">{{ booking.scheduled_at|date:"d M, h:i A" }}</div>
+                </div>
             </div>
-            <div class="panel-lite p-0 overflow-hidden" style="height: 600px;">
-                {% include 'bookings/partials/dashboard_messages_panel.html' %}
+
+            <form method="post" action="{% url 'update_booking_status' booking.id %}" class="pt-3 border-top">
+                {% csrf_token %}
+                <div class="d-flex gap-2 align-items-end">
+                    <div class="flex-grow-1">
+                        <label class="small text-muted mb-1 fw-600">Change Status</label>
+                        <select name="status" class="form-select form-select-sm rounded-pill bg-light border-0 px-3">
+                            {% for key, label in booking.Status.choices %}
+                            <option value="{{ key }}" {% if booking.status==key %}selected{% endif %}>{{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm">Save</button>
+                </div>
+            </form>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 glass-panel">
+            <i class="bi bi-briefcase text-muted mb-3 d-block" style="font-size: 2.5rem;"></i>
+            <p class="text-muted">No jobs found.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% elif active_tab == 'availability' %}
+<!-- Availability Tab -->
+<div class="dash-section-header mb-4">
+    <span class="role-chip mb-2">Staff Workspace</span>
+    <h2>Availability Calendar</h2>
+    <p class="text-muted">Block time or manage your working schedule.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="panel-lite p-4 mb-4">
+            <div class="booking-calendar-shell">
+                <div class="calendar-toolbar">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="staffCalendarPrev"><i
+                            class="bi bi-chevron-left"></i></button>
+                    <div class="calendar-toolbar-title fw-800" id="staffCalendarTitle"></div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="staffCalendarNext"><i
+                            class="bi bi-chevron-right"></i></button>
+                </div>
+                <div class="calendar-weekdays">
+                    <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                </div>
+                <div class="calendar-grid" id="staffCalendarGrid"></div>
+                <div class="calendar-legend mt-3 pt-3 border-top d-flex flex-wrap gap-4 px-1">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="legend-box is-open"></span>
+                        <span class="small fw-600 text-muted">Available</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="legend-box is-closed"></span>
+                        <span class="small fw-600 text-muted">Blocked</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="legend-box has-booking-legend"></span>
+                        <span class="small fw-600 text-muted">Has Jobs</span>
+                    </div>
+                </div>
             </div>
-        {% endif %}
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <!-- Selected Date Details -->
+        <div class="panel-lite p-4 border-primary-light">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-800 mb-0">Date Details</h5>
+                <span class="badge-glass bg-primary-soft text-primary" id="selectedSlotDateBadge">{{
+                    selected_slot_date|date:"d M Y" }}</span>
+            </div>
+
+            <form method="post" id="staffLeaveToggleForm" class="mb-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle_leave_date">
+                <input type="hidden" name="leave_date" value="{{ selected_slot_date }}">
+                <button type="submit" id="staffLeaveToggleBtn"
+                    class="btn w-100 rounded-pill {% if is_leave_date_selected %}btn-danger{% else %}btn-outline-success{% endif %}">
+                    {% if is_leave_date_selected %}Blocked (Unblock Day){% else %}Available (Block Day){% endif %}
+                </button>
+            </form>
+
+            <div class="mb-4">
+                <h6 class="small fw-700 text-uppercase text-muted mb-3">Time Slots</h6>
+                <div class="d-flex flex-wrap gap-2" id="staffSlotsGrid">
+                    {% for slot in time_slot_options %}
+                    <form method="post" class="m-0 staff-slot-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="toggle_blocked_slot">
+                        <input type="hidden" name="slot_date" value="{{ selected_slot_date }}">
+                        <input type="hidden" name="slot_time" value="{{ slot }}">
+                        <button type="submit"
+                            class="btn btn-xs rounded-pill staff-slot-btn
+                                            {% if slot in booked_slot_times %}btn-secondary disabled{% elif is_leave_date_selected %}btn-light disabled{% elif slot in blocked_slot_times %}btn-danger{% else %}btn-outline-success{% endif %}">
+                            {{ slot }}
+                        </button>
+                    </form>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="border-top pt-4">
+                <h6 class="small fw-700 text-uppercase text-muted mb-3">Jobs on this date</h6>
+                <div id="staffSelectedBookingsList">
+                    {% for booking in selected_date_bookings %}
+                    <div class="d-flex justify-content-between small mb-2 p-2 bg-light rounded">
+                        <span><strong>{{ booking.scheduled_at|time:"h:i A" }}</strong> - {{
+                            booking.customer.display_name }}</span>
+                        <span class="text-primary">{{ booking.service.name }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="small text-muted mb-0">No jobs scheduled.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif active_tab == 'messages' %}
+<!-- Messages Tab -->
+<div class="dash-section-header">
+    <h2>Communications</h2>
+    <p class="text-muted">Stay in touch with your clients.</p>
+</div>
+<div class="panel-lite p-0 overflow-hidden" style="height: 600px;">
+    {% include 'bookings/partials/dashboard_messages_panel.html' %}
+</div>
+{% endif %}
 
 <!-- Calendar Data for JS -->
 {{ staff_calendar_data|json_script:"staff-calendar-data" }}
@@ -393,79 +427,79 @@
 {% block extra_js %}
 <!-- Staff Dashboard JS -->
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // 1. JOBS FILTERING
-    const searchInput = document.getElementById('staff-job-search');
-    if (searchInput) {
-        const statusFilter = document.getElementById('staff-job-status-filter');
-        const rows = Array.from(document.querySelectorAll('.staff-job-row'));
-        function applyFilters() {
-            const searchTerm = searchInput.value.trim().toLowerCase();
-            const selectedStatus = statusFilter.value;
-            rows.forEach(row => {
-                const customer = row.getAttribute('data-customer') || '';
-                const status = row.getAttribute('data-status') || '';
-                const matchesText = !searchTerm || customer.includes(searchTerm);
-                const matchesStatus = !selectedStatus || status === selectedStatus;
-                row.style.display = (matchesText && matchesStatus) ? '' : 'none';
-            });
-        }
-        searchInput.addEventListener('input', applyFilters);
-        statusFilter.addEventListener('change', applyFilters);
-    }
-
-    // 2. AVAILABILITY CALENDAR (AJAX version)
-    const staffCalendarGrid = document.getElementById('staffCalendarGrid');
-    if (staffCalendarGrid) {
-        const staffCalendarTitle = document.getElementById('staffCalendarTitle');
-        const staffCalendarPrev = document.getElementById('staffCalendarPrev');
-        const staffCalendarNext = document.getElementById('staffCalendarNext');
-        const staffCalendarDataNode = document.getElementById('staff-calendar-data');
-        const selectedSlotDateBadge = document.getElementById('selectedSlotDateBadge');
-        
-        let staffCalendarData = JSON.parse(staffCalendarDataNode.textContent || '{}');
-        let selectedSlotIso = "{{ selected_slot_date }}";
-        const initialDate = selectedSlotIso ? new Date(selectedSlotIso) : new Date();
-        let ucMonth = initialDate.getMonth();
-        let ucYear = initialDate.getFullYear();
-
-        function renderStaffCalendar() {
-            staffCalendarGrid.innerHTML = '';
-            const monthStart = new Date(ucYear, ucMonth, 1);
-            const monthEnd = new Date(ucYear, ucMonth + 1, 0);
-            const firstDay = (monthStart.getDay() + 6) % 7;
-            const totalDays = monthEnd.getDate();
-            staffCalendarTitle.textContent = monthStart.toLocaleString('default', { month: 'long', year: 'numeric' });
-
-            for (let i = 0; i < firstDay; i++) {
-                const spacer = document.createElement('span');
-                spacer.className = 'calendar-empty';
-                staffCalendarGrid.appendChild(spacer);
-            }
-
-            for (let day = 1; day <= totalDays; day++) {
-                const dateObj = new Date(ucYear, ucMonth, day);
-                const iso = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}-${String(dateObj.getDate()).padStart(2,'0')}`;
-                const info = staffCalendarData[iso] || { status: 'open' };
-                
-                const cell = document.createElement('button');
-                cell.type = 'button';
-                cell.className = `calendar-day is-${info.status}${info.has_booking ? ' has-booking' : ''}`;
-                if (iso === "{{ today }}") cell.classList.add('is-today');
-                if (iso === selectedSlotIso) cell.classList.add('is-selected');
-
-                cell.innerHTML = `<span class="calendar-day-number">${day}</span>`;
-                cell.addEventListener('click', () => {
-                    window.location.href = `?tab=availability&slot_date=${iso}`;
+    document.addEventListener('DOMContentLoaded', function () {
+        // 1. JOBS FILTERING
+        const searchInput = document.getElementById('staff-job-search');
+        if (searchInput) {
+            const statusFilter = document.getElementById('staff-job-status-filter');
+            const rows = Array.from(document.querySelectorAll('.staff-job-row'));
+            function applyFilters() {
+                const searchTerm = searchInput.value.trim().toLowerCase();
+                const selectedStatus = statusFilter.value;
+                rows.forEach(row => {
+                    const customer = row.getAttribute('data-customer') || '';
+                    const status = row.getAttribute('data-status') || '';
+                    const matchesText = !searchTerm || customer.includes(searchTerm);
+                    const matchesStatus = !selectedStatus || status === selectedStatus;
+                    row.style.display = (matchesText && matchesStatus) ? '' : 'none';
                 });
-                staffCalendarGrid.appendChild(cell);
             }
+            searchInput.addEventListener('input', applyFilters);
+            statusFilter.addEventListener('change', applyFilters);
         }
 
-        staffCalendarPrev.addEventListener('click', () => { ucMonth--; if(ucMonth<0){ucMonth=11;ucYear--;} renderStaffCalendar(); });
-        staffCalendarNext.addEventListener('click', () => { ucMonth++; if(ucMonth>11){ucMonth=0;ucYear++;} renderStaffCalendar(); });
-        renderStaffCalendar();
-    }
-});
+        // 2. AVAILABILITY CALENDAR (AJAX version)
+        const staffCalendarGrid = document.getElementById('staffCalendarGrid');
+        if (staffCalendarGrid) {
+            const staffCalendarTitle = document.getElementById('staffCalendarTitle');
+            const staffCalendarPrev = document.getElementById('staffCalendarPrev');
+            const staffCalendarNext = document.getElementById('staffCalendarNext');
+            const staffCalendarDataNode = document.getElementById('staff-calendar-data');
+            const selectedSlotDateBadge = document.getElementById('selectedSlotDateBadge');
+
+            let staffCalendarData = JSON.parse(staffCalendarDataNode.textContent || '{}');
+            let selectedSlotIso = "{{ selected_slot_date }}";
+            const initialDate = selectedSlotIso ? new Date(selectedSlotIso) : new Date();
+            let ucMonth = initialDate.getMonth();
+            let ucYear = initialDate.getFullYear();
+
+            function renderStaffCalendar() {
+                staffCalendarGrid.innerHTML = '';
+                const monthStart = new Date(ucYear, ucMonth, 1);
+                const monthEnd = new Date(ucYear, ucMonth + 1, 0);
+                const firstDay = (monthStart.getDay() + 6) % 7;
+                const totalDays = monthEnd.getDate();
+                staffCalendarTitle.textContent = monthStart.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+                for (let i = 0; i < firstDay; i++) {
+                    const spacer = document.createElement('span');
+                    spacer.className = 'calendar-empty';
+                    staffCalendarGrid.appendChild(spacer);
+                }
+
+                for (let day = 1; day <= totalDays; day++) {
+                    const dateObj = new Date(ucYear, ucMonth, day);
+                    const iso = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+                    const info = staffCalendarData[iso] || { status: 'open' };
+
+                    const cell = document.createElement('button');
+                    cell.type = 'button';
+                    cell.className = `calendar-day is-${info.status}${info.has_booking ? ' has-booking' : ''}`;
+                    if (iso === "{{ today }}") cell.classList.add('is-today');
+                    if (iso === selectedSlotIso) cell.classList.add('is-selected');
+
+                    cell.innerHTML = `<span class="calendar-day-number">${day}</span>`;
+                    cell.addEventListener('click', () => {
+                        window.location.href = `?tab=availability&slot_date=${iso}`;
+                    });
+                    staffCalendarGrid.appendChild(cell);
+                }
+            }
+
+            staffCalendarPrev.addEventListener('click', () => { ucMonth--; if (ucMonth < 0) { ucMonth = 11; ucYear--; } renderStaffCalendar(); });
+            staffCalendarNext.addEventListener('click', () => { ucMonth++; if (ucMonth > 11) { ucMonth = 0; ucYear++; } renderStaffCalendar(); });
+            renderStaffCalendar();
+        }
+    });
 </script>
 {% endblock %}

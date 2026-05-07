@@ -2,355 +2,380 @@
 {% block title %}User Dashboard | {{ active_tab|capfirst }}{% endblock %}
 
 {% block dashboard_content %}
-    {% if active_tab == 'overview' %}
-        <!-- Overview Tab -->
-        <div class="dash-section-header">
-            <span class="role-chip mb-2">Customer Account</span>
-            <h2 class="mb-1">Hello, {{ request.user.first_name }}</h2>
-            <p class="text-muted">Manage your bookings and communications here.</p>
-        </div>
+{% if active_tab == 'overview' %}
+<!-- Overview Tab -->
+<div class="dash-section-header">
+    <span class="role-chip mb-2">Customer Account</span>
+    <h2 class="mb-1">Hello, {{ request.user.first_name }}</h2>
+    <p class="text-muted">Manage your bookings and communications here.</p>
+</div>
 
-        <!-- Stats Overview -->
-        <div class="dash-stats-grid mb-5">
-            <div class="dash-stat-card">
-                <div class="stat-icon bg-primary-soft text-primary"><i class="bi bi-calendar-event"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value">{{ total_bookings }}</div>
-                    <div class="stat-label">Total Bookings</div>
-                </div>
-            </div>
-            <div class="dash-stat-card">
-                <div class="stat-icon bg-success-soft text-success"><i class="bi bi-chat-text"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value">{{ dashboard_unread_count }}</div>
-                    <div class="stat-label">Messages</div>
-                </div>
-            </div>
-            <div class="dash-stat-card">
-                <div class="stat-icon bg-info-soft text-info"><i class="bi bi-cash-stack"></i></div>
-                <div class="stat-info">
-                    <div class="stat-value">₹{{ total_spent|floatformat:0 }}</div>
-                    <div class="stat-label">Total Spent</div>
-                </div>
-            </div>
+<!-- Stats Overview -->
+<div class="dash-stats-grid mb-5">
+    <div class="dash-stat-card">
+        <div class="stat-icon bg-primary-soft text-primary"><i class="bi bi-calendar-event"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">{{ total_bookings }}</div>
+            <div class="stat-label">Total Bookings</div>
         </div>
-
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="panel-lite p-4 h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-800 mb-0">Recent Bookings</h5>
-                        <a href="?tab=bookings" class="btn btn-link btn-sm p-0">View All</a>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <tbody>
-                                {% for booking in bookings|slice:":5" %}
-                                <tr>
-                                    <td>
-                                        <div class="fw-bold">{{ booking.service.name }}</div>
-                                        <div class="small text-muted">{{ booking.staff.display_name }}</div>
-                                    </td>
-                                    <td>{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
-                                    <td>
-                                        <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
-                                            {{ booking.get_status_display }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr><td colspan="3" class="text-center py-4 text-muted">No upcoming bookings.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="panel-lite p-4 h-100 border-primary-light bg-primary-soft-light d-flex flex-column justify-content-center align-items-center text-center">
-                    <div class="kpi-icon bg-white text-primary mb-3 shadow-sm" style="width: 60px; height: 60px; font-size: 1.5rem;">
-                        <i class="bi bi-calendar-plus"></i>
-                    </div>
-                    <h5 class="fw-800 mb-2">Book a Service</h5>
-                    <p class="small text-muted mb-4">Find professional help for your home needs in just a few clicks.</p>
-                    <a href="{% url 'booking_create' %}" class="btn btn-primary rounded-pill px-4">Book Now</a>
-                </div>
-            </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="stat-icon bg-success-soft text-success"><i class="bi bi-chat-text"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">{{ dashboard_unread_count }}</div>
+            <div class="stat-label">Messages</div>
         </div>
-
-    {% elif active_tab == 'bookings' %}
-        <!-- Bookings Tab -->
-        <div class="dash-section-header">
-            <h2 class="mb-1">Your Bookings</h2>
-            <p class="text-muted">Track history and manage upcoming service sessions.</p>
+    </div>
+    <div class="dash-stat-card">
+        <div class="stat-icon bg-info-soft text-info"><i class="bi bi-cash-stack"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">₹{{ total_spent|floatformat:0 }}</div>
+            <div class="stat-label">Total Spent</div>
         </div>
+    </div>
+</div>
 
-        <div class="panel-lite p-0 overflow-hidden">
-            <div class="p-4 border-bottom bg-light">
-                <div class="row g-2">
-                    <div class="col-md-8">
-                        <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                            <input type="text" id="user-booking-search" class="form-control border-start-0" placeholder="Filter by service or staff...">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <select id="user-booking-status-filter" class="form-select">
-                            <option value="">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                </div>
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="panel-lite p-4 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-800 mb-0">Recent Bookings</h5>
+                <a href="?tab=bookings" class="btn btn-link btn-sm p-0">View All</a>
             </div>
-            <!-- Desktop Table View -->
-            <div class="table-responsive d-none d-md-block">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-4">Service</th>
-                            <th>Staff Member</th>
-                            <th>Scheduled Date</th>
-                            <th>Price</th>
-                            <th>Status</th>
-                            <th class="text-end pe-4">Actions</th>
-                        </tr>
-                    </thead>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
                     <tbody>
-                        {% for booking in bookings %}
-                        <tr class="user-booking-row" 
-                            data-service="{{ booking.service.name|lower }}" 
-                            data-staff="{{ booking.staff.display_name|lower }}" 
-                            data-status="{{ booking.status }}">
-                            <td class="ps-4">
+                        {% for booking in bookings|slice:":5" %}
+                        <tr>
+                            <td>
                                 <div class="fw-bold">{{ booking.service.name }}</div>
-                                <div class="small text-muted">{{ booking.service.category.name }}</div>
+                                <div class="small text-muted">{{ booking.staff.display_name }}</div>
                             </td>
+                            <td>{{ booking.scheduled_at|date:"d M, h:i A" }}</td>
                             <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="avatar-sm bg-primary-soft text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                        {{ booking.staff.first_name|first }}{{ booking.staff.last_name|first }}
-                                    </div>
-                                    <span>{{ booking.staff.display_name }}</span>
-                                </div>
-                            </td>
-                            <td>{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
-                            <td class="fw-bold">₹{{ booking.service.price }}</td>
-                            <td>
-                                <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                                <span
+                                    class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
                                     {{ booking.get_status_display }}
                                 </span>
                             </td>
-                            <td class="text-end pe-4">
-                                <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
-                                    <a href="{% url 'messages' %}?recipient_id={{ booking.staff.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                        <i class="bi bi-chat-text"></i> Message
-                                    </a>
-                                    {% if booking.staff.phone %}
-                                    <a href="https://wa.me/{{ booking.staff.phone|cut:' '|cut:'+' }}" target="_blank" class="btn btn-sm rounded-pill px-3" style="background: #25D366; color: #fff; border: none;" title="WhatsApp">
-                                        <i class="bi bi-whatsapp"></i>
-                                    </a>
-                                    <a href="tel:{{ booking.staff.phone }}" class="btn btn-sm btn-outline-info rounded-pill px-3" title="Call">
-                                        <i class="bi bi-telephone"></i>
-                                    </a>
-                                    {% endif %}
-                                    {% if booking.status == 'pending' %}
-                                        <form action="{% url 'cancel_booking' booking.id %}" method="post" onsubmit="return confirm('Are you sure you want to cancel this booking?');" class="m-0">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                                                <i class="bi bi-x-circle"></i> Cancel
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                    {% if booking.status == 'completed' %}
-                                        <a href="{% url 'booking_feedback' booking.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3">
-                                            <i class="bi bi-star"></i> Feedback
-                                        </a>
-                                    {% endif %}
-                                </div>
-                            </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="6" class="text-center py-5 text-muted">No bookings found in your history.</td></tr>
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">No upcoming bookings.</td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div
+            class="panel-lite p-4 h-100 border-primary-light bg-primary-soft-light d-flex flex-column justify-content-center align-items-center text-center">
+            <div class="kpi-icon bg-white text-primary mb-3 shadow-sm"
+                style="width: 60px; height: 60px; font-size: 1.5rem;">
+                <i class="bi bi-calendar-plus"></i>
+            </div>
+            <h5 class="fw-800 mb-2">Book a Service</h5>
+            <p class="small text-muted mb-4">Find professional help for your home needs in just a few clicks.</p>
+            <a href="{% url 'booking_create' %}" class="btn btn-primary rounded-pill px-4">Book Now</a>
+        </div>
+    </div>
+</div>
 
-            <!-- Mobile Card View -->
-            <div class="d-md-none">
+{% elif active_tab == 'bookings' %}
+<!-- Bookings Tab -->
+<div class="dash-section-header">
+    <h2 class="mb-1">Your Bookings</h2>
+    <p class="text-muted">Track history and manage upcoming service sessions.</p>
+</div>
+
+<div class="panel-lite p-0 overflow-hidden">
+    <div class="p-4 border-bottom bg-light">
+        <div class="row g-2">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" id="user-booking-search" class="form-control border-start-0"
+                        placeholder="Filter by service or staff...">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select id="user-booking-status-filter" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <!-- Desktop Table View -->
+    <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">Service</th>
+                    <th>Staff Member</th>
+                    <th>Scheduled Date</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
                 {% for booking in bookings %}
-                <div class="glass-card mb-3 p-3 border-start border-4 {% if booking.status == 'completed' %}border-success{% elif booking.status == 'pending' %}border-warning{% else %}border-primary{% endif %} user-booking-row"
-                     data-service="{{ booking.service.name|lower }}" 
-                     data-staff="{{ booking.staff.display_name|lower }}" 
-                     data-status="{{ booking.status }}">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
-                            <div class="fw-bold fs-5">{{ booking.service.name }}</div>
-                            <div class="small text-muted">{{ booking.service.category.name }}</div>
+                <tr class="user-booking-row" data-service="{{ booking.service.name|lower }}"
+                    data-staff="{{ booking.staff.display_name|lower }}" data-status="{{ booking.status }}">
+                    <td class="ps-4">
+                        <div class="fw-bold">{{ booking.service.name }}</div>
+                        <div class="small text-muted">{{ booking.service.category.name }}</div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-sm bg-primary-soft text-primary rounded-circle d-flex align-items-center justify-content-center"
+                                style="width: 32px; height: 32px;">
+                                {{ booking.staff.first_name|first }}{{ booking.staff.last_name|first }}
+                            </div>
+                            <span>{{ booking.staff.display_name }}</span>
                         </div>
-                        <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                    </td>
+                    <td>{{ booking.scheduled_at|date:"d M Y, h:i A" }}</td>
+                    <td class="fw-bold">₹{{ booking.service.price }}</td>
+                    <td>
+                        <span
+                            class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
                             {{ booking.get_status_display }}
                         </span>
-                    </div>
-                    
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <div class="small text-muted">Scheduled For</div>
-                            <div class="small fw-bold">{{ booking.scheduled_at|date:"d M Y" }}</div>
-                            <div class="small fw-bold">{{ booking.scheduled_at|date:"h:i A" }}</div>
-                        </div>
-                        <div class="col-6">
-                            <div class="small text-muted">Professional</div>
-                            <div class="d-flex align-items-center gap-1">
-                                <div class="avatar-xs bg-primary-soft text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 0.7rem;">
-                                    {{ booking.staff.first_name|first }}{{ booking.staff.last_name|first }}
-                                </div>
-                                <span class="small fw-bold">{{ booking.staff.display_name }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pt-2 border-top">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-800 text-primary">₹{{ booking.service.price }}</div>
-                            <div class="d-flex gap-2 align-items-center">
-                                <a href="{% url 'messages' %}?recipient_id={{ booking.staff.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="Message">
-                                    <i class="bi bi-chat-text"></i>
-                                </a>
-                                {% if booking.staff.phone %}
-                                <a href="https://wa.me/{{ booking.staff.phone|cut:' '|cut:'+' }}" target="_blank" class="btn btn-sm rounded-pill px-3" style="background: #25D366; color: #fff; border: none;" title="WhatsApp">
-                                    <i class="bi bi-whatsapp"></i>
-                                </a>
-                                <a href="tel:{{ booking.staff.phone }}" class="btn btn-sm btn-outline-info rounded-pill px-3" title="Call">
-                                    <i class="bi bi-telephone"></i>
-                                </a>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="d-flex gap-2 flex-wrap">
+                    </td>
+                    <td class="text-end pe-4">
+                        <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
+                            <a href="{% url 'messages' %}?recipient_id={{ booking.staff.id }}"
+                                class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="bi bi-chat-text"></i> Message
+                            </a>
+                            {% if booking.staff.phone %}
+                            <a href="https://wa.me/{{ booking.staff.phone|cut:' '|cut:'+' }}" target="_blank"
+                                class="btn btn-sm rounded-pill px-3"
+                                style="background: #25D366; color: #fff; border: none;" title="WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+                            <a href="tel:{{ booking.staff.phone }}"
+                                class="btn btn-sm btn-outline-info rounded-pill px-3" title="Call">
+                                <i class="bi bi-telephone"></i>
+                            </a>
+                            {% endif %}
                             {% if booking.status == 'pending' %}
-                                <form action="{% url 'cancel_booking' booking.id %}" method="post" onsubmit="return confirm('Are you sure you want to cancel this booking?');" class="m-0">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                                        <i class="bi bi-x-circle"></i> Cancel
-                                    </button>
-                                </form>
+                            <form action="{% url 'cancel_booking' booking.id %}" method="post"
+                                onsubmit="return confirm('Are you sure you want to cancel this booking?');" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </button>
+                            </form>
                             {% endif %}
                             {% if booking.status == 'completed' %}
-                                <a href="{% url 'booking_feedback' booking.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3">
-                                    <i class="bi bi-star"></i> Feedback
-                                </a>
+                            <a href="{% url 'booking_feedback' booking.id %}"
+                                class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                <i class="bi bi-star"></i> Feedback
+                            </a>
                             {% endif %}
                         </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">No bookings found in your history.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="d-md-none">
+        {% for booking in bookings %}
+        <div class="glass-card mb-3 p-3 border-start border-4 {% if booking.status == 'completed' %}border-success{% elif booking.status == 'pending' %}border-warning{% else %}border-primary{% endif %} user-booking-row"
+            data-service="{{ booking.service.name|lower }}" data-staff="{{ booking.staff.display_name|lower }}"
+            data-status="{{ booking.status }}">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <div class="fw-bold fs-5">{{ booking.service.name }}</div>
+                    <div class="small text-muted">{{ booking.service.category.name }}</div>
+                </div>
+                <span
+                    class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                    {{ booking.get_status_display }}
+                </span>
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <div class="small text-muted">Scheduled For</div>
+                    <div class="small fw-bold">{{ booking.scheduled_at|date:"d M Y" }}</div>
+                    <div class="small fw-bold">{{ booking.scheduled_at|date:"h:i A" }}</div>
+                </div>
+                <div class="col-6">
+                    <div class="small text-muted">Professional</div>
+                    <div class="d-flex align-items-center gap-1">
+                        <div class="avatar-xs bg-primary-soft text-primary rounded-circle d-flex align-items-center justify-content-center"
+                            style="width: 20px; height: 20px; font-size: 0.7rem;">
+                            {{ booking.staff.first_name|first }}{{ booking.staff.last_name|first }}
+                        </div>
+                        <span class="small fw-bold">{{ booking.staff.display_name }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2 border-top">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="fw-800 text-primary">₹{{ booking.service.price }}</div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <a href="{% url 'messages' %}?recipient_id={{ booking.staff.id }}"
+                            class="btn btn-sm btn-outline-primary rounded-pill px-3" title="Message">
+                            <i class="bi bi-chat-text"></i>
+                        </a>
+                        {% if booking.staff.phone %}
+                        <a href="https://wa.me/{{ booking.staff.phone|cut:' '|cut:'+' }}" target="_blank"
+                            class="btn btn-sm rounded-pill px-3" style="background: #25D366; color: #fff; border: none;"
+                            title="WhatsApp">
+                            <i class="bi bi-whatsapp"></i>
+                        </a>
+                        <a href="tel:{{ booking.staff.phone }}" class="btn btn-sm btn-outline-info rounded-pill px-3"
+                            title="Call">
+                            <i class="bi bi-telephone"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    {% if booking.status == 'pending' %}
+                    <form action="{% url 'cancel_booking' booking.id %}" method="post"
+                        onsubmit="return confirm('Are you sure you want to cancel this booking?');" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% if booking.status == 'completed' %}
+                    <a href="{% url 'booking_feedback' booking.id %}"
+                        class="btn btn-sm btn-outline-success rounded-pill px-3">
+                        <i class="bi bi-star"></i> Feedback
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 glass-panel">
+            <i class="bi bi-calendar-x text-muted mb-3 d-block" style="font-size: 2.5rem;"></i>
+            <p class="text-muted">No bookings found in your history.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% elif active_tab == 'calendar' %}
+<!-- Calendar Tab -->
+<div class="dash-section-header">
+    <h2 class="mb-1">Booking Calendar</h2>
+    <p class="text-muted">View your scheduled services in a chronological grid.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-9">
+        <div class="panel-lite p-4">
+            <div class="booking-calendar-shell">
+                <div class="calendar-toolbar">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="userCalendarPrev"><i
+                            class="bi bi-chevron-left"></i></button>
+                    <div class="calendar-toolbar-title fw-800" id="userCalendarTitle"></div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="userCalendarNext"><i
+                            class="bi bi-chevron-right"></i></button>
+                </div>
+                <div class="calendar-weekdays">
+                    <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                </div>
+                <div class="calendar-grid" id="userCalendarGrid"></div>
+                <div class="calendar-legend mt-3 pt-3 border-top d-flex flex-wrap gap-4 px-1">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="legend-box is-open"></span>
+                        <span class="small fw-600 text-muted">Available</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="legend-box is-closed"></span>
+                        <span class="small fw-600 text-muted">Blocked</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="legend-box has-booking-legend has-booking-confirmed"></span>
+                        <span class="small fw-600 text-muted">Confirmed</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="legend-box has-booking-legend has-booking-in_progress"></span>
+                        <span class="small fw-600 text-muted">In Progress</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="legend-box has-booking-legend has-booking-pending"></span>
+                        <span class="small fw-600 text-muted">Pending</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="legend-box has-booking-legend has-booking-completed"></span>
+                        <span class="small fw-600 text-muted">Completed</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="legend-box has-booking-legend has-booking-cancelled"></span>
+                        <span class="small fw-600 text-muted">Cancelled</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="panel-lite p-4 border-primary-light h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-800 mb-0">Date Details</h5>
+                <span class="badge-glass bg-primary-soft text-primary">{{ selected_slot_date|date:"d M Y" }}</span>
+            </div>
+
+            <div class="selected-date-bookings">
+                <h6 class="small fw-700 text-uppercase text-muted mb-3">Your Bookings</h6>
+                {% for booking in selected_date_bookings %}
+                <div class="glass-card mb-3 p-3 border-start border-4 border-primary">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="fw-bold">{{ booking.service.name }}</div>
+                        <span class="small fw-bold">{{ booking.scheduled_at|time:"h:i A" }}</span>
+                    </div>
+                    <div class="small text-muted mb-2">Staff: {{ booking.staff.display_name }}</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span
+                            class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
+                            {{ booking.get_status_display }}
+                        </span>
+                        <a href="{% url 'messages' %}?recipient_id={{ booking.staff.id }}"
+                            class="btn btn-xs btn-outline-primary rounded-pill">Message</a>
                     </div>
                 </div>
                 {% empty %}
-                <div class="text-center py-5 glass-panel">
-                    <i class="bi bi-calendar-x text-muted mb-3 d-block" style="font-size: 2.5rem;"></i>
-                    <p class="text-muted">No bookings found in your history.</p>
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x text-muted mb-3 d-block" style="font-size: 2rem;"></i>
+                    <p class="text-muted mb-0">No bookings scheduled for this date.</p>
                 </div>
                 {% endfor %}
             </div>
         </div>
-
-    {% elif active_tab == 'calendar' %}
-        <!-- Calendar Tab -->
-        <div class="dash-section-header">
-            <h2 class="mb-1">Booking Calendar</h2>
-            <p class="text-muted">View your scheduled services in a chronological grid.</p>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-lg-9">
-                <div class="panel-lite p-4">
-                    <div class="booking-calendar-shell">
-                        <div class="calendar-toolbar">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="userCalendarPrev"><i class="bi bi-chevron-left"></i></button>
-                            <div class="calendar-toolbar-title fw-800" id="userCalendarTitle"></div>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="userCalendarNext"><i class="bi bi-chevron-right"></i></button>
-                        </div>
-                        <div class="calendar-weekdays">
-                            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-                        </div>
-                        <div class="calendar-grid" id="userCalendarGrid"></div>
-                        <div class="calendar-legend mt-3 pt-3 border-top d-flex flex-wrap gap-4 px-1">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="legend-box is-open"></span>
-                                <span class="small fw-600 text-muted">Available</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="legend-box is-closed"></span>
-                                <span class="small fw-600 text-muted">Blocked</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="legend-box has-booking-legend has-booking-confirmed"></span>
-                                <span class="small fw-600 text-muted">Confirmed</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="legend-box has-booking-legend has-booking-in_progress"></span>
-                                <span class="small fw-600 text-muted">In Progress</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="legend-box has-booking-legend has-booking-pending"></span>
-                                <span class="small fw-600 text-muted">Pending</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="legend-box has-booking-legend has-booking-completed"></span>
-                                <span class="small fw-600 text-muted">Completed</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="legend-box has-booking-legend has-booking-cancelled"></span>
-                                <span class="small fw-600 text-muted">Cancelled</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3">
-                <div class="panel-lite p-4 border-primary-light h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-800 mb-0">Date Details</h5>
-                        <span class="badge-glass bg-primary-soft text-primary">{{ selected_slot_date|date:"d M Y" }}</span>
-                    </div>
-
-                    <div class="selected-date-bookings">
-                        <h6 class="small fw-700 text-uppercase text-muted mb-3">Your Bookings</h6>
-                        {% for booking in selected_date_bookings %}
-                            <div class="glass-card mb-3 p-3 border-start border-4 border-primary">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div class="fw-bold">{{ booking.service.name }}</div>
-                                    <span class="small fw-bold">{{ booking.scheduled_at|time:"h:i A" }}</span>
-                                </div>
-                                <div class="small text-muted mb-2">Staff: {{ booking.staff.display_name }}</div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="badge-glass {% if booking.status == 'completed' %}badge-status-completed{% elif booking.status == 'pending' %}badge-status-pending{% endif %}">
-                                        {{ booking.get_status_display }}
-                                    </span>
-                                    <a href="{% url 'messages' %}?recipient_id={{ booking.staff.id }}" class="btn btn-xs btn-outline-primary rounded-pill">Message</a>
-                                </div>
-                            </div>
-                        {% empty %}
-                            <div class="text-center py-5">
-                                <i class="bi bi-calendar-x text-muted mb-3 d-block" style="font-size: 2rem;"></i>
-                                <p class="text-muted mb-0">No bookings scheduled for this date.</p>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% elif active_tab == 'messages' %}
-        <!-- Messages Tab -->
-        <div class="dash-section-header">
-            <h2 class="mb-1">Messages</h2>
-            <p class="text-muted">Chat with service providers and platform support.</p>
-        </div>
-        <div class="panel-lite p-0 overflow-hidden" style="height: 600px;">
-            {% include 'bookings/partials/dashboard_messages_panel.html' %}
-        </div>
-    {% endif %}
+    </div>
+</div>
+{% elif active_tab == 'messages' %}
+<!-- Messages Tab -->
+<div class="dash-section-header">
+    <h2 class="mb-1">Messages</h2>
+    <p class="text-muted">Chat with service providers and platform support.</p>
+</div>
+<div class="panel-lite p-0 overflow-hidden" style="height: 600px;">
+    {% include 'bookings/partials/dashboard_messages_panel.html' %}
+</div>
+{% endif %}
 
 <!-- Calendar Data -->
 {{ user_calendar_data|json_script:"user-calendar-data" }}
@@ -358,113 +383,113 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const calendarGrid = document.getElementById('userCalendarGrid');
-    if (calendarGrid) {
-        const calendarTitle = document.getElementById('userCalendarTitle');
-        const prevBtn = document.getElementById('userCalendarPrev');
-        const nextBtn = document.getElementById('userCalendarNext');
+    document.addEventListener('DOMContentLoaded', function () {
+        const calendarGrid = document.getElementById('userCalendarGrid');
+        if (calendarGrid) {
+            const calendarTitle = document.getElementById('userCalendarTitle');
+            const prevBtn = document.getElementById('userCalendarPrev');
+            const nextBtn = document.getElementById('userCalendarNext');
 
-        // BOOKINGS FILTERING
-        const bookingSearch = document.getElementById('user-booking-search');
-        if (bookingSearch) {
-            const statusFilter = document.getElementById('user-booking-status-filter');
-            const bookingRows = Array.from(document.querySelectorAll('.user-booking-row'));
-            
-            function applyUserFilters() {
-                const term = bookingSearch.value.trim().toLowerCase();
-                const status = statusFilter.value;
-                
-                bookingRows.forEach(row => {
-                    const service = row.getAttribute('data-service') || '';
-                    const staff = row.getAttribute('data-staff') || '';
-                    const rowStatus = row.getAttribute('data-status') || '';
-                    
-                    const matchesText = !term || service.includes(term) || staff.includes(term);
-                    const matchesStatus = !status || rowStatus === status;
-                    
-                    row.style.display = (matchesText && matchesStatus) ? '' : 'none';
-                });
-            }
-            
-            bookingSearch.addEventListener('input', applyUserFilters);
-            statusFilter.addEventListener('change', applyUserFilters);
-        }
+            // BOOKINGS FILTERING
+            const bookingSearch = document.getElementById('user-booking-search');
+            if (bookingSearch) {
+                const statusFilter = document.getElementById('user-booking-status-filter');
+                const bookingRows = Array.from(document.querySelectorAll('.user-booking-row'));
 
-        const calendarData = JSON.parse(document.getElementById('user-calendar-data').textContent || '{}');
-        
-        let selectedDateStr = "{{ selected_slot_date }}";
-        const initialDate = selectedDateStr ? new Date(selectedDateStr) : new Date();
-        let currentMonth = initialDate.getMonth();
-        let currentYear = initialDate.getFullYear();
+                function applyUserFilters() {
+                    const term = bookingSearch.value.trim().toLowerCase();
+                    const status = statusFilter.value;
 
-        function renderCalendar() {
-            calendarGrid.innerHTML = '';
-            const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-            const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-            
-            // Adjust to Monday start
-            let firstDayIndex = (firstDayOfMonth.getDay() + 6) % 7;
-            const daysInMonth = lastDayOfMonth.getDate();
+                    bookingRows.forEach(row => {
+                        const service = row.getAttribute('data-service') || '';
+                        const staff = row.getAttribute('data-staff') || '';
+                        const rowStatus = row.getAttribute('data-status') || '';
 
-            calendarTitle.textContent = firstDayOfMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+                        const matchesText = !term || service.includes(term) || staff.includes(term);
+                        const matchesStatus = !status || rowStatus === status;
 
-            // Empty slots for previous month
-            for (let i = 0; i < firstDayIndex; i++) {
-                const empty = document.createElement('div');
-                empty.className = 'calendar-empty';
-                calendarGrid.appendChild(empty);
-            }
-
-            // Days of the month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(currentYear, currentMonth, day);
-                const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                
-                const cell = document.createElement('button');
-                cell.type = 'button';
-                cell.className = 'calendar-day is-open';
-                
-                const info = calendarData[iso] || {};
-                
-                if (info.has_booking) {
-                    cell.classList.add('has-booking'); // base dot style
-                    if (info.status) {
-                        cell.classList.add(`has-booking-${info.status}`);
-                    }
+                        row.style.display = (matchesText && matchesStatus) ? '' : 'none';
+                    });
                 }
-                
-                if (iso === "{{ today }}") cell.classList.add('is-today');
-                if (iso === selectedDateStr) cell.classList.add('is-selected');
 
-                cell.innerHTML = `<span class="calendar-day-number">${day}</span>`;
-                cell.addEventListener('click', () => {
-                    window.location.href = `?tab=calendar&slot_date=${iso}`;
-                });
-                calendarGrid.appendChild(cell);
+                bookingSearch.addEventListener('input', applyUserFilters);
+                statusFilter.addEventListener('change', applyUserFilters);
             }
+
+            const calendarData = JSON.parse(document.getElementById('user-calendar-data').textContent || '{}');
+
+            let selectedDateStr = "{{ selected_slot_date }}";
+            const initialDate = selectedDateStr ? new Date(selectedDateStr) : new Date();
+            let currentMonth = initialDate.getMonth();
+            let currentYear = initialDate.getFullYear();
+
+            function renderCalendar() {
+                calendarGrid.innerHTML = '';
+                const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+                const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+
+                // Adjust to Monday start
+                let firstDayIndex = (firstDayOfMonth.getDay() + 6) % 7;
+                const daysInMonth = lastDayOfMonth.getDate();
+
+                calendarTitle.textContent = firstDayOfMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+                // Empty slots for previous month
+                for (let i = 0; i < firstDayIndex; i++) {
+                    const empty = document.createElement('div');
+                    empty.className = 'calendar-empty';
+                    calendarGrid.appendChild(empty);
+                }
+
+                // Days of the month
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(currentYear, currentMonth, day);
+                    const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+                    const cell = document.createElement('button');
+                    cell.type = 'button';
+                    cell.className = 'calendar-day is-open';
+
+                    const info = calendarData[iso] || {};
+
+                    if (info.has_booking) {
+                        cell.classList.add('has-booking'); // base dot style
+                        if (info.status) {
+                            cell.classList.add(`has-booking-${info.status}`);
+                        }
+                    }
+
+                    if (iso === "{{ today }}") cell.classList.add('is-today');
+                    if (iso === selectedDateStr) cell.classList.add('is-selected');
+
+                    cell.innerHTML = `<span class="calendar-day-number">${day}</span>`;
+                    cell.addEventListener('click', () => {
+                        window.location.href = `?tab=calendar&slot_date=${iso}`;
+                    });
+                    calendarGrid.appendChild(cell);
+                }
+            }
+
+            prevBtn.addEventListener('click', () => {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                renderCalendar();
+            });
+
+            nextBtn.addEventListener('click', () => {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                renderCalendar();
+            });
+
+            renderCalendar();
         }
-
-        prevBtn.addEventListener('click', () => {
-            currentMonth--;
-            if (currentMonth < 0) {
-                currentMonth = 11;
-                currentYear--;
-            }
-            renderCalendar();
-        });
-
-        nextBtn.addEventListener('click', () => {
-            currentMonth++;
-            if (currentMonth > 11) {
-                currentMonth = 0;
-                currentYear++;
-            }
-            renderCalendar();
-        });
-
-        renderCalendar();
-    }
-});
+    });
 </script>
 {% endblock %}

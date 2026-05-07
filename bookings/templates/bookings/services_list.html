@@ -1,17 +1,20 @@
 {% load static %}
 {% for service in services %}
 <div class="col-6 col-lg-4 mb-3 mb-lg-4">
-    <div class="card h-100 border-0 shadow-sm service-card rounded-4 overflow-hidden position-relative" 
-         data-service-id="{{ service.id }}" 
-         style="transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); cursor: pointer;">
-        
+    <div class="card h-100 border-0 shadow-sm service-card rounded-4 overflow-hidden position-relative"
+        data-service-id="{{ service.id }}"
+        style="transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); cursor: pointer;">
+
         <!-- Category Badge -->
-        <span class="badge bg-primary position-absolute top-0 start-0 m-2 m-lg-3 z-index-2 rounded-pill px-2 px-lg-3 py-1 fw-700 shadow-sm" style="font-size: 0.65rem; z-index: 10;">
+        <span
+            class="badge bg-primary position-absolute top-0 start-0 m-2 m-lg-3 z-index-2 rounded-pill px-2 px-lg-3 py-1 fw-700 shadow-sm"
+            style="font-size: 0.65rem; z-index: 10;">
             {{ service.category.name }}
         </span>
 
         <!-- Rating Overlay -->
-        <div class="position-absolute top-0 end-0 m-2 m-lg-3 z-index-2 bg-white rounded-pill px-2 py-1 shadow-sm d-flex align-items-center gap-1" style="z-index: 10;">
+        <div class="position-absolute top-0 end-0 m-2 m-lg-3 z-index-2 bg-white rounded-pill px-2 py-1 shadow-sm d-flex align-items-center gap-1"
+            style="z-index: 10;">
             <i class="bi bi-star-fill text-warning" style="font-size: 0.7rem;"></i>
             <span class="fw-800 text-dark" style="font-size: 0.7rem;">
                 {{ service.avg_rating|default:"4.8"|floatformat:1 }}
@@ -21,29 +24,35 @@
 
         <div class="card-img-wrapper overflow-hidden position-relative">
             {% if service.image %}
-                <img src="{{ service.image.url }}" class="card-img-top w-100 object-fit-cover service-img" alt="{{ service.name }}">
+            <img src="{{ service.image.url }}" class="card-img-top w-100 object-fit-cover service-img"
+                alt="{{ service.name }}">
             {% else %}
-                <img src="{% static 'bookings/img/hero-tech.png' %}" class="card-img-top w-100 object-fit-cover service-img" alt="{{ service.name }}">
+            <img src="{% static 'bookings/img/hero-tech.png' %}" class="card-img-top w-100 object-fit-cover service-img"
+                alt="{{ service.name }}">
             {% endif %}
         </div>
 
         <div class="card-body p-2 p-lg-4 d-flex flex-column">
             <h5 class="card-title fw-900 text-dark mb-1 mb-lg-2 service-name">{{ service.name }}</h5>
-            <p class="card-text text-muted small fw-600 mb-2 mb-lg-3 d-none d-lg-block" style="line-height: 1.4; font-size: 0.85rem;">
+            <p class="card-text text-muted small fw-600 mb-2 mb-lg-3 d-none d-lg-block"
+                style="line-height: 1.4; font-size: 0.85rem;">
                 {{ service.description|truncatewords:15 }}
             </p>
-            
+
             <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
                 <div class="price-box">
                     <span class="h6 fw-900 text-primary mb-0 service-price">₹{{ service.price }}</span>
-                    <span class="d-block text-muted fw-700" style="font-size: 0.7rem; margin-top: -2px;">{{ service.duration_minutes }} Minutes</span>
+                    <span class="d-block text-muted fw-700" style="font-size: 0.7rem; margin-top: -2px;">{{
+                        service.duration_minutes }} Minutes</span>
                 </div>
                 <!-- Desktop Book Now Button -->
-                <button class="btn btn-primary rounded-pill px-4 py-2 fw-800 d-none d-lg-block" style="font-size: 0.85rem; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);">
+                <button class="btn btn-primary rounded-pill px-4 py-2 fw-800 d-none d-lg-block"
+                    style="font-size: 0.85rem; box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);">
                     Book Now
                 </button>
                 <!-- Mobile Book Now Button (Subtle) -->
-                <span class="text-primary fw-800 d-lg-none" style="font-size: 0.75rem;">Book <i class="bi bi-arrow-right"></i></span>
+                <span class="text-primary fw-800 d-lg-none" style="font-size: 0.75rem;">Book <i
+                        class="bi bi-arrow-right"></i></span>
             </div>
         </div>
     </div>
