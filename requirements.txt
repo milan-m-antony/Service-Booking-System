@@ -4,3 +4,5 @@ dj-database-url>=3.0
 gunicorn>=22.0
 whitenoise>=6.7
 PyMySQL>=1.0
+cloudinary>=1.40.0
+django-cloudinary-storage>=0.3.0
