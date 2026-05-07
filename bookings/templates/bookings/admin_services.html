@@ -4,19 +4,19 @@
 {% block dashboard_content %}
 <div class="dash-section-header">
     <h2 class="mb-1">Manage Services</h2>
-    <p class="text-muted">Create services, assign staff, and control visibility.</p>
+    <p class="text-muted">Create and edit services, and manage service details.</p>
 </div>
 
 <div class="panel-lite p-4 mb-4 border-primary-light">
     <h5 class="fw-800 mb-3">Add New Service</h5>
-    <form method="post" class="row g-3">
+    <form method="post" class="row g-3" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="action" value="create">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label class="form-label small fw-700 text-muted text-uppercase">Service Name</label>
             <input type="text" name="name" class="form-control rounded-pill" placeholder="e.g. Deep Cleaning" required>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <label class="form-label small fw-700 text-muted text-uppercase">Category</label>
             <select name="category" class="form-select rounded-pill" required>
                 <option value="">Choose...</option>
@@ -30,10 +30,14 @@
             <input type="number" step="0.01" min="0" name="price" class="form-control rounded-pill" placeholder="0.00"
                 required>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <label class="form-label small fw-700 text-muted text-uppercase">Duration (min)</label>
             <input type="number" min="15" step="15" name="duration" class="form-control rounded-pill" value="60"
                 required>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-700 text-muted text-uppercase">Service Image</label>
+            <input type="file" name="image" class="form-control rounded-pill" accept="image/*">
         </div>
         <div class="col-12">
             <label class="form-label small fw-700 text-muted text-uppercase">Description</label>
@@ -46,7 +50,7 @@
     </form>
 </div>
 
-<div class="panel-lite p-0 overflow-hidden">
+<div class="panel-lite p-0">
     <div class="p-4 border-bottom bg-light">
         <div class="row g-3">
             <div class="col-md-6">
@@ -60,7 +64,7 @@
                 <select id="category-filter" class="form-select rounded-pill">
                     <option value="">All Categories</option>
                     {% for category in categories %}
-                    <option value="{{ category.name }}">{{ category.name }}</option>
+                    <option value="{{ category.id }}">{{ category.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -81,7 +85,6 @@
                     <th>Category</th>
                     <th>Price</th>
                     <th>Duration</th>
-                    <th>Staff Assignments</th>
                     <th>Status</th>
                     <th class="text-end pe-4">Actions</th>
                 </tr>
@@ -89,40 +92,36 @@
             <tbody>
                 {% for service in services %}
                 <tr class="service-row" data-service-name="{{ service.name|lower }}"
-                    data-category="{{ service.category.name }}"
+                    data-category-id="{{ service.category.id }}"
                     data-status="{% if service.is_active %}Active{% else %}Inactive{% endif %}">
                     <td class="ps-4">
-                        <div class="fw-bold">{{ service.name }}</div>
+                        <div class="d-flex align-items-center gap-3">
+                            {% if service.image %}
+                            <img src="{{ service.image.url }}" alt="{{ service.name }}" class="rounded-3" style="width:45px; height:45px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-primary-soft text-primary rounded-3 d-flex align-items-center justify-content-center" style="width:45px; height:45px; font-size: 1.2rem;">
+                                <i class="bi bi-image"></i>
+                            </div>
+                            {% endif %}
+                            <div class="fw-bold">{{ service.name }}</div>
+                        </div>
                     </td>
                     <td>{{ service.category.name }}</td>
                     <td class="fw-bold text-primary">₹{{ service.price }}</td>
                     <td>{{ service.duration_minutes }} min</td>
                     <td>
-                        <div class="staff-pills-container" data-service-id="{{ service.id }}">
-                            {% for staff in staff_users %}
-                            <button type="button" class="staff-pill-toggle" data-staff-id="{{ staff.id }}"
-                                data-assigned="{% if staff in service.staff.all %}true{% else %}false{% endif %}"
-                                title="{{ staff.display_name }}">
-                                <span class="staff-pill-icon">
-                                    <i class="bi {% if staff in service.staff.all %}bi-check-circle-fill{% else %}bi-plus-circle{% endif %}"></i>
-                                </span>
-                                {{ staff.display_name }}
-                            </button>
-                            {% endfor %}
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge {% if service.is_active %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3 py-2" style="font-size: 0.75rem; letter-spacing: 0.02em;">
+                                {{ service.is_active|yesno:"Active,Inactive" }}
+                            </span>
                         </div>
                     </td>
-                    <td>
-                        <span class="badge-glass {% if service.is_active %}badge-status-completed{% endif %}">
-                            {% if service.is_active %}Active{% else %}Inactive{% endif %}
-                        </span>
-                    </td>
                     <td class="text-end pe-4">
-                        <form method="post" class="m-0">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="toggle_active">
-                            <input type="hidden" name="service_id" value="{{ service.id }}">
-                            <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill">Toggle</button>
-                        </form>
+                                    <!-- Edit Link -->
+                                    <a href="{% url 'admin_edit_service' service.id %}" class="btn btn-sm btn-primary rounded-pill flex-grow-1 py-2 fw-700">
+                                        <i class="bi bi-pencil me-2"></i>Edit Service
+                                    </a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -130,86 +129,75 @@
         </table>
     </div>
 
-    <!-- Mobile Card View -->
-    <div class="d-md-none p-3" id="services-mobile">
+    <!-- Mobile Cards -->
+    <div class="d-lg-none mt-4">
         {% for service in services %}
-        <div class="glass-card mb-3 p-3 service-row" data-service-name="{{ service.name|lower }}"
-            data-category="{{ service.category.name }}"
-            data-status="{% if service.is_active %}Active{% else %}Inactive{% endif %}">
+        <div class="glass-panel p-4 mb-3 border-0 shadow-sm rounded-4 service-row" 
+             data-service-name="{{ service.name|lower }}" 
+             data-category-id="{{ service.category.id }}"
+             data-status="{{ service.is_active|yesno:'Active,Inactive' }}">
             <div class="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                    <div class="fw-bold fs-5">{{ service.name }}</div>
-                    <div class="small text-muted">{{ service.category.name }}</div>
+                <div class="d-flex gap-3 align-items-center">
+                    {% if service.image %}
+                    <img src="{{ service.image.url }}" alt="{{ service.name }}" class="rounded-3" style="width:50px; height:50px; object-fit: cover;">
+                    {% else %}
+                    <div class="bg-primary-soft text-primary rounded-3 d-flex align-items-center justify-content-center" style="width:50px; height:50px;">
+                        <i class="bi bi-image fs-4"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h6 class="fw-800 mb-0">{{ service.name }}</h6>
+                        <span class="text-muted small">{{ service.category.name }}</span>
+                    </div>
                 </div>
-                <span class="badge-glass {% if service.is_active %}badge-status-completed{% endif %}">
-                    {% if service.is_active %}Active{% else %}Inactive{% endif %}
+                <span class="badge {% if service.is_active %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3 py-1">
+                    {{ service.is_active|yesno:"Active,Inactive" }}
                 </span>
             </div>
 
-            <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <div class="small text-muted mb-1">Price</div>
-                    <div class="fw-700 text-primary">₹{{ service.price }}</div>
+            <div class="d-flex gap-4 mb-3 py-2 border-top border-bottom border-light">
+                <div>
+                    <label class="d-block small text-muted text-uppercase fw-700" style="font-size: 0.65rem;">Price</label>
+                    <span class="fw-800 text-primary">₹{{ service.price }}</span>
                 </div>
-                <div class="col-6">
-                    <div class="small text-muted mb-1">Duration</div>
-                    <div class="fw-700">{{ service.duration_minutes }} min</div>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="small text-muted mb-2 d-block fw-700 text-uppercase">Staff Assignments</label>
-                <div class="staff-pills-container" data-service-id="{{ service.id }}">
-                    {% for staff in staff_users %}
-                    <button type="button" class="staff-pill-toggle mb-1" data-staff-id="{{ staff.id }}"
-                        data-assigned="{% if staff in service.staff.all %}true{% else %}false{% endif %}"
-                        title="{{ staff.display_name }}">
-                        <span class="staff-pill-icon">
-                            <i class="bi {% if staff in service.staff.all %}bi-check-circle-fill{% else %}bi-plus-circle{% endif %}"></i>
-                        </span>
-                        {{ staff.display_name }}
-                    </button>
-                    {% endfor %}
+                <div>
+                    <label class="d-block small text-muted text-uppercase fw-700" style="font-size: 0.65rem;">Duration</label>
+                    <span class="fw-700">{{ service.duration_minutes }} min</span>
                 </div>
             </div>
 
-            <div class="pt-3 border-top d-flex justify-content-end">
-                <form method="post" class="m-0">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="toggle_active">
-                    <input type="hidden" name="service_id" value="{{ service.id }}">
-                    <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-4">
-                        Toggle Visibility
-                    </button>
-                </form>
+            <div class="d-flex gap-2">
+                <a href="{% url 'admin_edit_service' service.id %}" class="btn btn-sm btn-primary rounded-pill flex-grow-1 py-2 fw-700">
+                    <i class="bi bi-pencil me-2"></i>Edit
+                </a>
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // 1. Filter logic
+        // Filter logic
         const searchInput = document.getElementById('search-input');
         const categoryFilter = document.getElementById('category-filter');
         const statusFilter = document.getElementById('status-filter');
         const serviceRows = document.querySelectorAll('.service-row');
 
         function applyFilters() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const cat = categoryFilter.value;
-            const stat = statusFilter.value;
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            const cat = categoryFilter ? categoryFilter.value : '';
+            const stat = statusFilter ? statusFilter.value : '';
 
             serviceRows.forEach(row => {
-                const name = row.getAttribute('data-service-name');
-                const category = row.getAttribute('data-category');
-                const status = row.getAttribute('data-status');
+                const name = row.getAttribute('data-service-name') || '';
+                const status = row.getAttribute('data-status') || '';
 
                 const matchSearch = name.includes(searchTerm);
-                const matchCat = !cat || category === cat;
+                const matchCat = !cat || row.getAttribute('data-category-id') === cat;
                 const matchStat = !stat || status === stat;
 
                 row.style.display = (matchSearch && matchCat && matchStat) ? '' : 'none';
@@ -220,64 +208,7 @@
         if (categoryFilter) categoryFilter.addEventListener('change', applyFilters);
         if (statusFilter) statusFilter.addEventListener('change', applyFilters);
 
-        // 2. Staff Pills Logic (Improved with feedback)
-        const staffPills = document.querySelectorAll('.staff-pill-toggle');
-        staffPills.forEach(pill => {
-            pill.addEventListener('click', function () {
-                const container = this.closest('.staff-pills-container');
-                const serviceId = container.getAttribute('data-service-id');
-                const staffId = this.getAttribute('data-staff-id');
-                const isCurrentlyAssigned = this.getAttribute('data-assigned') === 'true';
-
-                // Optimistic UI update
-                const newAssigned = !isCurrentlyAssigned;
-                this.setAttribute('data-assigned', newAssigned ? 'true' : 'false');
-                this.classList.add('saving');
-                
-                const icon = this.querySelector('i');
-                icon.className = 'bi bi-arrow-repeat'; // Loading icon
-
-                // Find all assigned IDs for this service after the toggle
-                const allPillsForService = container.querySelectorAll('.staff-pill-toggle');
-                const assignedIds = Array.from(allPillsForService)
-                    .filter(p => p.getAttribute('data-assigned') === 'true')
-                    .map(p => p.getAttribute('data-staff-id'));
-
-                (async () => {
-                    try {
-                        const params = new URLSearchParams();
-                        params.append("action", "assign_staff");
-                        params.append("service_id", serviceId);
-                        assignedIds.forEach(id => params.append("staff_ids", id));
-
-                        const response = await fetch(window.location.href, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/x-www-form-urlencoded",
-                                "X-CSRFToken": "{{ csrf_token }}"
-                            },
-                            body: params
-                        });
-
-                        if (response.ok) {
-                            this.classList.remove('saving');
-                            this.classList.add('saved');
-                            icon.className = newAssigned ? 'bi bi-check-circle-fill' : 'bi bi-plus-circle';
-                            setTimeout(() => this.classList.remove('saved'), 1500);
-                        } else {
-                            throw new Error('Failed to save');
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        this.classList.remove('saving');
-                        this.classList.add('error');
-                        this.setAttribute('data-assigned', isCurrentlyAssigned ? 'true' : 'false'); // Revert
-                        icon.className = isCurrentlyAssigned ? 'bi bi-check-circle-fill' : 'bi bi-plus-circle';
-                        setTimeout(() => this.classList.remove('error'), 2000);
-                    }
-                })();
-            });
-        });
+        // Legacy modal logic removed - now using dedicated edit pages
     });
 </script>
 {% endblock %}

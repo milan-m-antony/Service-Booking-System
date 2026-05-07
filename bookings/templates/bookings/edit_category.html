@@ -1,0 +1,106 @@
+{% extends 'bookings/dashboard_layout.html' %}
+{% block title %}Edit Category | Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0 pb-5">
+    <!-- Header -->
+    <div class="dash-section-header mb-2 px-3 px-md-0">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'admin_categories' %}" class="btn btn-icon-glass rounded-circle">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <span class="role-chip mb-0" style="font-size: 0.65rem; padding: 2px 8px;">Category Management</span>
+                <h2 class="h5 mb-0 fw-800 text-dark">Edit Category</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maximum Space Layout -->
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="edit">
+        
+        <div class="row g-4">
+            <!-- Main Form Column -->
+            <div class="col-lg-8 col-xl-9">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <label class="form-label small fw-700 text-muted text-uppercase mb-1">Category Name</label>
+                        <input type="text" name="name" class="form-control border-0 bg-white shadow-sm rounded-pill px-4 py-3" value="{{ category.name }}" required>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-700 text-muted text-uppercase mb-1">Icon (Bootstrap Icon Class)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-0 shadow-sm rounded-start-pill ps-4">
+                                <i class="bi {{ category.icon|default:'bi-grid' }}"></i>
+                            </span>
+                            <input type="text" name="icon" class="form-control border-0 bg-white shadow-sm rounded-end-pill px-4 py-3" value="{{ category.icon }}" placeholder="e.g. bi-water">
+                        </div>
+                        <small class="text-muted ps-2 mt-1 d-block" style="font-size: 0.7rem;">Find icons at <a href="https://icons.getbootstrap.com" target="_blank">icons.getbootstrap.com</a></small>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-700 text-muted text-uppercase mb-1">Theme Color</label>
+                        <input type="color" name="color" class="form-control form-control-color w-100 rounded-pill p-1 border-0 shadow-sm" value="{{ category.color }}" style="height: 60px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Actions & Preview -->
+            <div class="col-lg-4 col-xl-3">
+                <div class="sticky-top" style="top: 1rem; z-index: 1;">
+                    <div class="p-4 bg-white shadow-sm rounded-4 border-0 text-center">
+                        <label class="form-label small fw-700 text-muted text-uppercase mb-4 d-block">Visual Preview</label>
+                        <div class="d-flex flex-column align-items-center mb-5">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle text-white mb-3 shadow-lg" style="--cat-bg: {{ category.color|default:'#3b82f6' }}; background-color: var(--cat-bg); width: 100px; height: 100px; font-size: 3rem;">
+                                <i class="bi {{ category.icon|default:'bi-grid' }}"></i>
+                            </div>
+                            <h4 class="fw-800 mb-0">{{ category.name }}</h4>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary rounded-pill py-3 fw-700 shadow-sm mb-1">
+                                <i class="bi bi-check2-circle me-2"></i>Save Changes
+                            </button>
+                            <button type="button" class="btn btn-link text-danger text-decoration-none py-2 fw-700 small" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">
+                                <i class="bi bi-trash3 me-2"></i>Delete Category
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Custom Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-body p-4 text-center">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger bg-opacity-10 text-danger mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.5rem;"></i>
+                </div>
+                <h5 class="fw-800 mb-2">Delete Category?</h5>
+                <p class="text-muted small mb-4">Are you sure? All services currently under this category will be orphaned. This cannot be undone.</p>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-danger rounded-pill py-2 fw-700" onclick="document.getElementById('delete-form').submit();">
+                        Confirm Delete
+                    </button>
+                    <button type="button" class="btn btn-light rounded-pill py-2 fw-700 text-muted" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="delete-form" method="post" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="delete">
+</form>
+{% endblock %}

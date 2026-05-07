@@ -99,6 +99,9 @@
                     <a href="{% url 'admin_services' %}" class="{% if request.resolver_match.url_name == 'admin_services' %}active{% endif %}">
                         <i class="bi bi-tools"></i> Services
                     </a>
+                    <a href="{% url 'admin_staff' %}" class="{% if request.resolver_match.url_name == 'admin_staff' %}active{% endif %}">
+                        <i class="bi bi-person-gear"></i> Manage Staff
+                    </a>
                     <a href="{% url 'admin_users' %}" class="{% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
                         <i class="bi bi-people"></i> Users
                     </a>
@@ -355,6 +358,12 @@
                         <a href="{% url 'admin_services' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
                             <i class="bi bi-tools text-primary fs-3"></i>
                             <span style="color:var(--text-main);font-weight:500;">Services</span>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'admin_staff' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
+                            <i class="bi bi-person-gear text-primary fs-3"></i>
+                            <span style="color:var(--text-main);font-weight:500;">Manage Staff</span>
                         </a>
                     </div>
                     <div class="col-6">

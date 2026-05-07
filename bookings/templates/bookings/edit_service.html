@@ -1,0 +1,181 @@
+{% extends 'bookings/dashboard_layout.html' %}
+{% block title %}Edit Service | Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0 pb-5">
+    <!-- Header -->
+    <div class="dash-section-header mb-2 px-3 px-md-0">
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'admin_services' %}" class="btn btn-icon-glass rounded-circle">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <span class="role-chip mb-0" style="font-size: 0.65rem; padding: 2px 8px;">Service Management</span>
+                <h2 class="h5 mb-0 fw-800 text-dark">Edit Service</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maximum Space Layout -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="edit">
+        
+        <div class="row g-4">
+            <!-- Main Form Column -->
+            <div class="col-lg-8 col-xl-9">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <label class="form-label small fw-700 text-muted text-uppercase mb-1">Service Name</label>
+                        <input type="text" name="name" class="form-control border-0 bg-white shadow-sm rounded-pill px-4 py-3" value="{{ service.name }}" required>
+                    </div>
+
+                    <div class="col-md-6 col-xl-4">
+                        <label class="form-label small fw-700 text-muted text-uppercase mb-1">Category</label>
+                        <select name="category" class="form-select border-0 bg-white shadow-sm rounded-pill px-4 py-3" required>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if category.id == service.category.id %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 col-xl-4">
+                        <label class="form-label small fw-700 text-muted text-uppercase mb-1">Price (₹)</label>
+                        <input type="number" step="0.01" min="0" name="price" class="form-control border-0 bg-white shadow-sm rounded-pill px-4 py-3" value="{{ service.price }}" required>
+                    </div>
+
+                    <div class="col-xl-4">
+                        <label class="form-label small fw-700 text-muted text-uppercase mb-1">Duration (Minutes)</label>
+                        <input type="number" min="15" step="15" name="duration" class="form-control border-0 bg-white shadow-sm rounded-pill px-4 py-3" value="{{ service.duration_minutes }}" required>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-700 text-muted text-uppercase mb-1">Description</label>
+                        <textarea name="description" class="form-control border-0 bg-white shadow-sm rounded-4 px-4 py-4" rows="8" style="min-height: 200px;">{{ service.description }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Actions & Preview -->
+            <div class="col-lg-4 col-xl-3">
+                <div class="sticky-top" style="top: 1rem; z-index: 1;">
+                    <div class="p-4 bg-white shadow-sm rounded-4 border-0">
+                        <label class="form-label small fw-700 text-muted text-uppercase mb-3">Live Preview</label>
+                        <div class="preview-container mb-4 position-relative overflow-hidden rounded-4 shadow-sm group" style="aspect-ratio: 16/9; background: #f1f5f9;">
+                            {% if service.image %}
+                            <img src="{{ service.image.url }}" class="w-100 h-100 object-fit-cover" id="service-preview" alt="{{ service.name }}">
+                            <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 m-2 shadow-sm delete-image-overlay" onclick="clearImageSelection()" title="Remove Image">
+                                <i class="bi bi-x-lg" style="font-size: 0.75rem;"></i>
+                            </button>
+                            {% else %}
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted" id="preview-placeholder">
+                                <i class="bi bi-image" style="font-size: 2rem;"></i>
+                            </div>
+                            <img src="#" class="w-100 h-100 object-fit-cover d-none" id="service-preview">
+                            <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 m-2 shadow-sm d-none" id="clear-btn" onclick="clearImageSelection()">
+                                <i class="bi bi-x-lg" style="font-size: 0.75rem;"></i>
+                            </button>
+                            {% endif %}
+                            <input type="hidden" name="remove_image" id="remove-image-flag" value="false">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label small fw-700 text-muted text-uppercase mb-2">Upload New Image</label>
+                            <input type="file" name="image" id="image-input" class="form-control rounded-pill" accept="image/*">
+                        </div>
+
+                        <div class="d-grid gap-2 pt-2">
+                            <button type="submit" class="btn btn-primary rounded-pill py-3 fw-700 shadow-sm mb-1">
+                                <i class="bi bi-check2-circle me-2"></i>Save Changes
+                            </button>
+                            <button type="button" class="btn btn-link text-danger text-decoration-none py-2 fw-700 small" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">
+                                <i class="bi bi-trash3 me-2"></i>Delete Service
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Custom Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-body p-4 text-center">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger bg-opacity-10 text-danger mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 1.5rem;"></i>
+                </div>
+                <h5 class="fw-800 mb-2">Delete Service?</h5>
+                <p class="text-muted small mb-4">This action is permanent and cannot be undone. All related data will be removed.</p>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-danger rounded-pill py-2 fw-700" onclick="document.getElementById('delete-form').submit();">
+                        Confirm Delete
+                    </button>
+                    <button type="button" class="btn btn-light rounded-pill py-2 fw-700 text-muted" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="delete-form" method="post" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="delete">
+</form>
+
+<script>
+function clearImageSelection() {
+    const input = document.getElementById('image-input');
+    const preview = document.getElementById('service-preview');
+    const placeholder = document.getElementById('preview-placeholder');
+    const clearBtn = document.getElementById('clear-btn') || document.querySelector('.delete-image-overlay');
+    const removeFlag = document.getElementById('remove-image-flag');
+
+    input.value = ''; 
+    
+    if (preview.src.startsWith('http') || preview.src.includes('/media/')) {
+        preview.classList.add('d-none');
+        if (placeholder) {
+            placeholder.classList.remove('d-none');
+        } else {
+            const newPlaceholder = document.createElement('div');
+            newPlaceholder.id = 'preview-placeholder';
+            newPlaceholder.className = 'w-100 h-100 d-flex align-items-center justify-content-center text-muted';
+            newPlaceholder.innerHTML = '<i class="bi bi-image" style="font-size: 2rem;"></i>';
+            preview.parentNode.insertBefore(newPlaceholder, preview);
+        }
+        removeFlag.value = 'true';
+    } else {
+        preview.classList.add('d-none');
+        if (placeholder) placeholder.classList.remove('d-none');
+    }
+    
+    if (clearBtn) clearBtn.classList.add('d-none');
+}
+
+document.getElementById('image-input').onchange = evt => {
+    const [file] = evt.target.files
+    if (file) {
+        const preview = document.getElementById('service-preview');
+        const placeholder = document.getElementById('preview-placeholder');
+        const clearBtn = document.getElementById('clear-btn') || document.querySelector('.delete-image-overlay');
+        const removeFlag = document.getElementById('remove-image-flag');
+
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove('d-none');
+        if (placeholder) placeholder.classList.add('d-none');
+        if (clearBtn) {
+            clearBtn.classList.remove('d-none');
+        } else if (preview.nextElementSibling && preview.nextElementSibling.classList.contains('delete-image-overlay')) {
+             preview.nextElementSibling.classList.remove('d-none');
+        }
+        removeFlag.value = 'false';
+    }
+}
+</script>
+{% endblock %}

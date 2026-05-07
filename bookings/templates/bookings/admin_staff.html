@@ -1,0 +1,254 @@
+{% extends 'bookings/dashboard_layout.html' %}
+{% load static %}
+
+{% block title %}Manage Staff - Admin Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-0">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2">
+        <div>
+            <h2 class="fw-800 mb-1" style="letter-spacing: -0.02em;">Manage Staff</h2>
+            <p class="text-muted mb-0">Assign personnel to services and manage availability status.</p>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="glass-panel p-4 mb-4 border-0 shadow-sm rounded-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <div class="search-box position-relative">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" id="search-input" class="form-control rounded-pill ps-5 py-2 border-light bg-light" placeholder="Search services...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select id="category-filter" class="form-select rounded-pill border-light bg-light py-2">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select id="status-filter" class="form-select rounded-pill border-light bg-light py-2">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Table (Desktop) -->
+    <div class="glass-panel border-0 shadow-sm rounded-4 overflow-hidden d-none d-lg-block">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-muted small text-uppercase fw-700">
+                <tr>
+                    <th class="ps-4 py-3 border-0">Service</th>
+                    <th class="py-3 border-0">Category</th>
+                    <th class="py-3 border-0">Staff Assignments</th>
+                    <th class="py-3 border-0">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                <tr class="service-row border-bottom border-light" 
+                    data-service-name="{{ service.name|lower }}" 
+                    data-category-id="{{ service.category.id }}"
+                    data-status="{{ service.is_active|yesno:'active,inactive' }}">
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center gap-3">
+                            {% if service.image %}
+                            <img src="{{ service.image.url }}" alt="{{ service.name }}" class="rounded-3" style="width:45px; height:45px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-primary-soft text-primary rounded-3 d-flex align-items-center justify-content-center" style="width:45px; height:45px; font-size: 1.2rem;">
+                                <i class="bi bi-image"></i>
+                            </div>
+                            {% endif %}
+                            <div class="fw-bold">{{ service.name }}</div>
+                        </div>
+                    </td>
+                    <td>{{ service.category.name }}</td>
+                    <td>
+                        <div class="staff-pills-container" data-service-id="{{ service.id }}">
+                            {% for staff in staff_users %}
+                            <button type="button" class="staff-pill-toggle mb-1" data-staff-id="{{ staff.id }}"
+                                data-assigned="{% if staff in service.staff.all %}true{% else %}false{% endif %}"
+                                title="{{ staff.display_name }}">
+                                <span class="staff-pill-icon">
+                                    <i class="bi {% if staff in service.staff.all %}bi-check-circle-fill{% else %}bi-plus-circle{% endif %}"></i>
+                                </span>
+                                {{ staff.display_name }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        <form method="post" class="m-0">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle_active">
+                            <input type="hidden" name="service_id" value="{{ service.id }}">
+                            <button type="submit" class="btn btn-sm {% if service.is_active %}btn-success{% else %}btn-outline-danger{% endif %} rounded-pill px-3 py-2 fw-700 shadow-sm" style="font-size: 0.75rem;">
+                                <i class="bi {% if service.is_active %}bi-toggle-on{% else %}bi-toggle-off{% endif %} me-2"></i>
+                                {{ service.is_active|yesno:"Active,Inactive" }}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="d-lg-none mt-4">
+        {% for service in services %}
+        <div class="glass-panel p-4 mb-3 border-0 shadow-sm rounded-4 service-row" 
+             data-service-name="{{ service.name|lower }}" 
+             data-category-id="{{ service.category.id }}"
+             data-status="{{ service.is_active|yesno:'active,inactive' }}">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex gap-3 align-items-center">
+                    {% if service.image %}
+                    <img src="{{ service.image.url }}" alt="{{ service.name }}" class="rounded-3" style="width:50px; height:50px; object-fit: cover;">
+                    {% else %}
+                    <div class="bg-primary-soft text-primary rounded-3 d-flex align-items-center justify-content-center" style="width:50px; height:50px;">
+                        <i class="bi bi-image fs-4"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h6 class="fw-800 mb-0">{{ service.name }}</h6>
+                        <span class="text-muted small">{{ service.category.name }}</span>
+                    </div>
+                </div>
+                <form method="post" class="m-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="toggle_active">
+                    <input type="hidden" name="service_id" value="{{ service.id }}">
+                    <button type="submit" class="btn btn-sm {% if service.is_active %}btn-success{% else %}btn-outline-danger{% endif %} rounded-pill px-3 py-1 shadow-sm" style="font-size: 0.7rem;">
+                        {{ service.is_active|yesno:"Active,Inactive" }}
+                    </button>
+                </form>
+            </div>
+
+            <div class="mb-3">
+                <label class="small text-muted mb-2 d-block fw-700 text-uppercase">Staff Assignments</label>
+                <div class="staff-pills-container" data-service-id="{{ service.id }}">
+                    {% for staff in staff_users %}
+                    <button type="button" class="staff-pill-toggle mb-1" data-staff-id="{{ staff.id }}"
+                        data-assigned="{% if staff in service.staff.all %}true{% else %}false{% endif %}"
+                        title="{{ staff.display_name }}">
+                        <span class="staff-pill-icon">
+                            <i class="bi {% if staff in service.staff.all %}bi-check-circle-fill{% else %}bi-plus-circle{% endif %}"></i>
+                        </span>
+                        {{ staff.display_name }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <!-- Extra space for mobile bottom nav -->
+        <div class="d-md-none" style="height: 100px;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Filter logic
+        const searchInput = document.getElementById('search-input');
+        const categoryFilter = document.getElementById('category-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const serviceRows = document.querySelectorAll('.service-row');
+
+        function applyFilters() {
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            const cat = categoryFilter ? categoryFilter.value : '';
+            const stat = statusFilter ? statusFilter.value : '';
+
+            serviceRows.forEach(row => {
+                const name = row.getAttribute('data-service-name') || '';
+                const categoryId = row.getAttribute('data-category-id') || '';
+                const status = row.getAttribute('data-status') || '';
+
+                const matchSearch = name.includes(searchTerm);
+                const matchCat = !cat || categoryId === cat;
+                const matchStat = !stat || status === stat;
+
+                row.style.display = (matchSearch && matchCat && matchStat) ? '' : 'none';
+            });
+        }
+
+        if (searchInput) searchInput.addEventListener('input', applyFilters);
+        if (categoryFilter) categoryFilter.addEventListener('change', applyFilters);
+        if (statusFilter) statusFilter.addEventListener('change', applyFilters);
+
+        // Staff Pills Logic (AJAX)
+        const staffPills = document.querySelectorAll('.staff-pill-toggle');
+        staffPills.forEach(pill => {
+            pill.addEventListener('click', function () {
+                const container = this.closest('.staff-pills-container');
+                const serviceId = container.getAttribute('data-service-id');
+                const isCurrentlyAssigned = this.getAttribute('data-assigned') === 'true';
+
+                // Optimistic UI update
+                const newAssigned = !isCurrentlyAssigned;
+                this.setAttribute('data-assigned', newAssigned ? 'true' : 'false');
+                this.classList.add('saving');
+
+                const icon = this.querySelector('i');
+                const originalIconClass = icon.className;
+                icon.className = 'bi bi-arrow-repeat spin'; // Loading icon
+
+                const allPillsForService = container.querySelectorAll('.staff-pill-toggle');
+                const assignedIds = Array.from(allPillsForService)
+                    .filter(p => p.getAttribute('data-assigned') === 'true')
+                    .map(p => p.getAttribute('data-staff-id'));
+
+                (async () => {
+                    try {
+                        const params = new URLSearchParams();
+                        params.append("action", "assign_staff");
+                        params.append("service_id", serviceId);
+                        assignedIds.forEach(id => params.append("staff_ids", id));
+
+                        const response = await fetch(window.location.href, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded",
+                                "X-CSRFToken": "{{ csrf_token }}"
+                            },
+                            body: params
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok && data.status === "success") {
+                            this.classList.remove('saving');
+                            this.classList.add('saved');
+                            icon.className = newAssigned ? 'bi bi-check-circle-fill' : 'bi bi-plus-circle';
+                            setTimeout(() => this.classList.remove('saved'), 1500);
+                        } else {
+                            throw new Error(data.message || 'Failed to save');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        this.classList.remove('saving');
+                        this.classList.add('error');
+                        this.setAttribute('data-assigned', isCurrentlyAssigned ? 'true' : 'false'); // Revert
+                        icon.className = isCurrentlyAssigned ? 'bi bi-check-circle-fill' : 'bi bi-plus-circle';
+                        setTimeout(() => this.classList.remove('error'), 2000);
+                    }
+                })();
+            });
+        });
+    });
+</script>
+<style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .spin { display: inline-block; animation: spin 1s linear infinite; }
+</style>
+{% endblock %}

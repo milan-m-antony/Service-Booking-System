@@ -64,7 +64,7 @@
                         {% for category in categories %}
                         <tr>
                             <td class="ps-4 py-3">
-                                <div class="d-flex align-items-center justify-content-center rounded-circle text-white" style="background-color:{{ category.color }};width:36px;height:36px;">
+                                <div class="d-flex align-items-center justify-content-center rounded-circle text-white" style="--cat-bg: {{ category.color|default:'#3b82f6' }}; background-color: var(--cat-bg); width: 36px; height: 36px;">
                                     <i class="bi {{ category.icon|default:'bi-grid' }}"></i>
                                 </div>
                             </td>
@@ -72,21 +72,16 @@
                             <td class="py-3"><code class="small">{{ category.icon|default:'bi-grid' }}</code></td>
                             <td class="py-3">
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="rounded-circle" style="width:14px;height:14px;background:{{ category.color }};"></div>
+                                    <div class="rounded-circle" style="--cat-bg: {{ category.color|default:'#3b82f6' }}; width: 14px; height: 14px; background-color: var(--cat-bg);"></div>
                                     <span class="small">{{ category.color }}</span>
                                 </div>
                             </td>
                             <td class="text-end pe-4 py-3">
                                 <div class="d-flex gap-2 justify-content-end">
                                     <!-- Edit Button -->
-                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3"
-                                        data-bs-toggle="modal" data-bs-target="#editCategoryModal"
-                                        data-id="{{ category.id }}"
-                                        data-name="{{ category.name }}"
-                                        data-icon="{{ category.icon }}"
-                                        data-color="{{ category.color }}">
+                                    <a href="{% url 'admin_edit_category' category.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                         <i class="bi bi-pencil me-1"></i>Edit
-                                    </button>
+                                    </a>
                                     <!-- Delete Button -->
                                     <form method="post" class="m-0" onsubmit="return confirm('Delete category \'{{ category.name }}\'? This cannot be undone.');">
                                         {% csrf_token %}
@@ -115,7 +110,7 @@
             <div class="d-md-none p-3">
                 {% for category in categories %}
                 <div class="glass-card mb-3 p-3 d-flex align-items-center gap-3">
-                    <div class="d-flex align-items-center justify-content-center rounded-circle text-white flex-shrink-0" style="background-color:{{ category.color }};width:44px;height:44px;font-size:1.1rem;">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle text-white flex-shrink-0" style="--cat-bg: {{ category.color|default:'#3b82f6' }}; background-color: var(--cat-bg); width: 44px; height: 44px; font-size: 1.1rem;">
                         <i class="bi {{ category.icon|default:'bi-grid' }}"></i>
                     </div>
                     <div class="flex-grow-1">
@@ -123,14 +118,9 @@
                         <code class="small text-muted">{{ category.icon|default:'bi-grid' }}</code>
                     </div>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary rounded-circle" style="width:34px;height:34px;padding:0;"
-                            data-bs-toggle="modal" data-bs-target="#editCategoryModal"
-                            data-id="{{ category.id }}"
-                            data-name="{{ category.name }}"
-                            data-icon="{{ category.icon }}"
-                            data-color="{{ category.color }}">
+                        <a href="{% url 'admin_edit_category' category.id %}" class="btn btn-sm btn-outline-primary rounded-circle d-flex align-items-center justify-content-center" style="width:34px;height:34px;padding:0;">
                             <i class="bi bi-pencil"></i>
-                        </button>
+                        </a>
                         <form method="post" class="m-0" onsubmit="return confirm('Delete \'{{ category.name }}\'?');">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="delete">
@@ -152,58 +142,10 @@
     </div>
 </div>
 
-<!-- Edit Category Modal -->
-<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-0 pb-0 px-4 pt-4">
-                <div>
-                    <h5 class="modal-title fw-800 mb-1" id="editCategoryModalLabel">Edit Category</h5>
-                    <p class="small text-muted mb-0">Update the details for this service category.</p>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form method="post" action="{% url 'admin_categories' %}">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="edit">
-                <input type="hidden" name="category_id" id="editCategoryId">
-                <div class="modal-body px-4 py-3">
-                    <div class="mb-3">
-                        <label class="small fw-700 text-muted text-uppercase mb-1">Category Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" id="editCategoryName" class="form-control rounded-pill" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="small fw-700 text-muted text-uppercase mb-1">Icon (Bootstrap Icon Class)</label>
-                        <input type="text" name="icon" id="editCategoryIcon" class="form-control rounded-pill" placeholder="e.g. bi-water">
-                    </div>
-                    <div class="mb-3">
-                        <label class="small fw-700 text-muted text-uppercase mb-1">Theme Color</label>
-                        <input type="color" name="color" id="editCategoryColor" class="form-control form-control-color w-100 rounded-pill">
-                    </div>
-                </div>
-                <div class="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm"><i class="bi bi-check-lg me-2"></i>Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const editModal = document.getElementById('editCategoryModal');
-    if (editModal) {
-        editModal.addEventListener('show.bs.modal', function (event) {
-            const btn = event.relatedTarget;
-            document.getElementById('editCategoryId').value   = btn.getAttribute('data-id');
-            document.getElementById('editCategoryName').value  = btn.getAttribute('data-name');
-            document.getElementById('editCategoryIcon').value  = btn.getAttribute('data-icon');
-            document.getElementById('editCategoryColor').value = btn.getAttribute('data-color') || '#34d399';
-        });
-    }
-});
+    // Legacy modal logic removed - now using dedicated edit pages
 </script>
 {% endblock %}

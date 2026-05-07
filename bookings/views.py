@@ -4,7 +4,7 @@ import random
 
 from django.contrib import messages
 from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import SetPasswordForm
 from django.http import JsonResponse
 from django.db.utils import DatabaseError, OperationalError
@@ -1125,8 +1125,37 @@ def admin_categories(request):
     return render(request, "bookings/admin_categories.html", {"categories": categories})
 
 
+def admin_edit_category(request, category_id):
+    category = get_object_or_404(ServiceCategory, id=category_id)
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "edit":
+            name = request.POST.get("name", "").strip()
+            icon = request.POST.get("icon", "").strip()
+            color = request.POST.get("color", "#34d399")
+
+            try:
+                category.name = name
+                category.icon = icon
+                category.color = color
+                category.save()
+                messages.success(request, "Category updated successfully.")
+                return redirect("admin_categories")
+            except Exception:
+                messages.error(request, "Failed to update category.")
+        
+        if action == "delete":
+            category_name = category.name
+            category.delete()
+            messages.success(request, f"Category '{category_name}' deleted successfully.")
+            return redirect("admin_categories")
+
+    return render(request, "bookings/edit_category.html", {"category": category})
+
+
 @role_required(CustomUser.Roles.ADMIN)
 @never_cache
+@user_passes_test(lambda u: u.role == CustomUser.Roles.ADMIN)
 def admin_services(request):
     if request.method == "POST":
         action = request.POST.get("action")
@@ -1136,6 +1165,7 @@ def admin_services(request):
             description = request.POST.get("description", "").strip()
             price_raw = request.POST.get("price", "").strip()
             duration_raw = request.POST.get("duration", "").strip() or "60"
+            image = request.FILES.get("image")
 
             try:
                 category = ServiceCategory.objects.get(id=category_id)
@@ -1149,12 +1179,109 @@ def admin_services(request):
                     description=description,
                     price=price,
                     duration_minutes=duration,
+                    image=image,
                     is_active=True,
                 )
-                messages.success(request, "Service added.")
+                messages.success(request, "Service added successfully.")
             except Exception:
                 messages.error(request, "Please provide valid service details.")
 
+        if action == "edit":
+            service_id = request.POST.get("service_id")
+            service = Service.objects.filter(id=service_id).first()
+            if service:
+                name = request.POST.get("name", "").strip()
+                category_id = request.POST.get("category")
+                description = request.POST.get("description", "").strip()
+                price_raw = request.POST.get("price", "").strip()
+                duration_raw = request.POST.get("duration", "").strip()
+                image = request.FILES.get("image")
+
+                try:
+                    service.name = name
+                    service.category = ServiceCategory.objects.get(id=category_id)
+                    service.description = description
+                    service.price = Decimal(price_raw)
+                    service.duration_minutes = int(duration_raw)
+                    if image:
+                        service.image = image
+                    service.save()
+                    messages.success(request, "Service updated successfully.")
+                except Exception:
+                    messages.error(request, "Failed to update service.")
+            else:
+                messages.error(request, "Service not found.")
+
+        if action == "delete":
+            service_id = request.POST.get("service_id")
+            service = Service.objects.filter(id=service_id).first()
+            if service:
+                service_name = service.name
+                service.delete()
+                messages.success(request, f"Service '{service_name}' deleted successfully.")
+            else:
+                messages.error(request, "Service not found.")
+
+        return redirect("admin_services")
+
+    services = Service.objects.select_related("category")
+    categories = ServiceCategory.objects.all()
+    return render(
+        request,
+        "bookings/admin_services.html",
+        {
+            "services": services,
+            "categories": categories,
+        },
+    )
+
+
+def admin_edit_service(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "edit":
+            name = request.POST.get("name", "").strip()
+            category_id = request.POST.get("category")
+            description = request.POST.get("description", "").strip()
+            price_raw = request.POST.get("price", "").strip()
+            duration_raw = request.POST.get("duration", "").strip()
+            image = request.FILES.get("image")
+            remove_image = request.POST.get("remove_image") == "true"
+
+            try:
+                service.name = name
+                service.category = ServiceCategory.objects.get(id=category_id)
+                service.description = description
+                service.price = Decimal(price_raw)
+                service.duration_minutes = int(duration_raw)
+                
+                if remove_image:
+                    service.image = None
+                elif image:
+                    service.image = image
+                    
+                service.save()
+                messages.success(request, "Service updated successfully.")
+                return redirect("admin_services")
+            except Exception:
+                messages.error(request, "Failed to update service.")
+        
+        if action == "delete":
+            service_name = service.name
+            service.delete()
+            messages.success(request, f"Service '{service_name}' deleted successfully.")
+            return redirect("admin_services")
+
+    categories = ServiceCategory.objects.all()
+    return render(request, "bookings/edit_service.html", {"service": service, "categories": categories})
+
+
+@user_passes_test(lambda u: u.role == CustomUser.Roles.ADMIN)
+def admin_staff(request):
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
         if action == "toggle_active":
             service_id = request.POST.get("service_id")
             service = Service.objects.filter(id=service_id).first()
@@ -1168,21 +1295,26 @@ def admin_services(request):
             staff_ids = request.POST.getlist("staff_ids")
             service = Service.objects.filter(id=service_id).first()
             if service:
+                # Restrict to only users with the STAFF role
                 staff_qs = CustomUser.objects.filter(id__in=staff_ids, role=CustomUser.Roles.STAFF)
                 service.staff.set(staff_qs)
-                messages.success(request, f"Staff assignments updated for {service.name}.")
+                return JsonResponse({"status": "success", "message": "Assignments updated"})
             else:
-                messages.error(request, "Service not found.")
+                return JsonResponse({"status": "error", "message": "Service not found"}, status=404)
 
-        return redirect("admin_services")
+        return redirect("admin_staff")
 
     services = Service.objects.select_related("category").prefetch_related("staff")
-    categories = ServiceCategory.objects.all()
     staff_users = CustomUser.objects.filter(role=CustomUser.Roles.STAFF).order_by("first_name", "last_name", "username")
+    categories = ServiceCategory.objects.all()
     return render(
         request,
-        "bookings/admin_services.html",
-        {"services": services, "categories": categories, "staff_users": staff_users},
+        "bookings/admin_staff.html",
+        {
+            "services": services,
+            "staff_users": staff_users,
+            "categories": categories,
+        },
     )
 
 
