@@ -28,6 +28,19 @@
     </div>
     {% endif %}
 
+    {% if nav_pending_bookings > 0 and 'dashboard' in request.resolver_match.url_name %}
+    <div class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 1085;">
+        <div class="toast align-items-center border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="6000" style="padding: 0.5rem; background: linear-gradient(135deg, #fffbeb, #fef3c7); color: #92400e; border-left: 4px solid #f59e0b !important; border-radius: 8px;">
+            <div class="d-flex">
+                <div class="toast-body" style="font-weight: 600; font-size: 0.95rem;">
+                    <i class="bi bi-bell-fill me-2" style="color: #f59e0b;"></i> You have {{ nav_pending_bookings }} new/pending booking(s) waiting!
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close" style="filter: invert(1);"></button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     {% if user.is_authenticated %}
     
     <!-- Mobile Header Configuration Block -->
@@ -82,6 +95,9 @@
                 {% elif user.role == 'staff' %}
                     <a href="{% url 'role_dashboard' %}?tab=jobs" class="{% if active_tab == 'jobs' %}active{% endif %}">
                         <i class="bi bi-briefcase"></i> My Jobs
+                        {% if nav_pending_bookings %}
+                            <span class="nav-unread-badge" style="background: #f59e0b;">{{ nav_pending_bookings }}</span>
+                        {% endif %}
                     </a>
                     <a href="{% url 'role_dashboard' %}?tab=availability" class="{% if active_tab == 'availability' %}active{% endif %}">
                         <i class="bi bi-calendar-event"></i> Availability
@@ -92,6 +108,9 @@
                 {% elif user.role == 'admin' %}
                     <a href="{% url 'role_dashboard' %}?tab=bookings" class="{% if active_tab == 'bookings' %}active{% endif %}">
                         <i class="bi bi-journal-bookmark"></i> Bookings
+                        {% if nav_pending_bookings %}
+                            <span class="nav-unread-badge" style="background: #f59e0b;">{{ nav_pending_bookings }}</span>
+                        {% endif %}
                     </a>
                     <a href="{% url 'admin_categories' %}" class="{% if request.resolver_match.url_name == 'admin_categories' %}active{% endif %}">
                         <i class="bi bi-tags"></i> Categories
@@ -270,6 +289,9 @@
         {% elif user.role == 'admin' %}
             <a href="{% url 'role_dashboard' %}?tab=bookings" class="{% if active_tab == 'bookings' %}active{% endif %}">
                 <i class="bi bi-journal-bookmark"></i> Bookings
+                {% if nav_pending_bookings %}
+                    <span class="mobile-unread-dot" style="background: #f59e0b; right: 5px;">{{ nav_pending_bookings }}</span>
+                {% endif %}
             </a>
         {% endif %}
         
@@ -291,6 +313,9 @@
         {% elif user.role == 'staff' %}
             <a href="{% url 'staff_dashboard' %}?tab=jobs" class="{% if active_tab == 'jobs' %}active{% endif %}">
                 <i class="bi bi-briefcase"></i> Jobs
+                {% if nav_pending_bookings %}
+                    <span class="mobile-unread-dot" style="background: #f59e0b; right: 5px;">{{ nav_pending_bookings }}</span>
+                {% endif %}
             </a>
             <a href="{% url 'role_dashboard' %}?tab=availability" class="{% if active_tab == 'availability' %}active{% endif %}">
                 <i class="bi bi-calendar-event"></i> Availability

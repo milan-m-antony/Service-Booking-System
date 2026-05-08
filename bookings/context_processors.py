@@ -92,3 +92,19 @@ def platform_admin(request):
     except (OperationalError, DatabaseError):
         admin_id = None
     return {"platform_admin_id": admin_id}
+
+def booking_badges(request):
+    if not request.user.is_authenticated:
+        return {"nav_pending_bookings": 0}
+
+    try:
+        if request.user.role == CustomUser.Roles.ADMIN:
+            count = Booking.objects.filter(status=Booking.Status.PENDING).count()
+        elif request.user.role == CustomUser.Roles.STAFF:
+            count = Booking.objects.filter(staff=request.user, status=Booking.Status.PENDING).count()
+        else:
+            count = 0
+    except (OperationalError, DatabaseError):
+        count = 0
+        
+    return {"nav_pending_bookings": count}

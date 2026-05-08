@@ -82,6 +82,7 @@ TEMPLATES = [
                 "bookings.context_processors.mobile_notifications",
                 "bookings.context_processors.message_badges",
                 "bookings.context_processors.platform_admin",
+                "bookings.context_processors.booking_badges",
             ],
         },
     },

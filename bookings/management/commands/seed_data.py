@@ -54,13 +54,13 @@ class Command(BaseCommand):
         from bookings.models import ServiceCategory, Service
         
         categories_config = [
-            {"name": "Cleaning", "icon": "🧹", "color": "#10b981"},
-            {"name": "Electrical", "icon": "⚡", "color": "#f59e0b"},
-            {"name": "Plumbing", "icon": "🚿", "color": "#3b82f6"},
-            {"name": "Grooming", "icon": "💇", "color": "#ec4899"},
-            {"name": "Appliance Repair", "icon": "❄️", "color": "#06b6d4"},
-            {"name": "Handyman", "icon": "🧰", "color": "#71717a"},
-            {"name": "Painting", "icon": "🎨", "color": "#8b5cf6"},
+            {"name": "Cleaning", "icon": "brush", "color": "#10b981"},
+            {"name": "Electrical", "icon": "bolt", "color": "#f59e0b"},
+            {"name": "Plumbing", "icon": "shower", "color": "#3b82f6"},
+            {"name": "Grooming", "icon": "cut", "color": "#ec4899"},
+            {"name": "Appliance Repair", "icon": "ac_unit", "color": "#06b6d4"},
+            {"name": "Handyman", "icon": "build", "color": "#71717a"},
+            {"name": "Painting", "icon": "format_paint", "color": "#8b5cf6"},
         ]
         
         categories = {}
@@ -98,9 +98,9 @@ class Command(BaseCommand):
             {"name": "Water Tank Cleaning", "cat": "Plumbing", "price": 1500, "dur": 120},
             
             # Grooming
-            {"name": "Men’s Haircut", "cat": "Grooming", "price": 250, "dur": 45},
+            {"name": "Men's Haircut", "cat": "Grooming", "price": 250, "dur": 45},
             {"name": "Beard Trim", "cat": "Grooming", "price": 150, "dur": 30},
-            {"name": "Women’s Haircut", "cat": "Grooming", "price": 1000, "dur": 60},
+            {"name": "Women's Haircut", "cat": "Grooming", "price": 1000, "dur": 60},
             {"name": "Facial", "cat": "Grooming", "price": 1500, "dur": 90},
             {"name": "Bridal Makeup", "cat": "Grooming", "price": 10000, "dur": 180},
             
