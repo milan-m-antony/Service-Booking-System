@@ -444,10 +444,11 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.pending_bookings > lastPendingBkgs) {
-                        showLiveToast('New Booking!', 'You have a new pending booking waiting for your response.', 'warning');
+                        showLiveToast('Booking Update', `You have ${data.pending_bookings} new/pending booking(s) waiting!`, 'warning');
                     }
                     if (data.unread_messages > lastUnreadMsgs) {
-                        showLiveToast('New Message!', 'You have received a new message.', 'info');
+                        const count = data.unread_messages - lastUnreadMsgs;
+                        showLiveToast('New Message!', `You have received ${count} new message(s).`, 'info');
                     }
                     
                     // Always update if the numbers change, so we don't repeat notifications
@@ -466,25 +467,50 @@
                     document.body.appendChild(toastContainer);
                 }
                 
-                const bgColor = type === 'warning' ? 'linear-gradient(135deg, #fffbeb, #fef3c7)' : 'linear-gradient(135deg, #eff6ff, #dbeafe)';
+                const bgColor = type === 'warning' ? '#fffbeb' : '#eff6ff';
                 const textColor = type === 'warning' ? '#92400e' : '#1e40af';
                 const borderColor = type === 'warning' ? '#f59e0b' : '#3b82f6';
-                const icon = type === 'warning' ? 'bi-bell-fill' : 'bi-chat-dots-fill';
+                const icon = type === 'warning' ? 'bi-calendar-check-fill' : 'bi-chat-dots-fill';
                 
                 const toastHTML = `
-                    <div class="toast align-items-center border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="6000" style="padding: 0.5rem; background: ${bgColor}; color: ${textColor}; border-left: 4px solid ${borderColor} !important; border-radius: 8px; margin-bottom: 0.5rem;">
-                        <div class="d-flex">
-                            <div class="toast-body" style="font-weight: 600; font-size: 0.95rem;">
-                                <i class="bi ${icon} me-2" style="color: ${borderColor};"></i> ${title} - ${message}
-                            </div>
-                            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close" style="filter: invert(1);"></button>
+                    <div class="toast border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="8000" style="background: ${bgColor}; border-left: 5px solid ${borderColor} !important; border-radius: 12px; margin-bottom: 1rem; overflow: hidden; animation: slideInRight 0.3s ease-out;">
+                        <div class="toast-header border-0" style="background: transparent; color: ${textColor}; padding: 0.85rem 1rem 0.5rem;">
+                            <i class="bi ${icon} me-2 fs-5" style="color: ${borderColor};"></i> 
+                            <strong class="me-auto" style="font-size: 1.05rem;">${title}</strong>
+                            <small style="color: ${textColor}; opacity: 0.8;">Just now</small>
+                            <button type="button" class="btn-close ms-2 mb-1" data-bs-dismiss="toast" aria-label="Close"></button>
                         </div>
+                        <div class="toast-body" style="color: ${textColor}; padding: 0.5rem 1rem 1rem; font-size: 0.98rem; font-weight: 500;">
+                            ${message}
+                        </div>
+                        <div style="height: 4px; width: 100%; background: ${borderColor}; opacity: 0.7; animation: toastProgress 8s linear forwards;"></div>
                     </div>
                 `;
+                
+                if (!document.getElementById('live-toast-styles')) {
+                    const style = document.createElement('style');
+                    style.id = 'live-toast-styles';
+                    style.innerHTML = `
+                        @keyframes slideInRight {
+                            from { transform: translateX(100%); opacity: 0; }
+                            to { transform: translateX(0); opacity: 1; }
+                        }
+                        @keyframes toastProgress {
+                            from { width: 100%; }
+                            to { width: 0%; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
                 toastContainer.insertAdjacentHTML('beforeend', toastHTML);
                 const newToast = toastContainer.lastElementChild;
                 const bsToast = new bootstrap.Toast(newToast, { autohide: true });
                 bsToast.show();
+                
+                newToast.addEventListener('hidden.bs.toast', function () {
+                    newToast.remove();
+                });
             }
 
             setInterval(checkNotifications, 10000); // Check every 10 seconds
