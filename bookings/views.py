@@ -1561,3 +1561,23 @@ def profile(request):
         form = ProfileForm(instance=request.user)
 
     return render(request, "bookings/profile.html", {"form": form})
+
+
+@login_required
+@never_cache
+def live_notifications(request):
+    try:
+        unread_messages = UserMessage.objects.filter(recipient=request.user, is_read=False, recipient_deleted=False).count()
+        
+        pending_bookings = 0
+        if request.user.role == CustomUser.Roles.ADMIN:
+            pending_bookings = Booking.objects.filter(status=Booking.Status.PENDING).count()
+        elif request.user.role == CustomUser.Roles.STAFF:
+            pending_bookings = Booking.objects.filter(staff=request.user, status=Booking.Status.PENDING).count()
+            
+        return JsonResponse({
+            "unread_messages": unread_messages,
+            "pending_bookings": pending_bookings,
+        })
+    except Exception:
+        return JsonResponse({"unread_messages": 0, "pending_bookings": 0})
