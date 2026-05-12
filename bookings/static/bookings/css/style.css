@@ -3558,7 +3558,7 @@ body.modal-open .mobile-bottom-nav {
         max-height: 100vh !important;
     }
     body.guest-shell .register-wrap {
-        padding-top: 100px !important; 
+        padding-top: 35px !important; 
         align-items: flex-start !important;
         padding-bottom: 0 !important;
         overflow: hidden !important;
@@ -4651,7 +4651,7 @@ body.guest-shell .app-page-main {
     overscroll-behavior: none !important;
 }
 
-/* Force hide dashboard-specific navigation in guest-shell mode */
+/* Force hide dashboard-specific navigation in guest-shell mode (Keep Guest Navbar) */
 body.guest-shell footer,
 body.guest-shell .mobile-header,
 body.guest-shell .mobile-bottom-nav,
