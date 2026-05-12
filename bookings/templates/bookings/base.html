@@ -2,6 +2,7 @@
 {% url 'global_search' as global_search_url %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,48 +10,58 @@
     <!-- Bootstrap CSS for grid system and utilities -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{% static 'bookings/css/style.css' %}?v={% now 'U' %}">
     <link rel="icon" type="image/svg+xml" href="{% static 'bookings/img/favicon.svg' %}">
 </head>
+
 <body>
 
     {% if messages %}
     <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1080;">
         {% for message in messages %}
-            <div class="toast align-items-center {% if message.tags == 'success' %}text-bg-success{% elif message.tags == 'error' %}text-bg-danger{% elif message.tags == 'warning' %}text-bg-warning{% else %}text-bg-primary{% endif %} border-0 glass-panel" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000" style="padding: 0.5rem;">
-                <div class="d-flex">
-                    <div class="toast-body" style="font-weight: 500;">{{ message }}</div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
+        <div class="toast align-items-center {% if message.tags == 'success' %}text-bg-success{% elif message.tags == 'error' %}text-bg-danger{% elif message.tags == 'warning' %}text-bg-warning{% else %}text-bg-primary{% endif %} border-0 glass-panel"
+            role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000" style="padding: 0.5rem;">
+            <div class="d-flex">
+                <div class="toast-body" style="font-weight: 500;">{{ message }}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
             </div>
+        </div>
         {% endfor %}
     </div>
     {% endif %}
 
     {% if nav_pending_bookings > 0 and 'dashboard' in request.resolver_match.url_name %}
     <div class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 1085;">
-        <div class="toast align-items-center border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="6000" style="padding: 0.5rem; background: linear-gradient(135deg, #fffbeb, #fef3c7); color: #92400e; border-left: 4px solid #f59e0b !important; border-radius: 8px;">
+        <div class="toast align-items-center border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true"
+            data-bs-delay="6000"
+            style="padding: 0.5rem; background: linear-gradient(135deg, #fffbeb, #fef3c7); color: #92400e; border-left: 4px solid #f59e0b !important; border-radius: 8px;">
             <div class="d-flex">
                 <div class="toast-body" style="font-weight: 600; font-size: 0.95rem;">
-                    <i class="bi bi-bell-fill me-2" style="color: #f59e0b;"></i> You have {{ nav_pending_bookings }} new/pending booking(s) waiting!
+                    <i class="bi bi-bell-fill me-2" style="color: #f59e0b;"></i> You have {{ nav_pending_bookings }}
+                    new/pending booking(s) waiting!
                 </div>
-                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close" style="filter: invert(1);"></button>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"
+                    style="filter: invert(1);"></button>
             </div>
         </div>
     </div>
     {% endif %}
 
     {% if user.is_authenticated %}
-    
+
     <!-- Mobile Header Configuration Block -->
     {% block mobile_header %}
     <header class="mobile-header">
-        <a href="{% url 'role_dashboard' %}" class="d-flex align-items-center gap-2" style="text-decoration: none; font-weight: 700; color: var(--text-main);">
+        <a href="{% url 'role_dashboard' %}" class="d-flex align-items-center gap-2"
+            style="text-decoration: none; font-weight: 700; color: var(--text-main);">
             <span class="brand-dot"></span> Home Service
         </a>
         <div class="d-flex gap-2 align-items-center">
-            <span class="badge rounded-pill border fw-800" style="font-size: 0.85rem; letter-spacing: 0.01em; padding: 0.5rem 1rem; background: var(--primary-light); color: var(--primary); border-color: var(--primary-soft) !important;">
+            <span class="badge rounded-pill border fw-800"
+                style="font-size: 0.85rem; letter-spacing: 0.01em; padding: 0.5rem 1rem; background: var(--primary-light); color: var(--primary); border-color: var(--primary-soft) !important;">
                 {{ user.role|capfirst }} User
             </span>
         </div>
@@ -65,68 +76,81 @@
             <a class="sidebar-brand" href="{% url 'role_dashboard' %}">
                 <span class="brand-dot"></span> Home Service
             </a>
-            
+
 
             <nav class="sidebar-nav">
-                <a href="{% url 'role_dashboard' %}" class="{% if active_tab == 'overview' or request.resolver_match.url_name == 'role_dashboard' and not active_tab and not request.GET.tab %}active{% endif %}">
+                <a href="{% url 'role_dashboard' %}"
+                    class="{% if active_tab == 'overview' or request.resolver_match.url_name == 'role_dashboard' and not active_tab and not request.GET.tab %}active{% endif %}">
                     <i class="bi bi-house"></i> Home
                 </a>
-                
+
                 {% if user.role == 'customer' %}
-                    <a href="{% url 'booking_create' %}" class="{% if request.resolver_match.url_name == 'booking_create' %}active{% endif %}">
-                        <i class="bi bi-calendar-plus"></i> Book Service
-                    </a>
+                <a href="{% url 'booking_create' %}"
+                    class="{% if request.resolver_match.url_name == 'booking_create' %}active{% endif %}">
+                    <i class="bi bi-calendar-plus"></i> Book Service
+                </a>
                 {% endif %}
 
-                <a href="{% url 'messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
+                <a href="{% url 'messages' %}"
+                    class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
                     <i class="bi bi-chat-dots"></i> Messages
                     {% if nav_unread_messages %}
-                        <span class="nav-unread-badge">{{ nav_unread_messages }}</span>
+                    <span class="nav-unread-badge">{{ nav_unread_messages }}</span>
                     {% endif %}
                 </a>
 
                 {% if user.role == 'customer' %}
-                    <a href="{% url 'role_dashboard' %}?tab=bookings" class="{% if active_tab == 'bookings' %}active{% endif %}">
-                        <i class="bi bi-list-ul"></i> My Bookings
-                    </a>
-                    <a href="{% url 'role_dashboard' %}?tab=calendar" class="{% if active_tab == 'calendar' %}active{% endif %}">
-                        <i class="bi bi-calendar3"></i> Calendar
-                    </a>
+                <a href="{% url 'role_dashboard' %}?tab=bookings"
+                    class="{% if active_tab == 'bookings' %}active{% endif %}">
+                    <i class="bi bi-list-ul"></i> My Bookings
+                </a>
+                <a href="{% url 'role_dashboard' %}?tab=calendar"
+                    class="{% if active_tab == 'calendar' %}active{% endif %}">
+                    <i class="bi bi-calendar3"></i> Calendar
+                </a>
                 {% elif user.role == 'staff' %}
-                    <a href="{% url 'role_dashboard' %}?tab=jobs" class="{% if active_tab == 'jobs' %}active{% endif %}">
-                        <i class="bi bi-briefcase"></i> My Jobs
-                        {% if nav_pending_bookings %}
-                            <span class="nav-unread-badge" style="background: #f59e0b;">{{ nav_pending_bookings }}</span>
-                        {% endif %}
-                    </a>
-                    <a href="{% url 'role_dashboard' %}?tab=availability" class="{% if active_tab == 'availability' %}active{% endif %}">
-                        <i class="bi bi-calendar-event"></i> Availability
-                    </a>
-                    <a href="{% url 'analytics' %}" class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
-                        <i class="bi bi-graph-up"></i> Analytics
-                    </a>
+                <a href="{% url 'role_dashboard' %}?tab=jobs" class="{% if active_tab == 'jobs' %}active{% endif %}">
+                    <i class="bi bi-briefcase"></i> My Jobs
+                    {% if nav_pending_bookings %}
+                    <span class="nav-unread-badge" style="background: #f59e0b;">{{ nav_pending_bookings }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'role_dashboard' %}?tab=availability"
+                    class="{% if active_tab == 'availability' %}active{% endif %}">
+                    <i class="bi bi-calendar-event"></i> Availability
+                </a>
+                <a href="{% url 'analytics' %}"
+                    class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                    <i class="bi bi-graph-up"></i> Analytics
+                </a>
                 {% elif user.role == 'admin' %}
-                    <a href="{% url 'role_dashboard' %}?tab=bookings" class="{% if active_tab == 'bookings' %}active{% endif %}">
-                        <i class="bi bi-journal-bookmark"></i> Bookings
-                        {% if nav_pending_bookings %}
-                            <span class="nav-unread-badge" style="background: #f59e0b;">{{ nav_pending_bookings }}</span>
-                        {% endif %}
-                    </a>
-                    <a href="{% url 'admin_categories' %}" class="{% if request.resolver_match.url_name == 'admin_categories' %}active{% endif %}">
-                        <i class="bi bi-tags"></i> Categories
-                    </a>
-                    <a href="{% url 'admin_services' %}" class="{% if request.resolver_match.url_name == 'admin_services' %}active{% endif %}">
-                        <i class="bi bi-tools"></i> Services
-                    </a>
-                    <a href="{% url 'admin_staff' %}" class="{% if request.resolver_match.url_name == 'admin_staff' %}active{% endif %}">
-                        <i class="bi bi-person-gear"></i> Manage Staff
-                    </a>
-                    <a href="{% url 'admin_users' %}" class="{% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
-                        <i class="bi bi-people"></i> Users
-                    </a>
-                    <a href="{% url 'analytics' %}" class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
-                        <i class="bi bi-graph-up"></i> Analytics
-                    </a>
+                <a href="{% url 'role_dashboard' %}?tab=bookings"
+                    class="{% if active_tab == 'bookings' %}active{% endif %}">
+                    <i class="bi bi-journal-bookmark"></i> Bookings
+                    {% if nav_pending_bookings %}
+                    <span class="nav-unread-badge" style="background: #f59e0b;">{{ nav_pending_bookings }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'admin_categories' %}"
+                    class="{% if request.resolver_match.url_name == 'admin_categories' %}active{% endif %}">
+                    <i class="bi bi-tags"></i> Categories
+                </a>
+                <a href="{% url 'admin_services' %}"
+                    class="{% if request.resolver_match.url_name == 'admin_services' %}active{% endif %}">
+                    <i class="bi bi-tools"></i> Services
+                </a>
+                <a href="{% url 'admin_staff' %}"
+                    class="{% if request.resolver_match.url_name == 'admin_staff' %}active{% endif %}">
+                    <i class="bi bi-person-gear"></i> Manage Staff
+                </a>
+                <a href="{% url 'admin_users' %}"
+                    class="{% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+                    <i class="bi bi-people"></i> Users
+                </a>
+                <a href="{% url 'analytics' %}"
+                    class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                    <i class="bi bi-graph-up"></i> Analytics
+                </a>
                 {% endif %}
             </nav>
 
@@ -134,9 +158,10 @@
                 <nav class="sidebar-nav pt-3 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
                     <a href="{% url 'profile' %}">
                         {% if user.avatar %}
-                            <img src="{{ user.avatar.url }}" class="avatar" style="width: 24px; height: 24px; border-width: 1px;">
+                        <img src="{{ user.avatar.url }}" class="avatar"
+                            style="width: 24px; height: 24px; border-width: 1px;">
                         {% else %}
-                            <i class="bi bi-person-circle"></i>
+                        <i class="bi bi-person-circle"></i>
                         {% endif %}
                         Profile
                     </a>
@@ -158,69 +183,80 @@
             </header>
             {% endif %}
 
-    {% else %}
-    <!-- Guest Layout (New Home Page UI) -->
-    <!-- Floating Pill Header (Guest) -->
-    <div class="header-container fixed-top px-3 pt-2">
-        <header class="navbar navbar-expand-lg bg-white rounded-pill shadow-lg border px-4 py-2" style="backdrop-filter: blur(15px); background: rgba(255,255,255,0.9) !important; max-width: 1200px; margin: 0 auto; min-height: 70px;">
-            <div class="container-fluid d-flex justify-content-between align-items-center">
-                <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center gap-2">
-                    <div style="background: linear-gradient(135deg, var(--primary), #1d4ed8); color: white; width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;">H</div>
-                    <strong class="fs-5 fw-bold">HomeService</strong>
-                </a>
-                
-                <!-- Center Navigation (Desktop Only) -->
-                <div class="collapse navbar-collapse justify-content-center d-none d-lg-flex" id="guestNavbar">
-                    <ul class="navbar-nav gap-4">
-                        <li class="nav-item">
-                            <a class="nav-link fw-bold text-dark small" href="{% url 'home' %}#services-section">Services</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link fw-bold text-dark small" href="{% url 'home' %}#how-it-works">How it Works</a>
-                        </li>
-                    </ul>
-                </div>
+            {% else %}
+            <!-- Guest Layout (New Home Page UI) -->
+            <!-- Floating Pill Header (Guest) -->
+            <div class="header-container fixed-top px-3 pt-2">
+                <header class="navbar navbar-expand-lg bg-white rounded-pill shadow-lg border px-4 py-2"
+                    style="backdrop-filter: blur(15px); background: rgba(255,255,255,0.9) !important; max-width: 1200px; margin: 0 auto; min-height: 70px;">
+                    <div class="container-fluid d-flex justify-content-between align-items-center">
+                        <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center gap-2">
+                            <div
+                                style="background: linear-gradient(135deg, var(--primary), #1d4ed8); color: white; width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;">
+                                H</div>
+                            <strong class="fs-5 fw-bold">HomeService</strong>
+                        </a>
 
-                <!-- Right Actions (Desktop Only) -->
-                <div class="d-none d-lg-flex gap-4 align-items-center">
-                    {% if request.path != '/login/' %}
-                    <a href="{% url 'login' %}" class="text-decoration-none fw-bold text-muted small">Login</a>
-                    {% endif %}
-                    {% if request.path != '/register/' %}
-                    <a href="{% url 'register' %}" class="btn btn-primary rounded-pill px-4 py-1 small fw-bold shadow-sm">Join Now</a>
-                    {% endif %}
-                </div>
+                        <!-- Center Navigation (Desktop Only) -->
+                        <div class="collapse navbar-collapse justify-content-center d-none d-lg-flex" id="guestNavbar">
+                            <ul class="navbar-nav gap-4">
+                                <li class="nav-item">
+                                    <a class="nav-link fw-bold text-dark small"
+                                        href="{% url 'home' %}#services-section">Services</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link fw-bold text-dark small" href="{% url 'home' %}#how-it-works">How
+                                        it Works</a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Right Actions (Desktop Only) -->
+                        <div class="d-none d-lg-flex gap-4 align-items-center">
+                            {% if request.path != '/login/' %}
+                            <a href="{% url 'login' %}" class="text-decoration-none fw-bold text-muted small">Login</a>
+                            {% endif %}
+                            {% if request.path != '/register/' %}
+                            <a href="{% url 'register' %}"
+                                class="btn btn-primary rounded-pill px-4 py-1 small fw-bold shadow-sm">Join Now</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </header>
             </div>
-        </header>
-    </div>
 
 
 
-    <main class="{% if '/login/' in request.path or '/register/' in request.path %}auth-page-main{% else %}pt-0 mt-0 mb-0{% endif %}">
-    {% endif %}
+            <main
+                class="{% if '/login/' in request.path or '/register/' in request.path %}auth-page-main{% else %}pt-0 mt-0 mb-0{% endif %}">
+                {% endif %}
 
-    {% block content %}{% endblock %}
-    </main>
-    {% if user.is_authenticated %}
+                {% block content %}{% endblock %}
+            </main>
+            {% if user.is_authenticated %}
     </div> <!-- Close app-layout -->
     {% endif %}
 
     {% if not user.is_authenticated %}
     <!-- Guest Mobile Bottom Navigation Dock -->
     <div class="mobile-bottom-nav d-md-none">
-        <a href="{% url 'home' %}" id="nav-home" class="mobile-nav-item {% if request.resolver_match.url_name == 'home' and '#' not in request.path %}active{% endif %}">
+        <a href="{% url 'home' %}" id="nav-home"
+            class="mobile-nav-item {% if request.resolver_match.url_name == 'home' and '#' not in request.path %}active{% endif %}">
             <i class="bi bi-house-door-fill"></i>
             <span>Home</span>
         </a>
-        <a href="{% url 'home' %}#services-section" id="nav-services" class="mobile-nav-item {% if '#services-section' in request.get_full_path %}active{% endif %}">
+        <a href="{% url 'home' %}#services-section" id="nav-services"
+            class="mobile-nav-item {% if '#services-section' in request.get_full_path %}active{% endif %}">
             <i class="bi bi-grid-fill"></i>
             <span>Services</span>
         </a>
-        <a href="{% url 'home' %}#how-it-works" id="nav-how" class="mobile-nav-item {% if '#how-it-works' in request.get_full_path %}active{% endif %}">
+        <a href="{% url 'home' %}#how-it-works" id="nav-how"
+            class="mobile-nav-item {% if '#how-it-works' in request.get_full_path %}active{% endif %}">
             <i class="bi bi-info-circle-fill"></i>
             <span>How it Works</span>
         </a>
-        <a href="{% url 'login' %}" id="nav-account" class="mobile-nav-item {% if '/login/' in request.path %}active{% endif %}">
+        <a href="{% url 'login' %}" id="nav-account"
+            class="mobile-nav-item {% if '/login/' in request.path %}active{% endif %}">
             <i class="bi bi-person-fill"></i>
             <span>Account</span>
         </a>
@@ -228,7 +264,7 @@
 
     <script>
         function setActiveNav(element) {
-            if(!element) return;
+            if (!element) return;
             document.querySelectorAll('.mobile-nav-item').forEach(item => {
                 item.classList.remove('active');
             });
@@ -237,8 +273,8 @@
 
         // Robust ScrollSpy Logic for Guest Bottom Nav
         window.addEventListener('scroll', () => {
-            if (window.innerWidth > 768) return; 
-            
+            if (window.innerWidth > 768) return;
+
             const servicesSection = document.getElementById('services-section');
             const howSection = document.getElementById('how-it-works');
             const navHome = document.getElementById('nav-home');
@@ -275,66 +311,73 @@
 
     <!-- Mobile Bottom Navigation -->
     <nav class="mobile-bottom-nav d-lg-none">
-        <a href="{% url 'role_dashboard' %}" class="{% if request.resolver_match.url_name == 'role_dashboard' or active_tab == 'overview' and request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}"><i class="bi bi-house"></i> Home</a>
-        
+        <a href="{% url 'role_dashboard' %}"
+            class="{% if request.resolver_match.url_name == 'role_dashboard' or active_tab == 'overview' and request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}"><i
+                class="bi bi-house"></i> Home</a>
+
         {% if user.role == 'customer' %}
-            <a href="{% url 'booking_create' %}" class="{% if request.resolver_match.url_name == 'booking_create' %}active{% endif %}"><i class="bi bi-calendar2-plus"></i> Book</a>
+        <a href="{% url 'booking_create' %}"
+            class="{% if request.resolver_match.url_name == 'booking_create' %}active{% endif %}"><i
+                class="bi bi-calendar2-plus"></i> Book</a>
         {% elif user.role == 'staff' %}
-            <a href="{% url 'messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
-                <i class="bi bi-chat-dots"></i> Messages
-                {% if nav_unread_messages %}
-                    <span class="mobile-unread-dot">{{ nav_unread_messages }}</span>
-                {% endif %}
-            </a>
+        <a href="{% url 'messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
+            <i class="bi bi-chat-dots"></i> Messages
+            {% if nav_unread_messages %}
+            <span class="mobile-unread-dot">{{ nav_unread_messages }}</span>
+            {% endif %}
+        </a>
         {% elif user.role == 'admin' %}
-            <a href="{% url 'role_dashboard' %}?tab=bookings" class="{% if active_tab == 'bookings' %}active{% endif %}">
-                <i class="bi bi-journal-bookmark"></i> Bookings
-                {% if nav_pending_bookings %}
-                    <span class="mobile-unread-dot" style="background: #f59e0b; right: 5px;">{{ nav_pending_bookings }}</span>
-                {% endif %}
-            </a>
+        <a href="{% url 'role_dashboard' %}?tab=bookings" class="{% if active_tab == 'bookings' %}active{% endif %}">
+            <i class="bi bi-journal-bookmark"></i> Bookings
+            {% if nav_pending_bookings %}
+            <span class="mobile-unread-dot" style="background: #f59e0b; right: 5px;">{{ nav_pending_bookings }}</span>
+            {% endif %}
+        </a>
         {% endif %}
-        
+
         <!-- Mobile App FAB (+ Icon) for More Menu -->
         <a href="#" class="nav-fab shadow-sm" data-bs-toggle="offcanvas" data-bs-target="#mobileMoreMenu">
             <i class="bi bi-plus-lg text-white" style="font-size: 1.5rem; margin-top:2px;"></i>
         </a>
 
         {% if user.role == 'customer' %}
-            <a href="{% url 'messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
-                <i class="bi bi-chat-dots"></i> Messages
-                {% if nav_unread_messages %}
-                    <span class="mobile-unread-dot">{{ nav_unread_messages }}</span>
-                {% endif %}
-            </a>
-            <a href="{% url 'role_dashboard' %}?tab=calendar" class="{% if active_tab == 'calendar' %}active{% endif %}">
-                <i class="bi bi-calendar3"></i> Calendar
-            </a>
+        <a href="{% url 'messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
+            <i class="bi bi-chat-dots"></i> Messages
+            {% if nav_unread_messages %}
+            <span class="mobile-unread-dot">{{ nav_unread_messages }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'role_dashboard' %}?tab=calendar" class="{% if active_tab == 'calendar' %}active{% endif %}">
+            <i class="bi bi-calendar3"></i> Calendar
+        </a>
         {% elif user.role == 'staff' %}
-            <a href="{% url 'staff_dashboard' %}?tab=jobs" class="{% if active_tab == 'jobs' %}active{% endif %}">
-                <i class="bi bi-briefcase"></i> Jobs
-                {% if nav_pending_bookings %}
-                    <span class="mobile-unread-dot" style="background: #f59e0b; right: 5px;">{{ nav_pending_bookings }}</span>
-                {% endif %}
-            </a>
-            <a href="{% url 'role_dashboard' %}?tab=availability" class="{% if active_tab == 'availability' %}active{% endif %}">
-                <i class="bi bi-calendar-event"></i> Availability
-            </a>
+        <a href="{% url 'staff_dashboard' %}?tab=jobs" class="{% if active_tab == 'jobs' %}active{% endif %}">
+            <i class="bi bi-briefcase"></i> Jobs
+            {% if nav_pending_bookings %}
+            <span class="mobile-unread-dot" style="background: #f59e0b; right: 5px;">{{ nav_pending_bookings }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'role_dashboard' %}?tab=availability"
+            class="{% if active_tab == 'availability' %}active{% endif %}">
+            <i class="bi bi-calendar-event"></i> Availability
+        </a>
         {% elif user.role == 'admin' %}
-            <a href="{% url 'messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
-                <i class="bi bi-chat-dots"></i> Messages
-                {% if nav_unread_messages %}
-                    <span class="mobile-unread-dot">{{ nav_unread_messages }}</span>
-                {% endif %}
-            </a>
-            <a href="{% url 'admin_users' %}" class="{% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
-                <i class="bi bi-people"></i> Users
-            </a>
+        <a href="{% url 'messages' %}" class="{% if request.resolver_match.url_name == 'messages' %}active{% endif %}">
+            <i class="bi bi-chat-dots"></i> Messages
+            {% if nav_unread_messages %}
+            <span class="mobile-unread-dot">{{ nav_unread_messages }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'admin_users' %}"
+            class="{% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+            <i class="bi bi-people"></i> Users
+        </a>
         {% endif %}
     </nav>
-    
+
     <!-- Mobile More Menu (for all roles) -->
-    <div class="offcanvas offcanvas-bottom rounded-top-4 shadow-lg" tabindex="-1" id="mobileMoreMenu" style="background: var(--bg-surface-solid); border-top: 1px solid var(--glass-border); height: auto;">
+    <div class="offcanvas offcanvas-bottom rounded-top-4 shadow-lg" tabindex="-1" id="mobileMoreMenu"
+        style="background: var(--bg-surface-solid); border-top: 1px solid var(--glass-border); height: auto;">
         <div class="offcanvas-header border-bottom" style="border-color: rgba(0,0,0,0.05) !important;">
             <h5 class="offcanvas-title fw-bold" style="color: var(--text-main);">More</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -343,72 +386,92 @@
             <div class="row g-3 mb-4">
 
                 {% if user.role == 'customer' %}
-                    <div class="col-6">
-                        <a href="{% url 'role_dashboard' %}?tab=bookings" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
-                            <i class="bi bi-list-ul text-primary fs-3"></i>
-                            <span style="color:var(--text-main);font-weight:500;">My Bookings</span>
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="{% url 'profile' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
-                            <i class="bi bi-person text-primary fs-3"></i>
-                            <span style="color:var(--text-main);font-weight:500;">Profile</span>
-                        </a>
-                    </div>
+                <div class="col-6">
+                    <a href="{% url 'role_dashboard' %}?tab=bookings"
+                        class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2"
+                        style="background:#fff;">
+                        <i class="bi bi-list-ul text-primary fs-3"></i>
+                        <span style="color:var(--text-main);font-weight:500;">My Bookings</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'profile' %}"
+                        class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2"
+                        style="background:#fff;">
+                        <i class="bi bi-person text-primary fs-3"></i>
+                        <span style="color:var(--text-main);font-weight:500;">Profile</span>
+                    </a>
+                </div>
                 {% endif %}
 
                 {% if user.role == 'staff' %}
-                    <div class="col-6">
-                        <a href="{% url 'analytics' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
-                            <i class="bi bi-graph-up text-primary fs-3"></i>
-                            <span style="color:var(--text-main);font-weight:500;">Analytics</span>
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="{% url 'profile' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
-                            <i class="bi bi-person text-primary fs-3"></i>
-                            <span style="color:var(--text-main);font-weight:500;">Profile</span>
-                        </a>
-                    </div>
+                <div class="col-6">
+                    <a href="{% url 'analytics' %}"
+                        class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2"
+                        style="background:#fff;">
+                        <i class="bi bi-graph-up text-primary fs-3"></i>
+                        <span style="color:var(--text-main);font-weight:500;">Analytics</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'profile' %}"
+                        class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2"
+                        style="background:#fff;">
+                        <i class="bi bi-person text-primary fs-3"></i>
+                        <span style="color:var(--text-main);font-weight:500;">Profile</span>
+                    </a>
+                </div>
                 {% endif %}
 
                 {% if user.role == 'admin' %}
-                    <div class="col-6">
-                        <a href="{% url 'admin_categories' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
-                            <i class="bi bi-tags text-primary fs-3"></i>
-                            <span style="color:var(--text-main);font-weight:500;">Categories</span>
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="{% url 'admin_services' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
-                            <i class="bi bi-tools text-primary fs-3"></i>
-                            <span style="color:var(--text-main);font-weight:500;">Services</span>
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="{% url 'admin_staff' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
-                            <i class="bi bi-person-gear text-primary fs-3"></i>
-                            <span style="color:var(--text-main);font-weight:500;">Manage Staff</span>
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="{% url 'analytics' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
-                            <i class="bi bi-bar-chart text-primary fs-3"></i>
-                            <span style="color:var(--text-main);font-weight:500;">Analytics</span>
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="{% url 'profile' %}" class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2" style="background:#fff;">
-                            <i class="bi bi-person text-primary fs-3"></i>
-                            <span style="color:var(--text-main);font-weight:500;">Profile</span>
-                        </a>
-                    </div>
+                <div class="col-6">
+                    <a href="{% url 'admin_categories' %}"
+                        class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2"
+                        style="background:#fff;">
+                        <i class="bi bi-tags text-primary fs-3"></i>
+                        <span style="color:var(--text-main);font-weight:500;">Categories</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'admin_services' %}"
+                        class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2"
+                        style="background:#fff;">
+                        <i class="bi bi-tools text-primary fs-3"></i>
+                        <span style="color:var(--text-main);font-weight:500;">Services</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'admin_staff' %}"
+                        class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2"
+                        style="background:#fff;">
+                        <i class="bi bi-person-gear text-primary fs-3"></i>
+                        <span style="color:var(--text-main);font-weight:500;">Manage Staff</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'analytics' %}"
+                        class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2"
+                        style="background:#fff;">
+                        <i class="bi bi-bar-chart text-primary fs-3"></i>
+                        <span style="color:var(--text-main);font-weight:500;">Analytics</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'profile' %}"
+                        class="btn glass-panel w-100 d-flex flex-column align-items-center justify-content-center p-3 gap-2"
+                        style="background:#fff;">
+                        <i class="bi bi-person text-primary fs-3"></i>
+                        <span style="color:var(--text-main);font-weight:500;">Profile</span>
+                    </a>
+                </div>
                 {% endif %}
 
             </div>
 
             <div class="mt-2 mb-5">
-                <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100 py-3 rounded-pill fw-800 d-flex align-items-center justify-content-center gap-2" style="border-width:2px;">
+                <a href="{% url 'logout' %}"
+                    class="btn btn-outline-danger w-100 py-3 rounded-pill fw-800 d-flex align-items-center justify-content-center gap-2"
+                    style="border-width:2px;">
                     <i class="bi bi-power fs-5"></i> Logout
                 </a>
             </div>
@@ -427,13 +490,13 @@
         });
     </script>
     <script src="{% static 'bookings/js/main.js' %}?v={% now 'U' %}"></script>
-    
+
     {% if user.is_authenticated %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             let lastUnreadMsgs = parseInt("{{ nav_unread_messages|default:0 }}");
             let lastPendingBkgs = parseInt("{{ nav_pending_bookings|default:0 }}");
-            
+
             function checkNotifications() {
                 fetch("{% url 'live_notifications' %}", {
                     headers: {
@@ -441,21 +504,21 @@
                         'Accept': 'application/json'
                     }
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.pending_bookings > lastPendingBkgs) {
-                        showLiveToast('Booking Update', `You have ${data.pending_bookings} new/pending booking(s) waiting!`, 'warning');
-                    }
-                    if (data.unread_messages > lastUnreadMsgs) {
-                        const count = data.unread_messages - lastUnreadMsgs;
-                        showLiveToast('New Message!', `You have received ${count} new message(s).`, 'info');
-                    }
-                    
-                    // Always update if the numbers change, so we don't repeat notifications
-                    if (data.pending_bookings !== lastPendingBkgs) lastPendingBkgs = data.pending_bookings;
-                    if (data.unread_messages !== lastUnreadMsgs) lastUnreadMsgs = data.unread_messages;
-                })
-                .catch(error => console.error('Error fetching notifications:', error));
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.pending_bookings > lastPendingBkgs) {
+                            showLiveToast('Booking Update', `You have ${data.pending_bookings} new/pending booking(s) waiting!`, 'warning');
+                        }
+                        if (data.unread_messages > lastUnreadMsgs) {
+                            const count = data.unread_messages - lastUnreadMsgs;
+                            showLiveToast('New Message!', `You have received ${count} new message(s).`, 'info');
+                        }
+
+                        // Always update if the numbers change, so we don't repeat notifications
+                        if (data.pending_bookings !== lastPendingBkgs) lastPendingBkgs = data.pending_bookings;
+                        if (data.unread_messages !== lastUnreadMsgs) lastUnreadMsgs = data.unread_messages;
+                    })
+                    .catch(error => console.error('Error fetching notifications:', error));
             }
 
             function showLiveToast(title, message, type) {
@@ -466,12 +529,12 @@
                     toastContainer.style.zIndex = '1085';
                     document.body.appendChild(toastContainer);
                 }
-                
+
                 const bgColor = type === 'warning' ? '#fffbeb' : '#eff6ff';
                 const textColor = type === 'warning' ? '#92400e' : '#1e40af';
                 const borderColor = type === 'warning' ? '#f59e0b' : '#3b82f6';
                 const icon = type === 'warning' ? 'bi-calendar-check-fill' : 'bi-chat-dots-fill';
-                
+
                 const toastHTML = `
                     <div class="toast border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="8000" style="background: ${bgColor}; border-left: 5px solid ${borderColor} !important; border-radius: 12px; margin-bottom: 1rem; overflow: hidden; animation: slideInRight 0.3s ease-out;">
                         <div class="toast-header border-0" style="background: transparent; color: ${textColor}; padding: 0.85rem 1rem 0.5rem;">
@@ -486,7 +549,7 @@
                         <div style="height: 4px; width: 100%; background: ${borderColor}; opacity: 0.7; animation: toastProgress 8s linear forwards;"></div>
                     </div>
                 `;
-                
+
                 if (!document.getElementById('live-toast-styles')) {
                     const style = document.createElement('style');
                     style.id = 'live-toast-styles';
@@ -502,12 +565,12 @@
                     `;
                     document.head.appendChild(style);
                 }
-                
+
                 toastContainer.insertAdjacentHTML('beforeend', toastHTML);
                 const newToast = toastContainer.lastElementChild;
                 const bsToast = new bootstrap.Toast(newToast, { autohide: true });
                 bsToast.show();
-                
+
                 newToast.addEventListener('hidden.bs.toast', function () {
                     newToast.remove();
                 });
@@ -519,5 +582,51 @@
     {% endif %}
 
     {% block extra_js %}{% endblock %}
+
+    <script>
+        /* ─── Password Show/Hide Toggle ─── */
+        (function () {
+            function initPasswordToggles() {
+                document.querySelectorAll('.password-field-group').forEach(function (group) {
+                    var input = group.querySelector('input[type="password"], input[type="text"]');
+                    var btn = group.querySelector('.password-toggle-btn');
+                    if (!input || !btn) return;
+
+                    function syncVisibility() {
+                        if (input.value.length > 0) {
+                            btn.classList.add('visible');
+                        } else {
+                            btn.classList.remove('visible');
+                        }
+                    }
+
+                    input.addEventListener('input', syncVisibility);
+                    input.addEventListener('focus', syncVisibility);
+                    input.addEventListener('blur', syncVisibility);
+
+                    btn.addEventListener('click', function () {
+                        var icon = btn.querySelector('i');
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.replace('bi-eye-slash', 'bi-eye');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.replace('bi-eye', 'bi-eye-slash');
+                        }
+                        input.focus();
+                    });
+
+                    syncVisibility();
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPasswordToggles);
+            } else {
+                initPasswordToggles();
+            }
+        })();
+    </script>
 </body>
-</html>
+
+</html>
