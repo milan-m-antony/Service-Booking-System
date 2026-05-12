@@ -3564,6 +3564,10 @@ body.modal-open .mobile-bottom-nav {
         overflow: hidden !important;
         max-height: 100vh !important;
     }
+    body.guest-shell .login-wrap {
+        padding-top: 65px !important; 
+        align-items: flex-start !important;
+    }
     body.guest-shell .register-wrap .auth-split-card {
         max-width: 1000px !important;
         margin-bottom: 50px !important;
