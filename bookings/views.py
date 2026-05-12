@@ -421,14 +421,21 @@ def login_view(request):
         return redirect("role_dashboard")
 
     if request.method == "POST":
+        print(f"Login attempt for: {request.POST.get('username')}")
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+            print(f"Form is valid. User: {user}")
             login(request, user)
+            print("Logged in successfully.")
             messages.success(request, "Signed in successfully.")
             if user.must_change_password:
+                print("Redirecting to force_password_change")
                 return redirect("force_password_change")
+            print("Redirecting to role_dashboard")
             return redirect("role_dashboard")
+        else:
+            print(f"Form errors: {form.errors}")
     else:
         form = LoginForm(request)
 

@@ -3,10 +3,16 @@
 {% block title %}Register{% endblock %}
 {% block body_class %}guest-shell{% endblock %}
 {% block content %}
+<style>
+    .auth-image-register {
+        background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("{% static 'bookings/img/register-premium.png' %}");
+    }
+</style>
+
 <section class="auth-wrap">
     <article class="auth-split-card">
         <!-- Visual Side -->
-        <div class="auth-image-area" style="background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{% static 'bookings/img/register-premium.png' %}');">
+        <div class="auth-image-area auth-image-register">
             <h2>Join the Community</h2>
             <p>Start booking the best home services in your area or join as a professional provider today.</p>
         </div>

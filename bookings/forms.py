@@ -69,14 +69,18 @@ class LoginForm(AuthenticationForm):
             field.widget.attrs.update({"class": "form-control"})
 
     def clean(self):
-        username_value = (self.cleaned_data.get("username") or "").strip()
+        username_value = self.cleaned_data.get("username")
+        print(f"Cleaning LoginForm. Username: {username_value}")
         if username_value:
             match = None
             if "@" in username_value:
+                print("Checking email match")
                 match = CustomUser.objects.filter(email__iexact=username_value).first()
             else:
+                print("Checking username match")
                 match = CustomUser.objects.filter(username__iexact=username_value).first()
                 if not match:
+                    print("Checking full name match")
                     first_name, _, last_name = username_value.partition(" ")
                     if first_name:
                         query = CustomUser.objects.filter(first_name__iexact=first_name)
@@ -85,7 +89,10 @@ class LoginForm(AuthenticationForm):
                         if query.count() == 1:
                             match = query.first()
             if match:
+                print(f"Match found: {match.username}")
                 self.cleaned_data["username"] = match.username
+            else:
+                print("No match found")
         return super().clean()
 
 

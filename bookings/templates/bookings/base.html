@@ -16,7 +16,7 @@
     <link rel="icon" type="image/svg+xml" href="{% static 'bookings/img/favicon.svg' %}">
 </head>
 
-<body>
+<body class="{% block body_class %}{% endblock %}">
 
     {% if messages %}
     <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1080;">
@@ -51,8 +51,7 @@
     {% endif %}
 
     {% if user.is_authenticated %}
-
-    <!-- Mobile Header Configuration Block -->
+    <!-- Mobile Header -->
     {% block mobile_header %}
     <header class="mobile-header">
         <a href="{% url 'role_dashboard' %}" class="d-flex align-items-center gap-2"
@@ -67,16 +66,55 @@
         </div>
     </header>
     {% endblock %}
+    {% else %}
+    <!-- Guest Layout Header -->
+    <div class="header-container fixed-top px-3 pt-2">
+        <header class="navbar navbar-expand-lg bg-white rounded-pill shadow-lg border px-4 py-2"
+            style="backdrop-filter: blur(15px); background: rgba(255,255,255,0.9) !important; max-width: 1200px; margin: 0 auto; min-height: 70px;">
+            <div class="container-fluid d-flex justify-content-between align-items-center">
+                <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center gap-2">
+                    <div
+                        style="background: linear-gradient(135deg, var(--primary), #1d4ed8); color: white; width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;">
+                        H</div>
+                    <strong class="fs-5 fw-bold">HomeService</strong>
+                </a>
 
+                <!-- Center Navigation (Desktop Only) -->
+                <div class="collapse navbar-collapse justify-content-center d-none d-lg-flex" id="guestNavbar">
+                    <ul class="navbar-nav gap-4">
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold text-dark small"
+                                href="{% url 'home' %}#services-section">Services</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold text-dark small" href="{% url 'home' %}#how-it-works">How
+                                it Works</a>
+                        </li>
+                    </ul>
+                </div>
 
-    <!-- App Layout Container -->
-    <div class="app-layout">
+                <!-- Right Actions (Desktop Only) -->
+                <div class="d-none d-lg-flex gap-4 align-items-center">
+                    {% if request.path != '/login/' %}
+                    <a href="{% url 'login' %}" class="text-decoration-none fw-bold text-muted small">Login</a>
+                    {% endif %}
+                    {% if request.path != '/register/' %}
+                    <a href="{% url 'register' %}"
+                        class="btn btn-primary rounded-pill px-4 py-1 small fw-bold shadow-sm">Join Now</a>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+    </div>
+    {% endif %}
+
+    <div class="{% if user.is_authenticated %}app-layout{% endif %}">
+        {% if user.is_authenticated %}
         <!-- Desktop Sidebar -->
         <aside class="sidebar d-none d-lg-flex">
             <a class="sidebar-brand" href="{% url 'role_dashboard' %}">
                 <span class="brand-dot"></span> Home Service
             </a>
-
 
             <nav class="sidebar-nav">
                 <a href="{% url 'role_dashboard' %}"
@@ -169,10 +207,11 @@
                 </nav>
             </div>
         </aside>
+        {% endif %}
 
         <!-- Main Content Area -->
-        <main class="main-content">
-            {% if not is_guest_home %}
+        <main class="{% if user.is_authenticated %}main-content{% else %}{% if '/login/' in request.path or '/register/' in request.path %}auth-page-main{% else %}pt-0 mt-0 mb-0{% endif %}{% endif %}">
+            {% if user.is_authenticated and not is_guest_home %}
             <header class="dashboard-top-nav d-none d-lg-flex justify-content-end">
                 <div class="top-nav-actions">
                     <div class="user-profile-lite">
@@ -183,59 +222,10 @@
             </header>
             {% endif %}
 
-            {% else %}
-            <!-- Guest Layout (New Home Page UI) -->
-            <!-- Floating Pill Header (Guest) -->
-            <div class="header-container fixed-top px-3 pt-2">
-                <header class="navbar navbar-expand-lg bg-white rounded-pill shadow-lg border px-4 py-2"
-                    style="backdrop-filter: blur(15px); background: rgba(255,255,255,0.9) !important; max-width: 1200px; margin: 0 auto; min-height: 70px;">
-                    <div class="container-fluid d-flex justify-content-between align-items-center">
-                        <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center gap-2">
-                            <div
-                                style="background: linear-gradient(135deg, var(--primary), #1d4ed8); color: white; width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;">
-                                H</div>
-                            <strong class="fs-5 fw-bold">HomeService</strong>
-                        </a>
+            {% block content %}{% endblock %}
+        </main>
+    </div> <!-- End app-layout -->
 
-                        <!-- Center Navigation (Desktop Only) -->
-                        <div class="collapse navbar-collapse justify-content-center d-none d-lg-flex" id="guestNavbar">
-                            <ul class="navbar-nav gap-4">
-                                <li class="nav-item">
-                                    <a class="nav-link fw-bold text-dark small"
-                                        href="{% url 'home' %}#services-section">Services</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link fw-bold text-dark small" href="{% url 'home' %}#how-it-works">How
-                                        it Works</a>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <!-- Right Actions (Desktop Only) -->
-                        <div class="d-none d-lg-flex gap-4 align-items-center">
-                            {% if request.path != '/login/' %}
-                            <a href="{% url 'login' %}" class="text-decoration-none fw-bold text-muted small">Login</a>
-                            {% endif %}
-                            {% if request.path != '/register/' %}
-                            <a href="{% url 'register' %}"
-                                class="btn btn-primary rounded-pill px-4 py-1 small fw-bold shadow-sm">Join Now</a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </header>
-            </div>
-
-
-
-            <main
-                class="{% if '/login/' in request.path or '/register/' in request.path %}auth-page-main{% else %}pt-0 mt-0 mb-0{% endif %}">
-                {% endif %}
-
-                {% block content %}{% endblock %}
-            </main>
-            {% if user.is_authenticated %}
-    </div> <!-- Close app-layout -->
-    {% endif %}
 
     {% if not user.is_authenticated %}
     <!-- Guest Mobile Bottom Navigation Dock -->
