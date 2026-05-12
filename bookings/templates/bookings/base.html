@@ -51,18 +51,20 @@
     {% endif %}
 
     {% if user.is_authenticated %}
-    <!-- Mobile Header -->
+    <!-- Responsive Header (Shared across mobile and desktop dashboards) -->
     {% block mobile_header %}
     <header class="mobile-header">
         <a href="{% url 'role_dashboard' %}" class="d-flex align-items-center gap-2"
-            style="text-decoration: none; font-weight: 700; color: var(--text-main);">
+            style="text-decoration: none; font-weight: 800; color: var(--text-main); font-size: 1.15rem; letter-spacing: -0.5px; flex-shrink: 0;">
             <span class="brand-dot"></span> Home Service
         </a>
-        <div class="d-flex gap-2 align-items-center">
-            <span class="badge rounded-pill border fw-800"
-                style="font-size: 0.85rem; letter-spacing: 0.01em; padding: 0.5rem 1rem; background: var(--primary-light); color: var(--primary); border-color: var(--primary-soft) !important;">
-                {{ user.role|capfirst }} User
-            </span>
+        <div class="d-flex align-items-center gap-3 ms-auto">
+            <div class="text-end">
+                <span class="role-badge role-badge-{{ user.role|default:'customer' }}">
+                    {% if user.role == 'customer' %}USER{% else %}{{ user.role|upper }}{% endif %}
+                </span>
+                <div class="user-identity-name">{{ user.username }}</div>
+            </div>
         </div>
     </header>
     {% endblock %}
@@ -212,11 +214,13 @@
         <!-- Main Content Area -->
         <main class="{% if user.is_authenticated %}main-content{% else %}{% if '/login/' in request.path or '/register/' in request.path %}auth-page-main{% else %}pt-0 mt-0 mb-0{% endif %}{% endif %}">
             {% if user.is_authenticated and not is_guest_home %}
-            <header class="dashboard-top-nav d-none d-lg-flex justify-content-end">
+            <header class="dashboard-top-nav d-none d-lg-flex justify-content-end align-items-center">
                 <div class="top-nav-actions">
-                    <div class="user-profile-lite">
-                        <span class="user-name">{{ user.display_name }}</span>
-                        <span class="user-role">{{ user.role|capfirst }}</span>
+                    <div class="text-end">
+                        <span class="role-badge role-badge-{{ user.role|default:'customer' }}">
+                            {% if user.role == 'customer' %}USER{% else %}{{ user.role|upper }}{% endif %}
+                        </span>
+                        <div class="user-identity-name">{{ user.username }}</div>
                     </div>
                 </div>
             </header>
