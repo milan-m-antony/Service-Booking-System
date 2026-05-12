@@ -2772,7 +2772,10 @@ body.modal-open .mobile-bottom-nav {
     }
 
     .guest-shell .btn-primary {
-        height: 50px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        height: 48px !important;
         padding: 0 !important;
     }
 
@@ -2805,7 +2808,7 @@ body.modal-open .mobile-bottom-nav {
 }
 
 .guest-shell .form-control {
-    height: 56px;
+    height: 48px;
     background: #fdfdfd;
     border: 1px solid #e2e8f0;
     border-radius: 50px;
@@ -2863,11 +2866,11 @@ body.modal-open .mobile-bottom-nav {
 
 .password-toggle-btn {
     position: absolute !important;
-    right: 5px !important;
-    top: 5px !important;
-    bottom: 5px !important;
-    width: 46px !important;
-    height: 46px !important;
+    right: 4px !important;
+    top: 4px !important;
+    bottom: 4px !important;
+    width: 40px !important;
+    height: 40px !important;
     border-radius: 50% !important;
     border: none !important;
     background: transparent !important;
@@ -2885,12 +2888,15 @@ body.modal-open .mobile-bottom-nav {
 }
 
 .guest-shell .btn-primary {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     border-radius: 50px !important;
-    height: 56px !important;
-    font-weight: 600 !important;
+    height: 48px !important;
+    font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 1px !important;
-    font-size: 0.9rem !important;
+    font-size: 0.95rem !important;
     transition: all 0.4s ease !important;
     box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3) !important;
 }
@@ -2906,22 +2912,7 @@ body.modal-open .mobile-bottom-nav {
     width: 100%;
 }
 
-.guest-shell .btn-primary {
-    height: 56px;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    letter-spacing: 0.5px;
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
-    transition: all 0.3s ease;
-}
-
-
-
-.guest-shell .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 15px 30px rgba(59, 130, 246, 0.3);
-}
+/* Removed redundant btn-primary definition */
 
 @media (max-width: 576px) {
     .guest-shell .auth-form-area {
