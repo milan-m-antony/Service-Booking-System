@@ -3,47 +3,6 @@
 {% block title %}Register{% endblock %}
 {% block body_class %}guest-shell{% endblock %}
 {% block content %}
-<style>
-    .auth-image-register {
-        background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("{% static 'bookings/img/register-premium.png' %}");
-    }
-    
-    /* Diagnostic: Force the gap directly in the template */
-    @media (min-width: 992px) {
-        .register-wrap {
-            padding-top: 35px !important;
-            align-items: flex-start !important;
-            overflow: hidden !important;
-            height: 100vh !important;
-            max-height: 100vh !important;
-            border: none !important;
-        }
-        /* Tighten internal form area for desktop */
-        .auth-form-area {
-            padding: 15px 30px !important;
-        }
-        .auth-form-area h3 {
-            font-size: 1.5rem !important;
-            margin-bottom: 5px !important;
-        }
-        .auth-form-area .text-muted.small.mb-4 {
-            margin-bottom: 10px !important;
-        }
-        .auth-form-area .mb-3 {
-            margin-bottom: 8px !important;
-        }
-        .auth-form-area .mb-4 {
-            margin-bottom: 12px !important;
-        }
-        .auth-form-area .form-control {
-            padding: 7px 12px !important;
-        }
-        .auth-form-area .mt-4 {
-            margin-top: 10px !important;
-        }
-    }
-</style>
-
 <section class="auth-wrap register-wrap">
     <article class="auth-split-card">
         <!-- Visual Side -->

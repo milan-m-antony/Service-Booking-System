@@ -3568,6 +3568,38 @@ body.modal-open .mobile-bottom-nav {
         max-width: 1000px !important;
         margin-bottom: 50px !important;
     }
+    
+    /* Registration Compaction for Desktop */
+    body.guest-shell .register-wrap .auth-form-area {
+        padding: 15px 30px !important;
+    }
+    body.guest-shell .register-wrap .auth-form-area h3 {
+        font-size: 1.5rem !important;
+        margin-bottom: 5px !important;
+    }
+    body.guest-shell .register-wrap .auth-form-area .text-muted.small.mb-4 {
+        margin-bottom: 10px !important;
+    }
+    body.guest-shell .register-wrap .auth-form-area .mb-3 {
+        margin-bottom: 8px !important;
+    }
+    body.guest-shell .register-wrap .auth-form-area .mb-4 {
+        margin-bottom: 12px !important;
+    }
+    body.guest-shell .register-wrap .auth-form-area .form-control {
+        padding: 7px 12px !important;
+    }
+    body.guest-shell .register-wrap .auth-form-area .mt-4 {
+        margin-top: 10px !important;
+    }
+}
+
+.auth-image-register {
+    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("../img/register-premium.png");
+}
+
+.auth-image-login {
+    background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url("../img/auth-premium.png");
 }
 
 .auth-split-card {
@@ -4603,54 +4635,7 @@ body.modal-open .mobile-bottom-nav {
 }
 
 
-/* Consolidated Mobile Auth Styles */
-@media (max-width: 768px) {
-    .guest-shell .auth-wrap {
-        min-height: 0 !important;
-        padding: 60px 0.5rem 20px !important;
-        background: #f8fbff !important;
-    }
-
-    .guest-shell .auth-split-card {
-        max-width: 100% !important;
-        border-radius: 30px !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.04) !important;
-        margin: 0 !important;
-        border: none !important;
-    }
-
-    .guest-shell .auth-image-area {
-        display: none !important;
-    }
-
-    .guest-shell .auth-form-area {
-        padding: 1.75rem 1.25rem !important;
-    }
-
-    .guest-shell .form-control {
-        height: 50px !important;
-        font-size: 0.9rem !important;
-        border-radius: 30px !important;
-        text-align: center !important;
-    }
-
-    .guest-shell .password-toggle-btn {
-        height: 50px !important;
-        border-top-right-radius: 30px !important;
-        border-bottom-right-radius: 30px !important;
-        padding: 0 1.25rem !important;
-    }
-
-    .guest-shell .btn-primary {
-        height: 52px !important;
-        font-size: 1rem !important;
-        border-radius: 30px !important;
-    }
-}
-
-
 /* ─── Global Guest Shell Lockdown (No Scroll, Premium Feel) ─── */
-/* Force no-scroll for guest shell */
 html.guest-shell, 
 body.guest-shell,
 body.guest-shell .app-layout,
@@ -4692,8 +4677,8 @@ body.guest-shell .form-control {
     font-size: 1rem !important;
     border: 1px solid #e2e8f0 !important;
     background: #f8fafc !important;
-    padding-left: 50px !important;
-    padding-right: 50px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
     width: 100% !important;
 }
 
@@ -4713,6 +4698,7 @@ body.guest-shell .password-toggle-btn {
     color: #94a3b8 !important;
 }
 
+/* Consolidated Mobile Auth Lockdown */
 @media (max-width: 768px) {
     body.guest-shell {
         touch-action: none !important;
@@ -4738,6 +4724,12 @@ body.guest-shell .password-toggle-btn {
         border-radius: 20px !important;
         background: #ffffff !important;
         box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+
+    .guest-shell .auth-image-area {
+        display: none !important;
     }
 
     .guest-shell .auth-form-area {
@@ -4750,6 +4742,7 @@ body.guest-shell .password-toggle-btn {
         font-size: 0.9rem !important;
     }
 
+    /* Support for force-password page specifically */
     .force-pw-container h3 {
         font-size: 1.3rem !important;
         margin-bottom: 0.2rem !important;
