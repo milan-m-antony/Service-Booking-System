@@ -3594,14 +3594,6 @@ body.modal-open .mobile-bottom-nav {
     }
 }
 
-.auth-image-register {
-    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("../img/register-premium.png");
-}
-
-.auth-image-login {
-    background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url("../img/auth-premium.png");
-}
-
 .auth-split-card {
     display: flex !important;
     flex-direction: row !important;
@@ -3626,6 +3618,14 @@ body.modal-open .mobile-bottom-nav {
     justify-content: flex-end !important;
     padding: 15px 25px;
     color: #ffffff !important;
+}
+
+.auth-image-register {
+    background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("../img/register-premium.png") !important;
+}
+
+.auth-image-login {
+    background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url("../img/auth-premium.png") !important;
 }
 
 .auth-image-area h2 {
